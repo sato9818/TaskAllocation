@@ -1,8 +1,19 @@
 
-public abstract class Agent {
+public class Agent {
 	int capacity[] = new int[3];
 	int de[];
+	int id;
+	Environment environment;
 	
-	abstract void excute();
-	abstract void updatede();
+	Agent(){
+		
+	}
+	
+	public void excute(){
+		
+	}
+	public void updatede(){
+		
+	}
+	
 }
