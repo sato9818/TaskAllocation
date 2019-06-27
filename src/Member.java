@@ -1,10 +1,9 @@
 
 public class Member extends Agent{
 	
-	public void excute(){
-		
+	Member(){
+		super();
 	}
-	public void updatede(){
-		
-	}
+	
+	
 }

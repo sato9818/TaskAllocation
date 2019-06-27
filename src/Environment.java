@@ -2,13 +2,21 @@ import java.util.ArrayDeque;
 import java.util.Queue;
 
 public class Environment {
-	Queue<Task> queueOfTask = new ArrayDeque<>();
-	private int[][] grid = new int[50][50];
+	private Queue<Task> taskqueue = new ArrayDeque<>();
+	
 	
 	public void addTask(int mu, Sfmt rnd){
 		for(int i=0;i<mu;i++){
 			Task task = new Task(rnd);
-			queueOfTask.add(task);
+			taskqueue.add(task);
 		}
+	}
+	
+	public boolean TaskisEmpty(){
+		return taskqueue.isEmpty();
+	}
+	
+	public Task pushTask(){
+		return taskqueue.poll();
 	}
 }
