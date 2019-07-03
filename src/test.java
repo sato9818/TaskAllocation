@@ -36,8 +36,7 @@ public class test {
 				switch(ld.getPhase()){
 				case 0:
 					if(!e.TaskisEmpty()){
-						ld.setTask(e.pushTask());
-						ld.selectmember()
+						ld.selectmember(e.pushTask(), members);
 						ld.changephase();
 					}
 					
