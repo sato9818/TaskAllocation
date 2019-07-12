@@ -4,10 +4,10 @@ public class SubTask {
 	private int utility = 0;
 	
 	SubTask(Sfmt rnd){
-		for(int i=0;i<3;i++){
-			reqCapa[i] = 5 + (int)(rnd.NextUnif()*6);
-			utility += reqCapa[i];
-		}
+		int r = (int)(rnd.NextUnif()*3); 
+		reqCapa[r] = 5 + (int)(rnd.NextUnif()*6);
+		utility += reqCapa[r];
+		
 	}
 	public int getutility(){
 		return utility;

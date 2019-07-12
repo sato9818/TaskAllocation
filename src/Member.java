@@ -1,8 +1,8 @@
 
 public class Member extends Agent{
 	
-	Member(){
-		super();
+	Member(Sfmt rnd){
+		super(rnd);
 	}
 	
 	

@@ -1,23 +1,27 @@
+import java.util.ArrayList;
+import java.util.List;
 
 public class Task {
-	private SubTask[] subtasks;
+	private List<SubTask> subtasks = new ArrayList<SubTask>();
+	
 	int utility = 0;
 	
 	Task(Sfmt rnd){
 		int numOfSubtask;
-		numOfSubtask = 3 + (int)(rnd.NextUnif()*4);
-		subtasks = new SubTask[numOfSubtask]; 
+		numOfSubtask = 3 + (int)(rnd.NextUnif()*4); 
 		
-		for(int i=0;i<subtasks.length;i++){
-			utility +=subtasks[i].getutility();
+		for(int i=0;i<numOfSubtask;i++){
+			SubTask subtask = new SubTask(rnd);
+			subtasks.add(subtask);
+			utility +=subtask.getutility();
 		}
 		
 	}
 	
-	public int getsubtasknum(){
-		return subtasks.length;
+	public int getsubtasksize(){
+		return subtasks.size();
 	}
-	public SubTask[] getSubTasks(){
+	public List<SubTask> getSubTasks(){
 		return subtasks;
 	}
 }

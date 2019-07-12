@@ -7,13 +7,13 @@ public class test {
 	
 	List<Member> members = new ArrayList<Member>();
 	
-	void initialize(){
+	void initialize(Sfmt rnd){
 		for(int i=0;i<100;i++){
-			Leader leader = new Leader();
+			Leader leader = new Leader(rnd);
 			leaders.add(leader);
 		}
 		for(int i=0;i<400;i++){
-			Member member = new Member();
+			Member member = new Member(rnd);
 			members.add(member);
 		}
 		
@@ -22,32 +22,53 @@ public class test {
 	public void run(){
 		Environment e = new Environment();
 		Sfmt rnd = new Sfmt(7);
-		initialize();
+		initialize(rnd);
+		/*
+		for (int i=0; i<leaders.size(); ++i){
+			Leader ld = leaders.get(i);
+		    System.out.println(ld.getmyid() + "(" + ld.capacity[0] + ", " + ld.capacity[1] + ", " + ld.capacity[2] + ")");
+		}
+		for (int i=0; i<members.size(); ++i){
+			Member mem = members.get(i);
+			System.out.println(mem.getmyid() + "(" + mem.capacity[0] + ", " + mem.capacity[1] + ", " + mem.capacity[2] + ")");
+		}
+		*/
 		
-		for(int tick=0;tick<10000;tick++){
+		for(int tick=0;tick<1;tick++){
 			
 			Collections.shuffle(leaders);
 			Collections.shuffle(members);
-			e.addTask(2, rnd);
+			e.addTask(1/*mu*/, rnd);
+			
+			/*
+			Task ts = e.pushTask();
+			System.out.println(ts.getsubtasksize());
+			List<SubTask> sb = ts.getSubTasks();
+			for (int i=0; i<sb.size(); ++i){
+				SubTask sb1 = sb.get(i);
+			    System.out.println(sb1.getutility() + "(" + sb1.reqCapa[0] + ", " + sb1.reqCapa[1] + ", " + sb1.reqCapa[2] + ")");
+			}
+			*/
+			
+			
 			
 			//リーダの行動
+			
 			for(int i=0;i<leaders.size();i++){
 				Leader ld = leaders.get(i);
 				switch(ld.getPhase()){
 				case 0:
 					if(!e.TaskisEmpty()){
-						ld.selectmember(e.pushTask(), members);
+						Task t = e.pushTask();
+						System.out.println(t.getsubtasksize());
+						ld.selectmember(t.getSubTasks(), members);
+						System.out.println(t.getsubtasksize());
 						ld.changephase();
 					}
-					
-					
 					break;
 				}
-				
-				
-			}
-		}
-		
+			}	
+		}	
 	}
 	/*
 	}
