@@ -1,5 +1,6 @@
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 
 public class test {
@@ -21,7 +22,7 @@ public class test {
 	
 	public void run(){
 		Environment e = new Environment();
-		Sfmt rnd = new Sfmt(7);
+		Sfmt rnd = new Sfmt(7/*seed*/);
 		initialize(rnd);
 		/*
 		for (int i=0; i<leaders.size(); ++i){
@@ -59,12 +60,26 @@ public class test {
 				switch(ld.getPhase()){
 				case 0:
 					if(!e.TaskisEmpty()){
-						Task t = e.pushTask();
-						System.out.println(t.getsubtasksize());
-						ld.selectmember(t.getSubTasks(), members);
-						System.out.println(t.getsubtasksize());
+						ld.setTask(e.pushTask());
+						
+						//System.out.println(t.getsubtasksize());
+						ld.selectmember(members,e);
+						
+						
+						//System.out.println(t.getsubtasksize());
+						
 						ld.changephase();
 					}
+					break;
+				}
+			}	
+			
+			//メンバの行動
+			for(int i=0;i<members.size();i++){
+				Member mem = members.get(i);
+				switch(mem.getPhase()){
+				case 0:
+					
 					break;
 				}
 			}	

@@ -2,6 +2,8 @@
 public class SubTask {
 	int reqCapa[] = new int[3];
 	private int utility = 0;
+	Leader from;
+	Member to;
 	
 	SubTask(Sfmt rnd){
 		int r = (int)(rnd.NextUnif()*3); 
@@ -13,4 +15,19 @@ public class SubTask {
 		return utility;
 	}
 	
+	public void setfrom(Leader l){
+		from = l;
+	}
+	
+	public Leader getfrom(){
+		return from;
+	}
+	
+	public void setto(Member m){
+		to = m;
+	}
+	
+	public Member getto(){
+		return to;
+	}
 }
