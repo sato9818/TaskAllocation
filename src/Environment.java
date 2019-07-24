@@ -32,6 +32,17 @@ public class Environment {
 		messagelisttomember.add(m);
 	}
 	
+	public void decrementdelay(){
+		for(int i=0;i<messagelisttoleader.size();i++){
+			MessagetoLeader message = messagelisttoleader.get(i);
+			message.decreasedelay();
+		}
+		for(int i=0;i<messagelisttomember.size();i++){
+			MessagetoMember message = messagelisttomember.get(i);
+			message.decreasedelay();
+		}
+	}
+	
 	public void checkdelay(){
 		for(int i=0;i<messagelisttoleader.size();i++){
 			MessagetoLeader message = messagelisttoleader.get(i);
@@ -55,8 +66,8 @@ public class Environment {
 		message.getto().getmessage(message);
 	}
 	
-	public void sendmessagetomember(MessagetoMember massage){
-		
+	public void sendmessagetomember(MessagetoMember message){
+		message.getto().getmessage(message);
 	}
 	
 	public void deletemessage(){

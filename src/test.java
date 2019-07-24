@@ -9,15 +9,43 @@ public class test {
 	List<Member> members = new ArrayList<Member>();
 	
 	void initialize(Sfmt rnd){
+		List<Grid> grid = new ArrayList<Grid>();
+		
+		for(int i=0;i<50;i++){
+			for(int j=0;j<50;j++){
+				Grid g = new Grid(i,j);
+				grid.add(g);
+			}
+		}
+		
+		Collections.shuffle(grid);
+		
 		for(int i=0;i<100;i++){
 			Leader leader = new Leader(rnd);
+			leader.setPosition(grid.get(i).x, grid.get(i).y);
 			leaders.add(leader);
 		}
-		for(int i=0;i<400;i++){
+		for(int i=100;i<500;i++){
 			Member member = new Member(rnd);
+			member.setPosition(grid.get(i).x, grid.get(i).y);
 			members.add(member);
 		}
 		
+	}
+	
+	void update(Environment e){
+		for(int i=0;i<100;i++){
+			for(int j=0;j<500;j++){
+				leaders.get(i).reducede(j);
+			}
+		}
+		for(int i=0;i<400;i++){
+			for(int j=0;j<500;j++){
+				members.get(i).reducede(j);
+			}
+		}
+		e.decrementdelay();
+		e.checkdelay();
 	}
 	
 	public void run(){
@@ -64,14 +92,32 @@ public class test {
 						
 						//System.out.println(t.getsubtasksize());
 						ld.selectmember(members,e);
-						
-						
 						//System.out.println(t.getsubtasksize());
 						
-						ld.changephase();
+						ld.setphase(1);
+					}
+					break;
+				case 1:
+					if(ld.checkallocation() == 0){
+						ld.setphase(2);
+						ld.taskallocate(e);
+					}else if(ld.checkallocation() == 1){
+						ld.failallocate(e);
+						ld.setphase(0);
+						ld.clearall();
+					}
+					break;
+				case 2:
+					if(ld.checkexcution() == 0){
+						ld.setphase(0);
+						ld.clearall();
+					}else if(ld.checkexcution() == 1){
+						
 					}
 					break;
 				}
+				
+					
 			}	
 			
 			//メンバの行動
@@ -79,10 +125,25 @@ public class test {
 				Member mem = members.get(i);
 				switch(mem.getPhase()){
 				case 0:
+					if(mem.havemessage()){
+						mem.decideSubtask();
+						mem.setphase(1);
+					}else{
+						break;
+					}
 					
 					break;
+				case 1:
+					mem.sendreplymessages(e);
+				case 2:
+					if(mem.checkexcution(e) == 0){
+						mem.setphase(0);
+						mem.clearall();
+					}
+					mem.reduceexcutiontime();
 				}
 			}	
+			update(e);
 		}	
 	}
 	/*

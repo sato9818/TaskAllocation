@@ -4,7 +4,7 @@ import java.util.List;
 public class Task {
 	private List<SubTask> subtasks = new ArrayList<SubTask>();
 	
-	int utility = 0;
+	private int utility = 0;
 	
 	Task(Sfmt rnd){
 		int numOfSubtask;
@@ -23,5 +23,8 @@ public class Task {
 	}
 	public List<SubTask> getSubTasks(){
 		return subtasks;
+	}
+	public int getutility(){
+		return utility;
 	}
 }

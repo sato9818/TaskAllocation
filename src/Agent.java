@@ -44,9 +44,11 @@ public class Agent {
 		return gridy;
 	}
 	
-	public void updatede(){
-		
+	public void reducede(int id){
+		de[id] = Math.max(de[id]-0.000002, 0.0);
 	}
+	
+	
 	
 	public int getmyid(){
 		return myid;
@@ -56,7 +58,7 @@ public class Agent {
 		return phase;
 	}
 	
-	public void changephase(){
+	public void setphase(int phase){
 		/*Leader
 		 * 0:メンバの選択
 		 * 1:メンバからの返信待ち
@@ -67,9 +69,10 @@ public class Agent {
 		 * 2:割り当て待ち
 		 * 3:処理
 		 */
-		phase++;
+		this.phase = phase;
 		
 	}
+	
 	public void setwaittime(int wt){
 		waittime = wt;
 	}
