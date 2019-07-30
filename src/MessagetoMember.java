@@ -23,7 +23,7 @@ public class MessagetoMember extends Message{
 	}
 	
 	MessagetoMember(Leader f, Member t, boolean ht){
-		//受理メッセージに対するタスクを与えるか与えない
+		//受理メッセージに対するタスクを与えない
 		super(null, 1);
 		from = f;
 		to = t;

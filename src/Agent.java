@@ -1,4 +1,6 @@
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 
 public class Agent {
@@ -9,15 +11,18 @@ public class Agent {
 	private int gridx;
 	private int gridy;
 	private int phase = 0;
-	private int waittime = 0;
 	List<Agent> deagent = new ArrayList<Agent>();
-	
+	protected int numofdeagent;
+	private double capave = 0.0;
+	protected double threshold;
 	
 	Agent(Sfmt rnd){
 		while(capacity[0] == 0 && capacity[1] == 0 && capacity[2] == 0){
 			for(int i=0;i<3;i++){
 				capacity[i] = (int)(rnd.NextUnif()*6);
+				capave += (double)capacity[i];
 			}
+			capave /= 3;
 		}
 		
 		myid = num;
@@ -48,8 +53,6 @@ public class Agent {
 		de[id] = Math.max(de[id]-0.000002, 0.0);
 	}
 	
-	
-	
 	public int getmyid(){
 		return myid;
 	}
@@ -64,17 +67,37 @@ public class Agent {
 		 * 1:メンバからの返信待ち
 		 * 2:メンバへ割り当て
 		 *Member
-		 * 0:メッセージ待ち
-		 * 1:リーダーに返信
-		 * 2:割り当て待ち
+		 * 0:メッセージ待ち、メッセージがあればメッセージを選んでリーダーに返信
+		 * 1:割り当て待ち
 		 * 3:処理
 		 */
 		this.phase = phase;
 		
 	}
-	
-	public void setwaittime(int wt){
-		waittime = wt;
+	public double averageOfCapability(){
+		return capave;
 	}
 	
+	public void adddeagent(Agent agent){
+		deagent.add(agent);
+	}
+	
+	public double getthreshold(){
+		return threshold;
+	}
+	
+	public void updatedeagent(){
+		if(numofdeagent < deagent.size()){
+			Collections.sort(deagent, new Comparator<Agent>(){
+				public int compare(Agent m1, Agent m2) {
+					 return de[m1.getmyid()] > de[m2.getmyid()] ? -1 : 1;
+				}
+			});
+			List<Agent> buf = new ArrayList<Agent>();
+			for(int i=0;i<numofdeagent;i++){
+				buf.add(deagent.get(i));
+			}
+			deagent = buf;
+		}
+	}
 }

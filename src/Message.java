@@ -23,7 +23,7 @@ public class Message {
 	}
 	
 	protected void setdelay(Agent from, Agent to){
-		delay = manhattan(from.getPositionx(), to.getPositionx(), from.getPositiony(), to.getPositiony()) / 5/**/ + 1;
+		delay = manhattan(from.getPositionx(), to.getPositionx(), from.getPositiony(), to.getPositiony()) / 10/**/ + 1;
 		distance = delay;
 	}
 	

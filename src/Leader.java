@@ -19,64 +19,73 @@ public class Leader extends Agent{
 	//サブタスクとそれを処理するメンバのリスト
 	private HashMap<SubTask, Member> team = new HashMap<SubTask, Member>();
 	
-	private Task task = null;
 	
-	private int utility = 0;
 	
 	Leader(Sfmt rnd){
 		super(rnd);
+		numofdeagent = 1;
+		threshold = 1.5;
 	}
 	
 	
 	
-	public void selectmember(List<Member> members, Environment e){
+	public List<MessagetoMember> selectmember(List<Member> members, Task task){
 		
 		List<SubTask> subtasks = task.getSubTasks();
+		//処理する相手が決まっているサブタスク
 		List<SubTask> confsubtask = new ArrayList<SubTask>();
+		
+		List<MessagetoMember> messages = new ArrayList<MessagetoMember>();
 		
 		Collections.sort(subtasks, new SubUtilityComparator());
 		//sort member
 		Collections.sort(members, new Comparator<Member>(){
 			public int compare(Member m1, Member m2) {
-				 return de[m1.getmyid()] > de[m2.getmyid()] ? -1 : 1;
+				int i =  de[m1.getmyid()] > de[m2.getmyid()] ? -1 : 1;
+				System.out.println(i + " " + de[m1.getmyid()] + " " + de[m2.getmyid()]);
+				 return i;
 			}
 		});
-		
+		int k = 0;
 		for(int i=0;i<2/*N_d*/;i++){
-			int k = 0;
+			
 			int cap = 0;
 			for(int j=0;j<subtasks.size();j++){
 				SubTask subtask = subtasks.get(j);
-				for(int l = 0;l<3;l++){
+				//ループ1週目のサブタスクの集合＝処理すべきサブタスクの集合
+				if(i == 0){
+					presubtasks.add(subtask);
+				}
+				//サブタスクの要求リソースの位置を同定
+				for(int l=0;l<3;l++){
 					if(subtask.getcapacity(l) != 0){
 						cap = l;
 					}
 				}
-				if(i == 0){
-					presubtasks.add(subtask);
-				}
+				
 				if(!confsubtask.contains(subtask)){
-					//activeでないメンバーを選択
 					Member member = null;
 					while(true){
-						if(!(members.get(k)).isactive()){
+						//activeでないメンバーを選択
+						if(!members.get(k).isactive()){
+							//サブタスクの処理に必要な能力を持っているか
 							if(members.get(k).capacity[cap] != 0){
 								member = members.get(k);
+								k++;
 								break;
 							}
 						}
+						//activeでないメンバーがいなかったら
 						if(k == members.size() - 1){
 							System.out.println("There is no active member.");
-							return;
+							return null;
 						}
 						k++;
 					}
 					
 					MessagetoMember m = new MessagetoMember(this, member, subtask);
-					e.addmessagetomember(m);
-					
+					messages.add(m);		
 					premembers.add(member);
-					//presubtasks.add(subtask);
 					if(deagent.contains(member)){
 						confsubtask.add(subtask);
 					}
@@ -84,7 +93,12 @@ public class Leader extends Agent{
 				//System.out.println("confsubtasksize:" + confsubtask.size());
 			}
 		}
+		return messages;
 		//System.out.println("preteamsize:" + presubtasks.size());
+	}
+	
+	public void sendmessagetomember(MessagetoMember message, Environment e){
+		e.addmessagetomember(message);
 	}
 	
 	public void maketeam(MessagetoLeader message){
@@ -100,8 +114,9 @@ public class Leader extends Agent{
 				}
 			}else{
 				team.put(subtask, member);
+				presubtasks.remove(presubtasks.indexOf(subtask));
 			}
-			presubtasks.remove(presubtasks.indexOf(subtask));
+			
 	}
 	
 	public void getmessage(MessagetoLeader message){
@@ -114,6 +129,7 @@ public class Leader extends Agent{
 			updatede(message, message.memberaccept());
 		}else if(message.gettype() == 1/*処理終了*/){
 			Member member = message.getfrom();
+			System.out.println("Finish Excution from Member " + message.getfrom().getmyid() + " to leader " + message.getto().getmyid() + " " + message.getsubtask());
 			membersexcuting.remove(membersexcuting.indexOf(member));
 		}
 		
@@ -131,6 +147,13 @@ public class Leader extends Agent{
 	}
 	
 	public int checkallocation(){
+		return waitreply();
+	}
+
+
+
+	public int waitreply(){
+		//System.out.println("checkallocation");
 		if(premembers.isEmpty()){
 			if(presubtasks.isEmpty()){
 				//0がallocation成功
@@ -145,9 +168,9 @@ public class Leader extends Agent{
 		}
 	}
 	public int checkexcution(){
+		//System.out.println("checkexcution");
 		if(membersexcuting.isEmpty()){
 			//0がexcution成功
-			utility = getutility();
 			return 0;
 		}else{
 			//1は継続中
@@ -172,28 +195,28 @@ public class Leader extends Agent{
             // nextを使用して値を取得する
             SubTask subtask = (SubTask)subtask_itr.next();
             MessagetoMember message = new MessagetoMember(this, team.get(subtask), subtask, true);
+            System.out.println("Allocate from Leader " + message.getfrom().getmyid() + " to Member " +message.getto().getmyid() + " " + message.getsubtask() );
             e.addmessagetomember(message);
-            acceptmembers.remove(membersexcuting.indexOf(team.get(subtask)));
+            membersexcuting.add(message.getto());
+            acceptmembers.remove(acceptmembers.indexOf(team.get(subtask)));
         }
         for(int i=0;i<acceptmembers.size();i++){
 			MessagetoMember message = new MessagetoMember(this, acceptmembers.get(i), false);
 			e.addmessagetomember(message);
 		}
+        /*
+        for(int i=0;i<membersexcuting.size();i++){
+			MessagetoMember message = new MessagetoMember(this, acceptmembers.get(i), false);
+			e.addmessagetomember(message);
+		}
+        */
 	}
 	
-	public int getutility(){
-		return task.getutility();
-	}
-	
-	public void setTask(Task t){
-		task = t;
-	}
 	public void clearall(){
 		presubtasks.clear();
 		premembers.clear();
 		membersexcuting.clear();
 		acceptmembers.clear();
 		team.clear();
-		task = null;
 	}
 }

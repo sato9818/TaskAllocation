@@ -46,7 +46,7 @@ public class Environment {
 	public void checkdelay(){
 		for(int i=0;i<messagelisttoleader.size();i++){
 			MessagetoLeader message = messagelisttoleader.get(i);
-			if(message.getdelay() == 0){
+			if(message.getdelay() <= 0){
 				sendmessagetoleader(message);
 				messagelisttoleader.remove(i);
 				i--;
@@ -54,7 +54,7 @@ public class Environment {
 		}
 		for(int i=0;i<messagelisttomember.size();i++){
 			MessagetoMember message = messagelisttomember.get(i);
-			if(message.getdelay() == 0){
+			if(message.getdelay() <= 0){
 				sendmessagetomember(message);
 				messagelisttomember.remove(i);
 				i--;
@@ -67,7 +67,7 @@ public class Environment {
 	}
 	
 	public void sendmessagetomember(MessagetoMember message){
-		message.getto().getmessage(message);
+		message.getto().getmessage(message, this);
 	}
 	
 	public void deletemessage(){

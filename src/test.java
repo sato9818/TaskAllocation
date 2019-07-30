@@ -2,6 +2,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Random;
 
 public class test {
 	List<Leader> leaders = new ArrayList<Leader>();
@@ -18,7 +19,7 @@ public class test {
 			}
 		}
 		
-		Collections.shuffle(grid);
+		Collections.shuffle(grid, new Random(13));
 		
 		for(int i=0;i<100;i++){
 			Leader leader = new Leader(rnd);
@@ -34,18 +35,34 @@ public class test {
 	}
 	
 	void update(Environment e){
+		
 		for(int i=0;i<100;i++){
-			for(int j=0;j<500;j++){
-				leaders.get(i).reducede(j);
+			Leader leader = leaders.get(i);
+			leader.deagent.clear();
+			for(int j=0;j<400;j++){
+				Member member = members.get(j);
+				if(leader.getthreshold() < leader.de[member.getmyid()]){
+					leader.adddeagent(member);
+				}
+				leader.reducede(member.getmyid());
 			}
+			leader.updatedeagent();
 		}
 		for(int i=0;i<400;i++){
-			for(int j=0;j<500;j++){
-				members.get(i).reducede(j);
+			Member member = members.get(i);
+			member.deagent.clear();
+			for(int j=0;j<100;j++){
+				Leader leader = leaders.get(j);
+				if(member.getthreshold() < member.de[leader.getmyid()]){
+					member.adddeagent(leader);
+				}
+				member.reducede(leader.getmyid());
 			}
+			member.updatedeagent();
 		}
-		e.decrementdelay();
 		e.checkdelay();
+		e.decrementdelay();
+		
 	}
 	
 	public void run(){
@@ -62,12 +79,14 @@ public class test {
 			System.out.println(mem.getmyid() + "(" + mem.capacity[0] + ", " + mem.capacity[1] + ", " + mem.capacity[2] + ")");
 		}
 		*/
+		int excutiontask = 0;
 		
-		for(int tick=0;tick<1;tick++){
-			
-			Collections.shuffle(leaders);
-			Collections.shuffle(members);
-			e.addTask(1/*mu*/, rnd);
+		for(int tick=0;tick<100;tick++){
+			System.out.println("tick: " + tick);
+			Random r = new Random(7);
+			Collections.shuffle(leaders, r);
+			Collections.shuffle(members, r);
+			e.addTask(2/*mu*/, rnd);
 			
 			/*
 			Task ts = e.pushTask();
@@ -87,21 +106,37 @@ public class test {
 				Leader ld = leaders.get(i);
 				switch(ld.getPhase()){
 				case 0:
-					if(!e.TaskisEmpty()){
-						ld.setTask(e.pushTask());
+					if(!e.TaskisEmpty()){//タスクがあれば
+						//タスクを取得
+						Task task = e.pushTask();
+						//候補メンバーに送るメッセージを決める
+						List<MessagetoMember> messagestomember = ld.selectmember(members, task);
 						
-						//System.out.println(t.getsubtasksize());
-						ld.selectmember(members,e);
-						//System.out.println(t.getsubtasksize());
+						if(messagestomember == null){
+							break;
+						}
+						System.out.println(task.getSubTasks().size());
+						
+						for (int j=0; j<messagestomember.size(); j++){
+							System.out.println("message from Leader " + messagestomember.get(j).getfrom().getmyid() + " to Member " + messagestomember.get(j).getto().getmyid() + " " + messagestomember.get(j).getsubtask() + " delay " + messagestomember.get(j).getdelay());
+						}
+						//メッセージを送る
+						for(int j=0;j<messagestomember.size();j++){
+							ld.sendmessagetomember(messagestomember.get(j), e);
+						}
 						
 						ld.setphase(1);
 					}
 					break;
 				case 1:
-					if(ld.checkallocation() == 0){
-						ld.setphase(2);
+					//メッセージの返信を見て
+					if(ld.waitreply() == 0){
+						//アロケーション成功
+						System.out.println("taskallocation");
 						ld.taskallocate(e);
-					}else if(ld.checkallocation() == 1){
+						ld.setphase(2);
+					}else if(ld.waitreply() == 1){
+						//アロケーション失敗
 						ld.failallocate(e);
 						ld.setphase(0);
 						ld.clearall();
@@ -111,6 +146,8 @@ public class test {
 					if(ld.checkexcution() == 0){
 						ld.setphase(0);
 						ld.clearall();
+						excutiontask++;
+						System.out.println("success " + ld.getmyid());
 					}else if(ld.checkexcution() == 1){
 						
 					}
@@ -125,26 +162,36 @@ public class test {
 				Member mem = members.get(i);
 				switch(mem.getPhase()){
 				case 0:
-					if(mem.havemessage()){
-						mem.decideSubtask();
-						mem.setphase(1);
-					}else{
-						break;
+					if(mem.havemessage()){//メッセージが来ていたら
+						//来てるメッセージを取得
+						List<MessagetoMember> messages = mem.getmessages();
+						
+						//メッセージから受理するメッセージを選ぶ
+						MessagetoMember decide = mem.decideMessage(messages);
+						//受理したメッセージがあれば次のphaseへ
+						if(decide != null){
+							mem.setphase(1);
+						}
+						//来てるメッセージ全ての返信をする
+						mem.sendreplymessages(e, decide, messages);	
+						mem.clearmessages();
 					}
-					
 					break;
 				case 1:
-					mem.sendreplymessages(e);
-				case 2:
+					//excution開始
 					if(mem.checkexcution(e) == 0){
+						System.out.println("taskexcution");
 						mem.setphase(0);
 						mem.clearall();
 					}
 					mem.reduceexcutiontime();
+					
 				}
 			}	
 			update(e);
+			
 		}	
+		System.out.println(excutiontask);
 	}
 	/*
 	}
