@@ -27,6 +27,17 @@ public class Leader extends Agent{
 		threshold = 1.5;
 	}
 	
+	public List<Member> sortmember(List<Member> members){
+		for (int i = 0; i < members.size() - 1; i++) {
+            for (int j = members.size() - 1; j > i; j--) {
+                if (de[members.get(j - 1).getmyid()] > de[members.get(j).getmyid()]) {
+                    Collections.swap(members,j-1,j);
+                }
+            }
+        }
+		return members;
+	}
+	
 	
 	
 	public List<MessagetoMember> selectmember(List<Member> members, Task task){
@@ -39,13 +50,16 @@ public class Leader extends Agent{
 		
 		Collections.sort(subtasks, new SubUtilityComparator());
 		//sort member
+		/*
 		Collections.sort(members, new Comparator<Member>(){
 			public int compare(Member m1, Member m2) {
-				int i =  de[m1.getmyid()] > de[m2.getmyid()] ? -1 : 1;
+				int i = de[m1.getmyid()] > de[m2.getmyid()] ? -1 : 1;
 				System.out.println(i + " " + de[m1.getmyid()] + " " + de[m2.getmyid()]);
-				 return i;
+				return i;
 			}
 		});
+		*/
+		members = sortmember(members);
 		int k = 0;
 		for(int i=0;i<2/*N_d*/;i++){
 			
@@ -66,6 +80,12 @@ public class Leader extends Agent{
 				if(!confsubtask.contains(subtask)){
 					Member member = null;
 					while(true){
+						//activeでないメンバーがいなかったら
+						//System.out.println(k);
+						if(k >= members.size() - 1){
+							System.out.println("There is no active member.");
+							return null;
+						}
 						//activeでないメンバーを選択
 						if(!members.get(k).isactive()){
 							//サブタスクの処理に必要な能力を持っているか
@@ -75,11 +95,7 @@ public class Leader extends Agent{
 								break;
 							}
 						}
-						//activeでないメンバーがいなかったら
-						if(k == members.size() - 1){
-							System.out.println("There is no active member.");
-							return null;
-						}
+						
 						k++;
 					}
 					
@@ -195,7 +211,7 @@ public class Leader extends Agent{
             // nextを使用して値を取得する
             SubTask subtask = (SubTask)subtask_itr.next();
             MessagetoMember message = new MessagetoMember(this, team.get(subtask), subtask, true);
-            System.out.println("Allocate from Leader " + message.getfrom().getmyid() + " to Member " +message.getto().getmyid() + " " + message.getsubtask() );
+            System.out.println("Send task from Leader " + message.getfrom().getmyid() + " to Member " +message.getto().getmyid() + " " + message.getsubtask() );
             e.addmessagetomember(message);
             membersexcuting.add(message.getto());
             acceptmembers.remove(acceptmembers.indexOf(team.get(subtask)));

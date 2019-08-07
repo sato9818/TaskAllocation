@@ -61,14 +61,14 @@ public class Member extends Agent{
 	public void sendreplymessages(Environment e, MessagetoMember decide, List<MessagetoMember> messages){
 		if(decide != null){
 			MessagetoLeader mtol = new MessagetoLeader(this, decide.getfrom(), decide.getsubtask(), true, 0); 
-			System.out.println("message from Member " + mtol.getfrom().getmyid() + " to Leader " + mtol.getto().getmyid() + " " + mtol.getsubtask() + " " + mtol.memberaccept());
+			System.out.println("send message from Member " + mtol.getfrom().getmyid() + " to Leader " + mtol.getto().getmyid() + " " + mtol.getsubtask() + " " + mtol.memberaccept());
 			e.addmessagetoleader(mtol);
 		}
 		for(int i=0;i<messages.size();i++){
 			MessagetoMember mtom = messages.get(i);
 			if(!(mtom.equals(decide))){
 				MessagetoLeader mtol = new MessagetoLeader(this, mtom.getfrom(), mtom.getsubtask(), false, 0); 
-				System.out.println("message from Member " + mtol.getfrom().getmyid() + " to Leader " + mtol.getto().getmyid() + " " + mtol.getsubtask() + " " + mtol.memberaccept());
+				System.out.println("send message from Member " + mtol.getfrom().getmyid() + " to Leader " + mtol.getto().getmyid() + " " + mtol.getsubtask() + " " + mtol.memberaccept());
 				e.addmessagetoleader(mtol);
 			}
 		}
@@ -84,6 +84,7 @@ public class Member extends Agent{
 		}
 		System.out.println("Start Excution from Leader " + message.getfrom().getmyid() + " to Member " + message.getto().getmyid() + " " + message.getsubtask()+ " excutiontime : " + excutiontime);
 		finishexcution = new MessagetoLeader(this, message.getfrom(), message.getsubtask(), excutiontime, 1);
+		System.out.println(finishexcution);
 	}
 	
 	public int checkexcution(Environment e){
@@ -93,7 +94,11 @@ public class Member extends Agent{
 			System.out.println("finishexcution id : " + this.getmyid());
 			return 0;
 		}
-		return 1;
+		if(finishexcution == null){
+			active = false;
+			return 1;
+		}
+		return 2;
 	}
 	public void reduceexcutiontime(){
 		excutiontime--;
@@ -124,7 +129,7 @@ public class Member extends Agent{
 		this.de[message.getfrom().getmyid()] = 
 					(1.0 - 0.01/**/) * this.de[message.getfrom().getmyid()] 
 					+ 0.01 * delta;
-		System.out.println("de[" + message.getfrom().getmyid() + "] = " + this.de[message.getfrom().getmyid()]);
+		//System.out.println("de[" + message.getfrom().getmyid() + "] = " + this.de[message.getfrom().getmyid()]);
 		
 	}
 	

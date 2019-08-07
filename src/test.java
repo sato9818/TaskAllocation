@@ -79,9 +79,10 @@ public class test {
 			System.out.println(mem.getmyid() + "(" + mem.capacity[0] + ", " + mem.capacity[1] + ", " + mem.capacity[2] + ")");
 		}
 		*/
+		
 		int excutiontask = 0;
 		
-		for(int tick=0;tick<100;tick++){
+		for(int tick=0;tick<200;tick++){
 			System.out.println("tick: " + tick);
 			Random r = new Random(7);
 			Collections.shuffle(leaders, r);
@@ -97,6 +98,18 @@ public class test {
 			    System.out.println(sb1.getutility() + "(" + sb1.reqCapa[0] + ", " + sb1.reqCapa[1] + ", " + sb1.reqCapa[2] + ")");
 			}
 			*/
+			if(tick == 127){
+				
+				for(int i=0;i<members.size();i++){
+					if(members.get(i).getmyid() == 180)
+					System.out.println(members.get(i).getmyid() + " " + members.get(i).isactive() + " " + members.get(i).getPhase() + " " + members.get(i).excutiontime);	
+				}
+				/*
+				for(int i=0;i<leaders.size();i++){
+					System.out.println(leaders.get(i).getPhase());
+				}
+				*/
+			}
 			
 			
 			
@@ -118,7 +131,7 @@ public class test {
 						System.out.println(task.getSubTasks().size());
 						
 						for (int j=0; j<messagestomember.size(); j++){
-							System.out.println("message from Leader " + messagestomember.get(j).getfrom().getmyid() + " to Member " + messagestomember.get(j).getto().getmyid() + " " + messagestomember.get(j).getsubtask() + " delay " + messagestomember.get(j).getdelay());
+							System.out.println("send message from Leader " + messagestomember.get(j).getfrom().getmyid() + " to Member " + messagestomember.get(j).getto().getmyid() + " " + messagestomember.get(j).getsubtask() + " delay " + messagestomember.get(j).getdelay());
 						}
 						//メッセージを送る
 						for(int j=0;j<messagestomember.size();j++){
@@ -132,7 +145,7 @@ public class test {
 					//メッセージの返信を見て
 					if(ld.waitreply() == 0){
 						//アロケーション成功
-						System.out.println("taskallocation");
+						System.out.println("success taskallocation");
 						ld.taskallocate(e);
 						ld.setphase(2);
 					}else if(ld.waitreply() == 1){
@@ -170,6 +183,7 @@ public class test {
 						MessagetoMember decide = mem.decideMessage(messages);
 						//受理したメッセージがあれば次のphaseへ
 						if(decide != null){
+							//System.out.println("member next phase");
 							mem.setphase(1);
 						}
 						//来てるメッセージ全ての返信をする
@@ -180,12 +194,15 @@ public class test {
 				case 1:
 					//excution開始
 					if(mem.checkexcution(e) == 0){
-						System.out.println("taskexcution");
+						mem.setphase(0);
+						mem.clearall();
+					}else if(mem.checkexcution(e) == 1){
+						//System.out.println("no task");
 						mem.setphase(0);
 						mem.clearall();
 					}
 					mem.reduceexcutiontime();
-					
+					break;
 				}
 			}	
 			update(e);
