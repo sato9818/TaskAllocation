@@ -15,7 +15,7 @@ public class MessagetoLeader extends Message{
 		excutingtime = et;
 	}
 	
-	MessagetoLeader(Member f, Leader t, SubTask s, int et, int ty){
+	MessagetoLeader(Member f, Leader t, SubTask s, int ty, int et){
 		super(s, ty);
 		from = f;
 		to = t;

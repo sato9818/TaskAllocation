@@ -70,7 +70,7 @@ public class Leader extends Agent{
 		}
 		List<SubTask> subtasks = task.getSubTasks();
 		for(int i=0;i<subtasks.size();i++){
-			System.out.println(subtasks.get(i));
+			System.out.println(subtasks.get(i) + " " + subtasks.get(i).getcapacity(0) + " " + subtasks.get(i).getcapacity(1) + " " + subtasks.get(i).getcapacity(2));
 			subtasksCNP.add(subtasks.get(i));
 		}
 		return confmembers;
@@ -246,6 +246,7 @@ public class Leader extends Agent{
 			premembers.remove(message.getfrom());
 			updatedeRational(message, message.memberaccept());
 		}else if(message.gettype() == 1/*処理終了*/){
+			System.out.println("from member " + message.getfrom().getmyid());
 			Member member = message.getfrom();
 			
 			System.out.println(
@@ -280,6 +281,7 @@ public class Leader extends Agent{
 		}
 		
 	}
+	
 	public void updatede(MessagetoLeader message, boolean success){
 		double delta = 0.0;
 		if(success){

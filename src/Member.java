@@ -111,7 +111,7 @@ public class Member extends Agent{
 	}
 	public void taskexcution(MessagetoMember message){
 		System.out.println("Start Excution from Leader " + message.getfrom().getmyid() + " to Member " + message.getto().getmyid() + " " + message.getsubtask()+ " excutiontime : " + excutiontime);
-		finishexcution = new MessagetoLeader(this, message.getfrom(), message.getsubtask(), excutiontime, 1);
+		finishexcution = new MessagetoLeader(this, message.getfrom(), message.getsubtask(), 1, excutiontime);
 	}
 	
 	public int checkexcution(Environment e){

@@ -47,6 +47,8 @@ public class test1 {
 				member.setdistance(leader);
 			}
 		}
+		printAgentCapacity(leaders, members);
+		printAgentGrid(leaders,members);
 	}
 	
 	void update(Environment e){
@@ -57,7 +59,6 @@ public class test1 {
 	public void run(){
 		Environment e = new Environment();
 		Sfmt rnd = new Sfmt(13/*seed*/);
-		initialize(rnd);
 		File file = new File("test.txt");
 		PrintWriter pw = null;
 		try{
@@ -65,11 +66,11 @@ public class test1 {
 		}catch(IOException ex){
 			System.out.println(ex);
 		}
-		
+		initialize(rnd);
 		int excutiontask = 0;
 		int wastetask = 0;
 		e.addTask(1/*mu*/, rnd);
-		for(int tick=0;tick<101;tick++){
+		for(int tick=0;tick<10;tick++){
 			System.out.println("tick: " + tick);
 			Random r = new Random(7);
 			Collections.shuffle(leaders, r);
@@ -136,7 +137,15 @@ public class test1 {
 							for(int subtaski=0;subtaski<subtasks.size();subtaski++){
 								SubTask subtask = subtasks.get(subtaski);
 								if(decide == null){
-									decide = subtask;
+									for(int l=0;l<3;l++){
+										if(subtask.getcapacity(l) != 0){
+											if(mem.capacity[l] != 0){
+												decide = subtask;
+											}
+										}
+									}
+									
+									
 								}else{
 									double upsdecide = (double)decide.getutility() / mem.setexcutiontime(decide);
 									double ups = (double)subtask.getutility() / mem.setexcutiontime(subtask);
@@ -156,7 +165,7 @@ public class test1 {
 						}
 						//入札したサブタスクがあれば次のphaseへ
 						if(decide != null){
-							System.out.println("member " + mem.getmyid() + " decide subtask " + decide);
+							System.out.println("member " + mem.getmyid() + " decide subtask " + decide + " excutiontime " + mem.setexcutiontime(decide));
 							mem.setcondition(true);
 							mem.setphase(1);
 						}
@@ -211,6 +220,66 @@ public class test1 {
 		System.out.println(wastetask);
 		pw.close();
 	}
-	
-
+	public void printAgentCapacity(List<Leader> leaders, List<Member> members){
+		try {
+            //出力先を作成する
+            FileWriter fw = new FileWriter("AgentCapacity.csv", false); 
+            PrintWriter pw = new PrintWriter(new BufferedWriter(fw));
+            for(int i=0;i<100;i++){
+            	Leader leader = leaders.get(i);
+            	pw.print("Leader " + leader.getmyid());
+            	pw.print(",");
+            	pw.print("Capacity 0 = " + leader.capacity[0]);
+            	pw.print(",");
+            	pw.print("Capacity 1 = " + leader.capacity[1]);
+            	pw.print(",");
+            	pw.print("Capacity 2 = " + leader.capacity[2]);
+            	pw.println();
+            }
+            for(int i=0;i<400;i++){
+            	Member member = members.get(i);
+            	pw.print("Member " + member.getmyid());
+            	pw.print(",");
+            	pw.print("Capacity 0 = " + member.capacity[0]);
+            	pw.print(",");
+            	pw.print("Capacity 1 = " + member.capacity[1]);
+            	pw.print(",");
+            	pw.print("Capacity 2 = " + member.capacity[2]);
+            	pw.println();
+            }
+            pw.close();
+		}catch (IOException ex) {
+            //例外時処理
+            ex.printStackTrace();
+        }
+	}
+	public void printAgentGrid(List<Leader> leaders, List<Member> members){
+		try {
+            //出力先を作成する
+            FileWriter fw = new FileWriter("AgentGrid.csv", false); 
+            PrintWriter pw = new PrintWriter(new BufferedWriter(fw));
+            for(int i=0;i<100;i++){
+            	Leader leader = leaders.get(i);
+            	pw.print("Leader " + leader.getmyid());
+            	pw.print(",");
+            	pw.print("Grid x = " + leader.getPositionx());
+            	pw.print(",");
+            	pw.print("Grid y = " + leader.getPositiony());
+            	pw.println();
+            }
+            for(int i=0;i<400;i++){
+            	Member member = members.get(i);
+            	pw.print("Member " + member.getmyid());
+            	pw.print(",");
+            	pw.print("Grid x = " + member.getPositionx());
+            	pw.print(",");
+            	pw.print("Grid y = " + member.getPositiony());
+            	pw.println();
+            }
+            pw.close();
+		}catch (IOException ex) {
+            //例外時処理
+            ex.printStackTrace();
+        }
+	}
 }
