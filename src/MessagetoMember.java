@@ -2,7 +2,7 @@
 public class MessagetoMember extends Message{
 	private Leader from;
 	private Member to;
-	
+	private Task task;
 	private boolean havetask = false;
 	
 	MessagetoMember(Leader f, Member t, SubTask s){
@@ -22,15 +22,18 @@ public class MessagetoMember extends Message{
 		havetask = th;
 	}
 	
-	MessagetoMember(Leader f, Member t, boolean ht){
-		//受理メッセージに対するタスクを与えない
-		super(null, 1);
-		from = f;
-		to = t;
-		setdelay(f,t);
-		havetask = ht;
+	MessagetoMember(Leader from, Member to, Task task){
+		//CNP
+		super(null, 0);
+		this.from = from;
+		this.to = to;
+		this.task = task;
+		setdelay(from, to);
 	}
 	
+	public Task gettask(){
+		return task;
+	}
 	
 	public Leader getfrom(){
 		return from;

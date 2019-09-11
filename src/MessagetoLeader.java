@@ -6,12 +6,13 @@ public class MessagetoLeader extends Message{
 	private boolean accept;
 	private int excutingtime;
 	
-	MessagetoLeader(Member f, Leader t, SubTask s, boolean b, int ty){
+	MessagetoLeader(Member f, Leader t, SubTask s, boolean b, int ty, int et){
 		super(s, ty);
 		from = f;
 		to = t;
 		accept = b;
 		setdelay(f,t);
+		excutingtime = et;
 	}
 	
 	MessagetoLeader(Member f, Leader t, SubTask s, int et, int ty){
@@ -33,5 +34,9 @@ public class MessagetoLeader extends Message{
 	
 	public boolean memberaccept(){
 		return accept;
+	}
+	
+	public int getExcutionTime(){
+		return excutingtime;
 	}
 }

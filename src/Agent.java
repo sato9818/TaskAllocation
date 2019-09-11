@@ -1,7 +1,9 @@
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 public class Agent {
 	static int num = 0;
@@ -15,24 +17,49 @@ public class Agent {
 	protected int numofdeagent;
 	private double capave = 0.0;
 	protected double threshold;
+	private int distance[] = new int[500];
 	
 	Agent(Sfmt rnd){
-		while(capacity[0] == 0 && capacity[1] == 0 && capacity[2] == 0){
-			for(int i=0;i<3;i++){
-				capacity[i] = (int)(rnd.NextUnif()*6);
-				capave += (double)capacity[i];
-			}
-			capave /= 3;
-		}
-		
+		setcapacity(rnd);
+		initialde();
 		myid = num;
 		num++;
 		//initial de
+		
+	}
+	
+	public void setdistance(Agent agent){
+		int dis = manhattan(this.getPositionx(), agent.getPositionx(), this.getPositiony(), agent.getPositiony()) / 10/**/ + 1;
+		distance[agent.getmyid()] = dis;
+	}
+	
+	private int manhattan(int x1, int x2, int y1, int y2){
+		return Math.abs(x1-x2) + Math.abs(y1-y2);
+	}
+	
+	public int getdistance(int id){
+		return distance[id];
+	}
+	
+	private void initialde(){
 		for(int i=0;i<500;i++){
-			if(i != myid){
+			if(i != this.getmyid()){
 				de[i] = 0.5;
 			}
-			
+		}
+	}
+	
+	private void setcapacity(Sfmt rnd){
+		while(capacity[0] == 0 && capacity[1] == 0 && capacity[2] == 0){
+			int p = 0;
+			for(int i=0;i<3;i++){
+				capacity[i] = (int)(rnd.NextUnif()*6);
+				capave += (double)capacity[i];
+				if(capacity[i] != 0){
+					p++;
+				}
+			}
+			capave /= (double)p;
 		}
 	}
 	
@@ -88,16 +115,22 @@ public class Agent {
 	
 	public void updatedeagent(){
 		if(numofdeagent < deagent.size()){
-			Collections.sort(deagent, new Comparator<Agent>(){
-				public int compare(Agent m1, Agent m2) {
-					 return de[m1.getmyid()] > de[m2.getmyid()] ? -1 : 1;
-				}
-			});
+			deagent = sortagent(deagent);
 			List<Agent> buf = new ArrayList<Agent>();
 			for(int i=0;i<numofdeagent;i++){
 				buf.add(deagent.get(i));
 			}
 			deagent = buf;
 		}
+	}
+	public List<Agent> sortagent(List<Agent> agents){
+		for (int i = 0; i < agents.size() - 1; i++) {
+            for (int j = agents.size() - 1; j > i; j--) {
+                if (de[agents.get(j - 1).getmyid()] < de[agents.get(j).getmyid()]) {
+                    Collections.swap(agents,j-1,j);
+                }
+            }
+        }
+		return agents;
 	}
 }
