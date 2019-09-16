@@ -8,7 +8,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Random;
 
-public class test1 {
+public class test3 {
 	List<Leader> leaders = new ArrayList<Leader>();
 	List<Member> members = new ArrayList<Member>();
 	
@@ -21,7 +21,7 @@ public class test1 {
 			}
 		}
 		
-		Collections.shuffle(grid, new Random(7));
+		Collections.shuffle(grid, new Random(13));
 		
 		for(int i=0;i<100;i++){
 			Leader leader = new Leader(rnd);
@@ -49,7 +49,6 @@ public class test1 {
 		}
 		printAgentCapacity(leaders, members);
 		printAgentGrid(leaders,members);
-		printAgentDistance(leaders, members);
 	}
 	
 	void update(Environment e){
@@ -59,7 +58,7 @@ public class test1 {
 	
 	public void run(){
 		Environment e = new Environment();
-		Sfmt rnd = new Sfmt(7/*seed*/);
+		Sfmt rnd = new Sfmt(13/*seed*/);
 		File file = new File("test.txt");
 		PrintWriter pw = null;
 		try{
@@ -73,10 +72,10 @@ public class test1 {
 		//e.addTask(1/*mu*/, rnd);
 		for(int tick=0;tick<2001;tick++){
 			System.out.println("tick: " + tick);
-			Random r = new Random(7);
+			Random r = new Random(13);
 			Collections.shuffle(leaders, r);
 			Collections.shuffle(members, r);
-			if(tick < 1000)
+			//if(tick < 1000)
 			e.addTask(5/*mu*/, rnd);
 			
 			
@@ -126,6 +125,13 @@ public class test1 {
 			//メンバの行動
 			for(int i=0;i<members.size();i++){
 				Member mem = members.get(i);
+				if(mem.havemessage()){
+					mem.setphase(0);
+				}else if(!mem.taskqueue.isEmpty()){
+					mem.setphase(1);
+				}else{
+					mem.setphase(2);
+				}
 				switch(mem.getPhase()){
 				case 0:
 					if(mem.havemessage()){//メッセージが来ていたら
@@ -166,52 +172,12 @@ public class test1 {
 							}
 						}
 						//入札したサブタスクがあれば次のphaseへ
-						if(decide != null){
-							System.out.println("member " + mem.getmyid() + " decide subtask " + decide + " excutiontime " + mem.setexcutiontime(decide));
-							mem.setcondition(true);
-							mem.setphase(1);
-						}else{
-							System.out.println("member " + mem.getmyid() + " don't decide subtask ");
-						}
 						//きてたメッセージを初期化
 						mem.clearmessages();
 					}
 					break;
 				case 1:
-					//allocationまち
-					List<MessagetoMember> messages = mem.getmessages();
-					for(int messagei=0;messagei<messages.size();messagei++){
-						MessagetoMember mtom = messages.get(messagei);
-						mem.sendreplymessagesCNP(e, null, mtom);	
-					}
-					mem.clearmessages();
-					
-					MessagetoMember messagetom;
-					if((messagetom = mem.gettaskmessage()) != null){
-						if(messagetom.taskisallocated()){
-							mem.taskexcution(messagetom);
-							mem.setphase(2);
-							mem.setcondition(false);
-						}else{
-							mem.setphase(0);
-							mem.setcondition(false);
-							mem.clearall();
-						}
-					}
-					break;
-				case 2:
-					mem.reduceexcutiontime();
-					if(mem.checkexcution(e) == 0){
-						System.out.println("Finish excution " + mem.getmyid());
-						mem.setphase(0);
-						mem.clearall();
-						mem.setcondition(false);
-					}else if(mem.checkexcution(e) == 1){
-						mem.setphase(0);
-						mem.clearall();
-						mem.setcondition(false);
-					}
-					break;
+					mem.taskexcution();
 				}
 				
 			}	
@@ -281,40 +247,6 @@ public class test1 {
             	pw.print("Grid y = " + member.getPositiony());
             	pw.println();
             }
-            pw.close();
-		}catch (IOException ex) {
-            //例外時処理
-            ex.printStackTrace();
-        }
-	}
-	public void printAgentDistance(List<Leader> leaders, List<Member> members){
-		try {
-            //出力先を作成する
-            FileWriter fw = new FileWriter("AgentDistance.csv", false); 
-            PrintWriter pw = new PrintWriter(new BufferedWriter(fw));
-            pw.print(" ");
-        	pw.print(",");
-        	
-        	Collections.sort(members, new MemberIdComparator());
-        	Collections.sort(leaders, new LeaderIdComparator());
-            for(int i=0;i<100;i++){
-            	Leader leader = leaders.get(i);
-            	pw.print("leader:" + leader.getmyid());
-            	pw.print(",");
-            }
-            pw.println();
-            for(int i=0;i<400;i++){
-            	Member member = members.get(i);
-            	pw.print("member:" + member.getmyid());
-            	pw.print(",");
-            	for(int j=0;j<100;j++){
-                	Leader leader = leaders.get(j);
-                	pw.print(member.getdistance(leader.getmyid()));
-                	pw.print(",");
-                }
-            	pw.println();
-            }
-            
             pw.close();
 		}catch (IOException ex) {
             //例外時処理

@@ -29,12 +29,26 @@ public class Agent {
 	}
 	
 	public void setdistance(Agent agent){
-		int dis = manhattan(this.getPositionx(), agent.getPositionx(), this.getPositiony(), agent.getPositiony()) / 10/**/ + 1;
+		int dis = (int)Math.ceil((double)manhattan(this.getPositionx(), agent.getPositionx(), this.getPositiony(), agent.getPositiony()) / 20/**/ );
 		distance[agent.getmyid()] = dis;
 	}
 	
+	double euclid(double x1, double x2, double y1, double y2) {
+		double d = Math.sqrt((x2-x1)*(x2-x1)+(y2-y1)*(y2-y1));
+		return d;
+	}
+	
+	private int manhattantorus(int x1, int x2, int y1, int y2){
+		int x = Math.abs(x1-x2);
+		int y = Math.abs(y1-y2);
+		if(x > 25) x = Math.abs(x-50);
+		if(y > 25) y = Math.abs(y-50);
+		return x + y;
+	}
 	private int manhattan(int x1, int x2, int y1, int y2){
-		return Math.abs(x1-x2) + Math.abs(y1-y2);
+		int x = Math.abs(x1-x2);
+		int y = Math.abs(y1-y2);
+		return x + y;
 	}
 	
 	public int getdistance(int id){

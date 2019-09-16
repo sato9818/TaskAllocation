@@ -16,8 +16,8 @@ public class test {
 	
 	void initialize(Sfmt rnd){
 		List<Grid> grid = new ArrayList<Grid>();
-		for(int i=0;i<50;i++){
-			for(int j=0;j<50;j++){
+		for(int i=0;i<51;i++){
+			for(int j=0;j<51;j++){
 				Grid g = new Grid(i,j);
 				grid.add(g);
 			}
@@ -35,7 +35,20 @@ public class test {
 			member.setPosition(grid.get(i).x, grid.get(i).y);
 			members.add(member);
 		}
-		
+		for(int i=0;i<leaders.size();i++){
+			Leader leader = leaders.get(i);
+			for(int j=0;j<members.size();j++){
+				Member member = members.get(j);
+				leader.setdistance(member);
+			}
+		}
+		for(int i=0;i<members.size();i++){
+			Member member = members.get(i);
+			for(int j=0;j<leaders.size();j++){
+				Leader leader = leaders.get(j);
+				member.setdistance(leader);
+			}
+		}
 	}
 	
 	void update(Environment e){
@@ -72,10 +85,16 @@ public class test {
 		Environment e = new Environment();
 		Sfmt rnd = new Sfmt(13/*seed*/);
 		initialize(rnd);
-		File file = new File("test.txt");
+		//File file = new File("test.txt");
 		PrintWriter pw = null;
 		try{
-			pw = new PrintWriter(new BufferedWriter(new FileWriter(file)));
+			FileWriter fw = new FileWriter("test2.csv", false); 
+            pw = new PrintWriter(new BufferedWriter(fw));
+            pw.print("tick");
+        	pw.print(",");
+        	pw.print("excution task");
+        	pw.println();
+			//pw = new PrintWriter(new BufferedWriter(new FileWriter(file)));
 		}catch(IOException ex){
 			System.out.println(ex);
 		}
@@ -88,12 +107,9 @@ public class test {
 			Random r = new Random(5);
 			Collections.shuffle(leaders, r);
 			Collections.shuffle(members, r);
-			e.addTask(7/*mu*/, rnd);
-			
-			
-			
+			e.addTask(5/*mu*/, rnd);
+				
 			//リーダの行動
-			
 			for(int i=0;i<leaders.size();i++){
 				Leader ld = leaders.get(i);
 				switch(ld.getPhase()){
@@ -191,6 +207,7 @@ public class test {
 					if((messagetom = mem.gettaskmessage()) != null){
 						if(messagetom.taskisallocated()){
 							mem.taskexcution(messagetom);
+							mem.setcondition(false);
 							mem.setphase(2);
 						}else{
 							mem.setphase(0);
@@ -213,12 +230,16 @@ public class test {
 						mem.clearall();
 						mem.setcondition(false);
 					}
+					break;
 				}
 				
 			}	
 			update(e);
-			if(tick % 100 == 0 && tick != 0){
-				pw.println(excutiontask);
+			if(tick % 100 == 0){
+				pw.print(tick);
+	        	pw.print(",");
+	        	pw.print(excutiontask);
+	        	pw.println();
 				excutiontask = 0;
 			}
 		}

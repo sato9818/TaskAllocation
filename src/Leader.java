@@ -34,11 +34,9 @@ public class Leader extends Agent{
 		threshold = 1.5;
 	}
 	
-	public List<Member> sortmember(List<Member> members){
-		return sortmemberID(members);
-	}
+	
 
-	public List<Member> sortmemberID(List<Member> members){
+	public List<Member> sortmemberDE(List<Member> members){
 		for (int i = 0; i < members.size() - 1; i++) {
             for (int j = members.size() - 1; j > i; j--) {
                 if (de[members.get(j - 1).getmyid()] < de[members.get(j).getmyid()]) {
@@ -69,6 +67,7 @@ public class Leader extends Agent{
 			CNPMembers.add(members.get(i));
 		}
 		List<SubTask> subtasks = task.getSubTasks();
+		System.out.println("open subtasks");
 		for(int i=0;i<subtasks.size();i++){
 			System.out.println(subtasks.get(i) + " " + subtasks.get(i).getcapacity(0) + " " + subtasks.get(i).getcapacity(1) + " " + subtasks.get(i).getcapacity(2));
 			subtasksCNP.add(subtasks.get(i));
@@ -103,14 +102,14 @@ public class Leader extends Agent{
 					Member member = null;
 					for(int k=0;k<members.size();k++){
 						//activeでないメンバーを選択
-						if(!members.get(k).isactive()){
+						//if(!members.get(k).isactive())
 							//サブタスクの処理に必要な能力を持っているか
 							if(members.get(k).capacity[cap] != 0){
 								member = members.get(k);
 								members.remove(member);
 								break;
 							}
-						}
+						
 						//activeでないメンバーがいなかったら
 						if(k == members.size() - 1){
 							System.out.println("There is no active member.");
@@ -142,7 +141,7 @@ public class Leader extends Agent{
 		
 		Collections.sort(subtasks, new SubUtilityComparator());
 		//sort member
-		members = sortmemberID(members);
+		members = sortmemberDE(members);
 		
 		for(int i=0;i<2/*N_d*/;i++){
 			
@@ -176,14 +175,14 @@ public class Leader extends Agent{
 					if(member == null){
 						for(int k=0;k<members.size();k++){
 							//activeでないメンバーを選択
-							if(!members.get(k).isactive()){
+							//if(!members.get(k).isactive())
 								//サブタスクの処理に必要な能力を持っているか
 								if(members.get(k).capacity[cap] != 0){
 									member = members.get(k);
 									members.remove(member);
 									break;
 								}
-							}
+							
 							//activeでないメンバーがいなかったら
 							if(k == members.size() - 1){
 								System.out.println("There is no active member.");
@@ -279,7 +278,12 @@ public class Leader extends Agent{
 				CNPteam.put(subtask, member);
 			}
 		}
-		
+		/*
+		for (SubTask key : CNPteam.keySet()) {
+	        System.out.println(key + ":" + "Member " + CNPteam.get(key).getmyid());
+	    }
+		System.out.println();
+		*/
 	}
 	
 	public void updatede(MessagetoLeader message, boolean success){

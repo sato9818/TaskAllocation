@@ -9,9 +9,21 @@ import java.util.List;
 import java.util.Queue;
 
 public class Environment {
-	private Queue<Task> taskqueue = new ArrayDeque<>();
+	private Queue<Task> taskqueue = new ArrayDeque<Task>();
 	private List<MessagetoLeader> messagelisttoleader = new ArrayList<MessagetoLeader>();
 	private List<MessagetoMember> messagelisttomember = new ArrayList<MessagetoMember>();
+	File file = new File("communicationtime.txt");
+	PrintWriter pw = null;
+	int count = 0;
+	
+	Environment(){
+		try{
+			pw = new PrintWriter(new BufferedWriter(new FileWriter(file)));
+		}catch(IOException ex){
+			System.out.println(ex);
+		}
+	}
+	
 	
 	public void addTask(int mu, Sfmt rnd){
 		for(int i=0;i<mu;i++){
@@ -52,7 +64,7 @@ public class Environment {
 		int sumOfDelay = 0;
 		for(int i=0;i<messagelisttoleader.size();i++){
 			MessagetoLeader message = messagelisttoleader.get(i);
-			if(message.getdelay() <= 0){
+			if(message.getdelay() == 0){
 				sendmessagetoleader(message);
 				numOfMessage++;
 				sumOfDelay += message.getdistance();
@@ -62,7 +74,7 @@ public class Environment {
 		}
 		for(int i=0;i<messagelisttomember.size();i++){
 			MessagetoMember message = messagelisttomember.get(i);
-			if(message.getdelay() <= 0){
+			if(message.getdelay() == 0){
 				sendmessagetomember(message);
 				numOfMessage++;
 				sumOfDelay += message.getdistance();
@@ -71,7 +83,10 @@ public class Environment {
 			}
 		}
 		double aveOfCommu = (double)sumOfDelay / numOfMessage;
-		System.out.println("communication time is " + aveOfCommu);
+		//System.out.println(aveOfCommu);
+		pw.println(aveOfCommu);
+		
+		count++;
 	}
 	
 	public void sendmessagetoleader(MessagetoLeader message){

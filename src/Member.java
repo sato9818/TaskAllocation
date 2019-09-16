@@ -1,6 +1,8 @@
+import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Queue;
 
 public class Member extends Agent{
 	
@@ -16,6 +18,10 @@ public class Member extends Agent{
 	private boolean active = false;
 	
 	static int countr = 0,counta = 0;
+	
+	Queue<SubTask> taskqueue = new ArrayDeque<SubTask>();
+	
+	SubTask excutingtask = null;
 	
 	//List<Member> deagent = new ArrayList<Member>();
 	
@@ -112,6 +118,20 @@ public class Member extends Agent{
 	public void taskexcution(MessagetoMember message){
 		System.out.println("Start Excution from Leader " + message.getfrom().getmyid() + " to Member " + message.getto().getmyid() + " " + message.getsubtask()+ " excutiontime : " + excutiontime);
 		finishexcution = new MessagetoLeader(this, message.getfrom(), message.getsubtask(), 1, excutiontime);
+	}
+	
+	public void taskexcution(){
+		if(excutingtask == null){
+			if(!taskqueue.isEmpty()){
+				excutingtask = taskqueue.poll(); 
+				excutiontime = setexcutiontime(excutingtask);
+			}
+		}else{
+			excutiontime--;
+			if(excutiontime == 0){
+				excutingtask = null;
+			}
+		}
 	}
 	
 	public int checkexcution(Environment e){
