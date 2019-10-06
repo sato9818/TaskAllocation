@@ -1,6 +1,6 @@
 
 public class Main {
 	public static void main(String[] args){
-		(new test1()).run();
+		(new test3()).run();
 	}
 }

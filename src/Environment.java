@@ -12,16 +12,10 @@ public class Environment {
 	private Queue<Task> taskqueue = new ArrayDeque<Task>();
 	private List<MessagetoLeader> messagelisttoleader = new ArrayList<MessagetoLeader>();
 	private List<MessagetoMember> messagelisttomember = new ArrayList<MessagetoMember>();
-	File file = new File("communicationtime.txt");
-	PrintWriter pw = null;
-	int count = 0;
+	int numOfMessage = 0;
+	int sumOfDelay = 0;
 	
 	Environment(){
-		try{
-			pw = new PrintWriter(new BufferedWriter(new FileWriter(file)));
-		}catch(IOException ex){
-			System.out.println(ex);
-		}
 	}
 	
 	
@@ -59,9 +53,8 @@ public class Environment {
 		}
 	}
 	
-	public void checkdelay(){
-		int numOfMessage = 0;
-		int sumOfDelay = 0;
+	public double checkdelay(){
+		
 		for(int i=0;i<messagelisttoleader.size();i++){
 			MessagetoLeader message = messagelisttoleader.get(i);
 			if(message.getdelay() == 0){
@@ -83,10 +76,7 @@ public class Environment {
 			}
 		}
 		double aveOfCommu = (double)sumOfDelay / numOfMessage;
-		//System.out.println(aveOfCommu);
-		pw.println(aveOfCommu);
-		
-		count++;
+		return aveOfCommu;
 	}
 	
 	public void sendmessagetoleader(MessagetoLeader message){

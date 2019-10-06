@@ -8,7 +8,7 @@ public class Task {
 	
 	Task(Sfmt rnd){
 		int numOfSubtask;
-		numOfSubtask = 3 + (int)(rnd.NextUnif()*4); 
+		numOfSubtask = 3 + rnd.NextInt(4); 
 		
 		for(int i=0;i<numOfSubtask;i++){
 			SubTask subtask = new SubTask(rnd);

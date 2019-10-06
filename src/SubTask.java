@@ -6,8 +6,8 @@ public class SubTask {
 	Member to;
 	
 	SubTask(Sfmt rnd){
-		int r = (int)(rnd.NextUnif()*3); 
-		reqCapa[r] = 5 + (int)(rnd.NextUnif()*6);
+		int r = rnd.NextInt(3); 
+		reqCapa[r] = 5 + rnd.NextInt(6);
 		utility += reqCapa[r];
 		
 	}

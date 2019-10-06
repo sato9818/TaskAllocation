@@ -12,6 +12,7 @@ public class test3 {
 	List<Leader> leaders = new ArrayList<Leader>();
 	List<Member> members = new ArrayList<Member>();
 	
+	
 	void initialize(Sfmt rnd){
 		List<Grid> grid = new ArrayList<Grid>();
 		for(int i=0;i<50;i++){
@@ -24,14 +25,14 @@ public class test3 {
 		Collections.shuffle(grid, new Random(13));
 		
 		for(int i=0;i<100;i++){
-			Leader leader = new Leader(rnd);
+			Agent leader = new Leader(rnd);
 			leader.setPosition(grid.get(i).x, grid.get(i).y);
-			leaders.add(leader);
+			leaders.add((Leader)leader);
 		}
 		for(int i=100;i<500;i++){
-			Member member = new Member(rnd);
+			Agent member = new Member(rnd);
 			member.setPosition(grid.get(i).x, grid.get(i).y);
-			members.add(member);
+			members.add((Member)member);
 		}
 		for(int i=0;i<leaders.size();i++){
 			Leader leader = leaders.get(i);
@@ -76,7 +77,7 @@ public class test3 {
 			Collections.shuffle(leaders, r);
 			Collections.shuffle(members, r);
 			//if(tick < 1000)
-			e.addTask(5/*mu*/, rnd);
+			e.addTask(3/*mu*/, rnd);
 			
 			
 			//リーダの行動
@@ -188,7 +189,6 @@ public class test3 {
 			}
 		}
 		System.out.println(wastetask);
-		e.pw.close();
 		pw.close();
 	}
 	public void printAgentCapacity(List<Leader> leaders, List<Member> members){

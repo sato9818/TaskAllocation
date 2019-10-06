@@ -77,14 +77,14 @@ public class Member extends Agent{
 		if(decide != null){
 			excutiontime = setexcutiontime(decide.getsubtask());
 			MessagetoLeader mtol = new MessagetoLeader(this, decide.getfrom(), decide.getsubtask(), true, 0/*type*/, excutiontime); 
-			System.out.println("send message from Member " + mtol.getfrom().getmyid() + " to Leader " + mtol.getto().getmyid() + " " + mtol.getsubtask() + " " + mtol.memberaccept());
+			//System.out.println("send message from Member " + mtol.getfrom().getmyid() + " to Leader " + mtol.getto().getmyid() + " " + mtol.getsubtask() + " " + mtol.memberaccept());
 			e.addmessagetoleader(mtol);
 		}
 		for(int i=0;i<messages.size();i++){
 			MessagetoMember mtom = messages.get(i);
 			if(!(mtom.equals(decide))){
 				MessagetoLeader mtol = new MessagetoLeader(this, mtom.getfrom(), mtom.getsubtask(), false, 0/*type*/,excutiontime); 
-				
+				/*
 				System.out.println("send message from Member " + mtol.getfrom().getmyid() + " to Leader " + mtol.getto().getmyid() + " " + mtol.getsubtask() + " " + mtol.memberaccept());
 				if(this.getPhase() == 0){
 					countr++;
@@ -93,6 +93,7 @@ public class Member extends Agent{
 					counta++;
 					System.out.println("because of active " + counta);
 				}
+				*/
 				e.addmessagetoleader(mtol);
 			}
 		}
@@ -116,7 +117,7 @@ public class Member extends Agent{
 		return et;
 	}
 	public void taskexcution(MessagetoMember message){
-		System.out.println("Start Excution from Leader " + message.getfrom().getmyid() + " to Member " + message.getto().getmyid() + " " + message.getsubtask()+ " excutiontime : " + excutiontime);
+		//System.out.println("Start Excution from Leader " + message.getfrom().getmyid() + " to Member " + message.getto().getmyid() + " " + message.getsubtask()+ " excutiontime : " + excutiontime);
 		finishexcution = new MessagetoLeader(this, message.getfrom(), message.getsubtask(), 1, excutiontime);
 	}
 	
@@ -136,7 +137,7 @@ public class Member extends Agent{
 	
 	public int checkexcution(Environment e){
 		if(excutiontime == 0 && finishexcution != null){
-			//e.addmessagetoleader(finishexcution);
+			e.addmessagetoleader(finishexcution);
 			//System.out.println("finishexcution id : " + this.getmyid());
 			return 0;
 		}
@@ -154,7 +155,7 @@ public class Member extends Agent{
 			messagestom.add(message);
 		}else if(message.gettype() == 1/*task allocate*/){
 			taskmessage = message;
-			updatedeRational(message, message.taskisallocated());
+			updatede(message, message.taskisallocated());
 		}else if(message.gettype() == 2){
 			taskmessage = message;
 		}

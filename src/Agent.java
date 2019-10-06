@@ -29,7 +29,7 @@ public class Agent {
 	}
 	
 	public void setdistance(Agent agent){
-		int dis = (int)Math.ceil((double)manhattan(this.getPositionx(), agent.getPositionx(), this.getPositiony(), agent.getPositiony()) / 20/**/ );
+		int dis = (int)Math.ceil((double)manhattan(this.getPositionx(), agent.getPositionx(), this.getPositiony(), agent.getPositiony()) / 100 * 5/**/ );
 		distance[agent.getmyid()] = dis;
 	}
 	
@@ -67,7 +67,7 @@ public class Agent {
 		while(capacity[0] == 0 && capacity[1] == 0 && capacity[2] == 0){
 			int p = 0;
 			for(int i=0;i<3;i++){
-				capacity[i] = (int)(rnd.NextUnif()*6);
+				capacity[i] = rnd.NextInt(6);
 				capave += (double)capacity[i];
 				if(capacity[i] != 0){
 					p++;

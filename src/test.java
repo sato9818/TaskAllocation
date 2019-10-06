@@ -14,6 +14,8 @@ public class test {
 	
 	List<Member> members = new ArrayList<Member>();
 	
+	double communicationtime = 0.0;
+	
 	void initialize(Sfmt rnd){
 		List<Grid> grid = new ArrayList<Grid>();
 		for(int i=0;i<51;i++){
@@ -78,14 +80,13 @@ public class test {
 			member.updatedeagent();
 		}
 		e.decrementdelay();
-		e.checkdelay();
+		communicationtime += e.checkdelay();
 	}
 	
 	public void run(){
 		Environment e = new Environment();
-		Sfmt rnd = new Sfmt(13/*seed*/);
+		Sfmt rnd = new Sfmt(17/*seed*/);
 		initialize(rnd);
-		//File file = new File("test.txt");
 		PrintWriter pw = null;
 		try{
 			FileWriter fw = new FileWriter("test2.csv", false); 
@@ -94,17 +95,28 @@ public class test {
         	pw.print(",");
         	pw.print("excution task");
         	pw.println();
-			//pw = new PrintWriter(new BufferedWriter(new FileWriter(file)));
 		}catch(IOException ex){
 			System.out.println(ex);
 		}
-		
+		PrintWriter pw1 = null;
+		try{
+			FileWriter fw1 = new FileWriter("communicationtime.csv", false); 
+            pw1 = new PrintWriter(new BufferedWriter(fw1));
+            pw1.print("tick");
+        	pw1.print(",");
+        	pw1.print("communication time");
+        	pw1.println();
+		}catch(IOException ex){
+			System.out.println(ex);
+		}
 		int excutiontask = 0;
 		int wastetask = 0;
+		int sumOfExcutionTime = 0;
+		int numOfExcutingTask = 0;
 		
-		for(int tick=0;tick<20001;tick++){
+		for(int tick=0;tick<150001;tick++){
 			System.out.println("tick: " + tick);
-			Random r = new Random(5);
+			Random r = new Random(17);
 			Collections.shuffle(leaders, r);
 			Collections.shuffle(members, r);
 			e.addTask(5/*mu*/, rnd);
@@ -117,6 +129,7 @@ public class test {
 					if(!e.TaskisEmpty()){//タスクがあれば
 						//タスクを取得
 						Task task = e.pushTask();
+						//System.out.println("Subtask size is " + task.getSubTasks().size());
 						//候補メンバーに送るメッセージを決める(e-greedy法)
 						int p = eGreedy(rnd);
 						List<MessagetoMember> messagestomember = null;
@@ -129,16 +142,15 @@ public class test {
 						
 						//候補メンバーが足りなければタスクは破棄
 						if(messagestomember == null){
-							System.out.println("waste task due to lack of member " + ld.getmyid());
+							//System.out.println("waste task due to lack of member " + ld.getmyid());
 							wastetask++;
 							break;
 						}
-						
-						System.out.println("Subtask size is " + task.getSubTasks().size());
+						/*
 						for (int j=0; j<messagestomember.size(); j++){
 							System.out.println("send message from Leader " + messagestomember.get(j).getfrom().getmyid() + " to Member " + messagestomember.get(j).getto().getmyid() + " " + messagestomember.get(j).getsubtask() + " delay " + messagestomember.get(j).getdelay());
 						}
-						
+						*/
 						//メッセージを送る
 						for(int j=0;j<messagestomember.size();j++){
 							ld.sendmessagetomember(messagestomember.get(j), e);
@@ -151,21 +163,30 @@ public class test {
 					if(ld.waitreply() == 0){
 						//全部返信がきててアロケーションできるなら
 						ld.taskallocate(e);
-						ld.setphase(0);
-						ld.clearall();
-						excutiontask++;
+						ld.setphase(2);
+						//excutiontask++;
 					}else if(ld.waitreply() == 1){
 						//全部返信がきててアロケーションできないなら
 						ld.failallocate(e);
-						System.out.println("waste task due to allocation " + ld.getmyid());
+						//System.out.println("waste task due to allocation " + ld.getmyid());
 						wastetask++;
 						ld.setphase(0);
 						ld.clearall();
 					}
 					break;
+				
+				case 2:
+					ld.reduceexcutiontime();
+					if(ld.checkmyexcution() == 0){
+						if(ld.checkexcution() == 0){
+							ld.setphase(0);
+							excutiontask++;
+							ld.clearall();
+						}
+					}
+					break;
 				}
 				
-					
 			}	
 			
 			//メンバの行動
@@ -209,6 +230,8 @@ public class test {
 							mem.taskexcution(messagetom);
 							mem.setcondition(false);
 							mem.setphase(2);
+							sumOfExcutionTime += mem.getExcutiontime();
+							numOfExcutingTask++;
 						}else{
 							mem.setphase(0);
 							mem.setcondition(false);
@@ -239,8 +262,19 @@ public class test {
 				pw.print(tick);
 	        	pw.print(",");
 	        	pw.print(excutiontask);
+	        	pw.print(",");
+	        	pw.print((double)sumOfExcutionTime / numOfExcutingTask);
 	        	pw.println();
+	        	sumOfExcutionTime = 0;
+				numOfExcutingTask = 0;
 				excutiontask = 0;
+			}
+			if(tick % 100 == 0){
+				pw1.print(tick);
+	        	pw1.print(",");
+	        	pw1.print(communicationtime / 100);	
+	        	pw1.println();
+	        	communicationtime = 0;
 			}
 		}
 		System.out.println(wastetask);
@@ -256,14 +290,14 @@ public class test {
 				}
 			}
 		}
-		/*
+		
 		for(int i=0;i<400;i++){
 			Collections.sort(members, new MemberIdComparator());
 			Member member = members.get(i);
 			if(!member.deagent.isEmpty())
 			System.out.println("number of member " + member.getmyid() + " deagent is " + member.deagent.size() + " " + member.averageOfCapability());
 		}
-		*/
+		
 		/*
 		for(int i=0;i<400;i++){
 			Member member = members.get(i);
@@ -271,14 +305,15 @@ public class test {
 		}
 		*/
 		pw.close();
+		pw1.close();
 	}
 	
 	public int eGreedy(Sfmt rnd) {
 		int A;
-        int randNum = (int)(rnd.NextUnif() * 101);
+        int randNum = rnd.NextInt(101);
         if (randNum <= 0.05 * 100.0) {
         	//eの確率
-			A = (int)(rnd.NextUnif() * 2);
+			A = rnd.NextInt(2);
         } else {
         	//(1-e)の確率
         	A = 0;

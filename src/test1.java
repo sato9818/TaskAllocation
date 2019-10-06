@@ -60,23 +60,32 @@ public class test1 {
 	public void run(){
 		Environment e = new Environment();
 		Sfmt rnd = new Sfmt(7/*seed*/);
-		File file = new File("test.txt");
 		PrintWriter pw = null;
 		try{
-			pw = new PrintWriter(new BufferedWriter(new FileWriter(file)));
+			FileWriter fw = new FileWriter("test2.csv", false); 
+            pw = new PrintWriter(new BufferedWriter(fw));
+            pw.print("tick");
+        	pw.print(",");
+        	pw.print("excution task");
+        	pw.print(",");
+        	pw.print("excution time");
+        	pw.println();
+			//pw = new PrintWriter(new BufferedWriter(new FileWriter(file)));
 		}catch(IOException ex){
 			System.out.println(ex);
 		}
 		initialize(rnd);
 		int excutiontask = 0;
 		int wastetask = 0;
+		int sumOfExcutionTime = 0;
+		int numOfExcutingTask = 0;
 		//e.addTask(1/*mu*/, rnd);
-		for(int tick=0;tick<2001;tick++){
+		for(int tick=0;tick<10001;tick++){
 			System.out.println("tick: " + tick);
 			Random r = new Random(7);
 			Collections.shuffle(leaders, r);
 			Collections.shuffle(members, r);
-			if(tick < 1000)
+			//if(tick < 1000)
 			e.addTask(5/*mu*/, rnd);
 			
 			
@@ -106,7 +115,7 @@ public class test1 {
 					if(ld.waitReplyCNP() == 0){
 						//全部返信がきててアロケーションできるなら
 						ld.taskallocateCNP(e);
-						ld.setphase(0);
+						ld.setphase(2);
 						ld.clearallCNP();
 						excutiontask++;
 					}else if(ld.waitReplyCNP() == 1){
@@ -114,8 +123,14 @@ public class test1 {
 						ld.failallocateCNP(e);
 						System.out.println("waste task due to allocation " + ld.getmyid());
 						wastetask++;
-						ld.setphase(0);
+						ld.setphase(2);
 						ld.clearallCNP();
+					}
+					break;
+				case 2:
+					ld.reduceexcutiontime();
+					if(ld.checkmyexcution() == 0){
+						ld.setphase(0);
 					}
 					break;
 				}
@@ -192,6 +207,8 @@ public class test1 {
 							mem.taskexcution(messagetom);
 							mem.setphase(2);
 							mem.setcondition(false);
+							sumOfExcutionTime += mem.getExcutiontime();
+							numOfExcutingTask++;
 						}else{
 							mem.setphase(0);
 							mem.setcondition(false);
@@ -217,12 +234,20 @@ public class test1 {
 			}	
 			update(e);
 			if(tick % 100 == 0){
-				pw.println(excutiontask);
+				pw.print(tick);
+	        	pw.print(",");
+	        	pw.print(excutiontask);
+	        	pw.print(",");
+	        	pw.print((double)sumOfExcutionTime / numOfExcutingTask);
+	        	pw.println();
+	        	sumOfExcutionTime = 0;
+				numOfExcutingTask = 0;
 				excutiontask = 0;
 			}
 		}
 		System.out.println(wastetask);
-		e.pw.close();
+		//System.out.println(count);
+		pw.close();
 		pw.close();
 	}
 	public void printAgentCapacity(List<Leader> leaders, List<Member> members){
@@ -232,24 +257,24 @@ public class test1 {
             PrintWriter pw = new PrintWriter(new BufferedWriter(fw));
             for(int i=0;i<100;i++){
             	Leader leader = leaders.get(i);
-            	pw.print("Leader " + leader.getmyid());
+            	pw.print("Leader:" + leader.getmyid());
             	pw.print(",");
-            	pw.print("Capacity 0 = " + leader.capacity[0]);
+            	pw.print("Capacity:0=" + leader.capacity[0]);
             	pw.print(",");
-            	pw.print("Capacity 1 = " + leader.capacity[1]);
+            	pw.print("Capacity:1=" + leader.capacity[1]);
             	pw.print(",");
-            	pw.print("Capacity 2 = " + leader.capacity[2]);
+            	pw.print("Capacity:2=" + leader.capacity[2]);
             	pw.println();
             }
             for(int i=0;i<400;i++){
             	Member member = members.get(i);
-            	pw.print("Member " + member.getmyid());
+            	pw.print("Member:" + member.getmyid());
             	pw.print(",");
-            	pw.print("Capacity 0 = " + member.capacity[0]);
+            	pw.print("Capacity:0=" + member.capacity[0]);
             	pw.print(",");
-            	pw.print("Capacity 1 = " + member.capacity[1]);
+            	pw.print("Capacity:1=" + member.capacity[1]);
             	pw.print(",");
-            	pw.print("Capacity 2 = " + member.capacity[2]);
+            	pw.print("Capacity:2=" + member.capacity[2]);
             	pw.println();
             }
             pw.close();
