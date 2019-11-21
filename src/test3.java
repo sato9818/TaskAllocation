@@ -178,7 +178,7 @@ public class test3 {
 					}
 					break;
 				case 1:
-					mem.taskexcution();
+					mem.taskexcution(e);
 				}
 				
 			}	

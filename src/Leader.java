@@ -13,7 +13,7 @@ public class Leader extends Agent{
 	//処理すべきサブタスクのリスト
 	private List<SubTask> presubtasks = new ArrayList<SubTask>();
 	//メッセージを送ったメンバのリスト
-	private List<Member> premembers = new ArrayList<Member>();
+	private List<Integer> premembers = new ArrayList<Integer>();
 	//受理してくれたメンバーのリスト
 	private List<Member> acceptmembers = new ArrayList<Member>();
 	//タスクを処理しているメンバのリスト
@@ -31,17 +31,37 @@ public class Leader extends Agent{
 	//リーダーが処理するサブタスク
 	private SubTask subtask; 
 	private int excutiontime;
+	private List<MessagetoLeader> rejectMessages = new ArrayList<MessagetoLeader>(); 
 	
+	//---------------------------------------------------------------------------------------
 	Leader(Sfmt rnd){
 		super(rnd);
-		numofdeagent = 1000;
+		numofdeagent = 0;
 		threshold = 1.5;
 	}
+	//---------------------------------------------------------------------------------------
+	Leader(Member mem){
+		super(mem);
+		numofdeagent = 1000;
+		threshold = 1.5;
+		toRejectMessages(mem.getmessages());
+	}
+	
+	//---------------------------------------------------------------------------------------
+	
+	public void toRejectMessages(List<MessagetoMember> messages){
+		for(int i=0;i<messages.size();i++){
+			MessagetoLeader message = new MessagetoLeader(messages.get(i).getfrom(), messages.get(i).getto(), 3);
+			MessagetoLeader mtol = new MessagetoLeader(message.getfrom(), message.getLFrom(), message.getsubtask(), false, 0/*type*/,excutiontime);
+			rejectMessages.add(mtol);
+		}
+	}
+	//---------------------------------------------------------------------------------------
 	
 	public void reduceexcutiontime(){
 		excutiontime--;
 	}
-	
+	//---------------------------------------------------------------------------------------
 	public int checkmyexcution(){
 		if(excutiontime <= 0){
 			return 0;
@@ -49,7 +69,22 @@ public class Leader extends Agent{
 			return 1;
 		}
 	}
-
+	//---------------------------------------------------------------------------------------
+	
+	public List<MessagetoLeader> getRejectMessages(){
+		return rejectMessages;
+	}
+	
+	//---------------------------------------------------------------------------------------
+	
+	public void sendRejectMessage(Environment e){
+		for(int i=0;i<rejectMessages.size();i++){
+			e.addmessagetoleader(rejectMessages.get(i));
+		}
+		rejectMessages.clear();
+	}
+	//---------------------------------------------------------------------------------------
+	
 	public List<Member> sortmemberDE(List<Member> members){
 		for (int i = 0; i < members.size() - 1; i++) {
             for (int j = members.size() - 1; j > i; j--) {
@@ -60,7 +95,7 @@ public class Leader extends Agent{
         }
 		return members;
 	}
-	
+	//---------------------------------------------------------------------------------------
 	public List<Member> sortmemberDistance(List<Member> members){
 		for (int i = 0; i < members.size() - 1; i++) {
             for (int j = members.size() - 1; j > i; j--) {
@@ -71,7 +106,7 @@ public class Leader extends Agent{
         }
 		return members;
 	}
-	
+	//---------------------------------------------------------------------------------------
 	public List<Member> selectMemberCNP(List<Member> members, Task task){
 		List<Member> confmembers = new ArrayList<Member>();
 		
@@ -90,6 +125,8 @@ public class Leader extends Agent{
 		}
 		return confmembers;
 	}
+	
+	//---------------------------------------------------------------------------------------
 	
 	public List<MessagetoMember> selectrandommember(List<Member> realmembers, Task task){
 		List<SubTask> subtasks = task.getSubTasks();
@@ -138,13 +175,15 @@ public class Leader extends Agent{
 					
 					MessagetoMember m = new MessagetoMember(this, member, subtask);
 					messages.add(m);		
-					premembers.add(member);
+					premembers.add(member.getmyid());
 				}
 				//System.out.println("confsubtasksize:" + confsubtask.size());
 			}
 		}
 		return messages;
 	}
+	
+	//---------------------------------------------------------------------------------------
 	
 	public List<MessagetoMember> selectmember(List<Member> realmembers, Task task){
 		
@@ -214,7 +253,7 @@ public class Leader extends Agent{
 					
 					MessagetoMember m = new MessagetoMember(this, member, subtask);
 					messages.add(m);		
-					premembers.add(member);
+					premembers.add(member.getmyid());
 				}
 				//System.out.println("confsubtasksize:" + confsubtask.size());
 			}
@@ -222,6 +261,9 @@ public class Leader extends Agent{
 		return messages;
 		//System.out.println("preteamsize:" + presubtasks.size());
 	}
+	
+	//---------------------------------------------------------------------------------------
+	
 	public SubTask selectmysubtask(List<SubTask> subtasks){
 		SubTask decide = null;
 		int et = 100;
@@ -244,6 +286,9 @@ public class Leader extends Agent{
 			excutiontime = et;
 		return decide;
 	}
+	
+	//---------------------------------------------------------------------------------------
+	
 	public int setexcutiontime(SubTask s){
 		int et = 0;
 		for(int i=0;i<3/*リソースの種類*/;i++){
@@ -253,9 +298,14 @@ public class Leader extends Agent{
 		}
 		return et;
 	}
+	
+	//---------------------------------------------------------------------------------------
+	
 	public void sendmessagetomember(MessagetoMember message, Environment e){
 		e.addmessagetomember(message);
 	}
+	
+	//---------------------------------------------------------------------------------------
 	
 	private void maketeam(MessagetoLeader message){
 		SubTask subtask = message.getsubtask();
@@ -277,15 +327,17 @@ public class Leader extends Agent{
 			
 	}
 	
+	//---------------------------------------------------------------------------------------
+	
 	public void getmessage(MessagetoLeader message){
 		if(message.gettype() == 0/*受理or拒否*/){
 			if(message.memberaccept()){
 				maketeam(message);
 				acceptmembers.add(message.getfrom());
 			}
-			premembers.remove(message.getfrom());
+			premembers.remove(Integer.valueOf(message.getfrom().getmyid()));
 			if(!message.memberaccept())
-			updatede(message, message.memberaccept());
+				updatede(message, message.memberaccept());
 		}else if(message.gettype() == 1/*処理終了*/){
 			//System.out.println("from member " + message.getfrom().getmyid());
 			Member member = message.getfrom();
@@ -299,9 +351,15 @@ public class Leader extends Agent{
 		}else if(message.gettype() == 2/*CNP*/){
 			bidSubtask(message);
 			CNPMembers.remove(message.getfrom());
+		}else if(message.gettype() == 3){
+			MessagetoLeader mtol = new MessagetoLeader(message.getfrom(), message.getLFrom(), message.getsubtask(), false, 0/*type*/,excutiontime);
+			rejectMessages.add(mtol);
 		}
 		
 	}
+	
+	//---------------------------------------------------------------------------------------
+	
 	public void bidSubtask(MessagetoLeader mtol){
 		SubTask subtask = mtol.getsubtask();
 		Member member = mtol.getfrom();
@@ -328,6 +386,8 @@ public class Leader extends Agent{
 		*/
 	}
 	
+	//---------------------------------------------------------------------------------------
+	
 	public void updatede(MessagetoLeader message, boolean success){
 		double delta = 0.0;
 		if(success){
@@ -339,6 +399,9 @@ public class Leader extends Agent{
 					+ 0.01 * delta;
 		
 	}
+	
+	//---------------------------------------------------------------------------------------
+	
 	public void updatedeRational(MessagetoLeader message, boolean success){
 		double delta = 0.0;
 		if(success){
@@ -349,6 +412,8 @@ public class Leader extends Agent{
 					+ 0.01 * delta;
 		
 	}
+	
+	//---------------------------------------------------------------------------------------
 
 
 	public int waitreply(){
@@ -368,6 +433,9 @@ public class Leader extends Agent{
 			return 2;
 		}
 	}
+	
+	//---------------------------------------------------------------------------------------
+	
 	public int waitReplyCNP(){
 		if(CNPMembers.isEmpty()){
 			if(subtasksCNP.isEmpty()){
@@ -379,6 +447,9 @@ public class Leader extends Agent{
 			return 2;
 		}
 	}
+	
+	//---------------------------------------------------------------------------------------
+	
 	public int checkexcution(){
 		//System.out.println("checkexcution");
 		if(membersexcuting.isEmpty()){
@@ -390,12 +461,20 @@ public class Leader extends Agent{
 		}
 	}
 	
+	//---------------------------------------------------------------------------------------
+	
+	
 	public void failallocate(Environment e){
 		for(int i=0;i<acceptmembers.size();i++){
 			MessagetoMember message = new MessagetoMember(this, acceptmembers.get(i), null, false);
 			e.addmessagetomember(message);
 		}
+		updateE(0,false);
 	}
+	
+	
+	//--------------------------------------------------------------------------------------
+	
 	public void failallocateCNP(Environment e){
 		for(int i=0;i<activeMembersCNP.size();i++){
 			MessagetoMember message = new MessagetoMember(this, activeMembersCNP.get(i), null, false);
@@ -403,20 +482,23 @@ public class Leader extends Agent{
 		}
 	}
 	
+	//---------------------------------------------------------------------------------------
+	
 	public void taskallocate(Environment e){
         Iterator<SubTask> subtask_itr = team.keySet().iterator();
         // hasNextを使用して値がある場合はループを継続する
         // keyの取得
         while(subtask_itr.hasNext()) {
-            // nextを使用して値を取得する
+            // nextを使用して値を取得す
+        	
             SubTask subtask = (SubTask)subtask_itr.next();
             MessagetoMember message = new MessagetoMember(this, team.get(subtask), subtask, true);
-            /*
+            
             System.out.println(
             		"Send task from Leader " + 
             		message.getfrom().getmyid() + 
-            		" to Member " + message.getto().getmyid() + " " + message.getsubtask() );
-			*/
+            		" to " +message.getto() + " " + message.getto().getmyid() + " " + message.getsubtask() );
+			
             e.addmessagetomember(message);
             this.updatede(new MessagetoLeader(message.getto(),message.getfrom(),message.getsubtask(),0,message.getto().setexcutiontime(message.getsubtask())), true);
             membersexcuting.add(message.getto());
@@ -424,12 +506,12 @@ public class Leader extends Agent{
         }
         for(int i=0;i<acceptmembers.size();i++){
 			MessagetoMember message = new MessagetoMember(this, acceptmembers.get(i), null, false);
-			/*
+			
             System.out.println(
             		"Don't send task from Leader " + 
             		message.getfrom().getmyid() + 
             		" to Member " +message.getto().getmyid() + " " + message.getsubtask() );
-            */
+            
 			e.addmessagetomember(message);
 		}
         /*
@@ -438,7 +520,11 @@ public class Leader extends Agent{
 			e.addmessagetomember(message);
 		}
         */
+        updateE(0,true);
 	}
+	
+	//---------------------------------------------------------------------------------------
+	
 	public void taskallocateCNP(Environment e){
         Iterator<SubTask> subtask_itr = CNPteam.keySet().iterator();
         // hasNextを使用して値がある場合はループを継続する
@@ -470,6 +556,9 @@ public class Leader extends Agent{
         
 	}
 	
+	
+	//---------------------------------------------------------------------------------------
+	
 	public void clearall(){
 		presubtasks.clear();
 		premembers.clear();
@@ -477,6 +566,9 @@ public class Leader extends Agent{
 		acceptmembers.clear();
 		team.clear();
 	}
+	
+	//---------------------------------------------------------------------------------------
+	
 	public void clearallCNP(){
 		CNPMembers.clear();
 		CNPteam.clear();

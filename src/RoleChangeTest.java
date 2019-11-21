@@ -9,15 +9,18 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Random;
 
-public class test {
+public class RoleChangeTest {
 	List<Leader> leaders = new ArrayList<Leader>();
-	
 	List<Member> members = new ArrayList<Member>();
 	
 	double communicationtime = 0.0;
-	
+	int roleChangeCount = 0;
 	int activeReject = 0;
+	int activeReject2 = 0;
 	int selectReject = 0;
+	int roleReject = 0;
+	
+	//---------------------------------------------------------------------------------------
 	
 	void initialize(Sfmt rnd){
 		List<Grid> grid = new ArrayList<Grid>();
@@ -30,15 +33,17 @@ public class test {
 		
 		Collections.shuffle(grid, new Random(13));
 		
-		for(int i=0;i<100;i++){
-			Leader leader = new Leader(rnd);
-			leader.setPosition(grid.get(i).x, grid.get(i).y);
-			leaders.add(leader);
-		}
-		for(int i=100;i<500;i++){
-			Member member = new Member(rnd);
-			member.setPosition(grid.get(i).x, grid.get(i).y);
-			members.add(member);
+		for(int i=0;i<500;i++){
+			int p = rnd.NextInt(2);
+			if(p == 0){
+				Leader leader = new Leader(rnd);
+				leader.setPosition(grid.get(i).x, grid.get(i).y);
+				leaders.add(leader);
+			}else if(p == 1){
+				Member member = new Member(rnd);
+				member.setPosition(grid.get(i).x, grid.get(i).y);
+				members.add(member);
+			}
 		}
 		
 		for(int i=0;i<leaders.size();i++){
@@ -47,6 +52,10 @@ public class test {
 				Member member = members.get(j);
 				leader.setdistance(member);
 			}
+			for(int j=0;j<leaders.size();j++){
+				Leader ld = leaders.get(j);
+				leader.setdistance(ld);
+			}
 		}
 		for(int i=0;i<members.size();i++){
 			Member member = members.get(i);
@@ -54,16 +63,105 @@ public class test {
 				Leader leader = leaders.get(j);
 				member.setdistance(leader);
 			}
+			for(int j=0;j<members.size();j++){
+				Member mem = members.get(j);
+				member.setdistance(mem);
+			}
+		}
+	}
+	
+	//---------------------------------------------------------------------------------------
+	
+	void selectRole(Sfmt rnd, int tick){
+		List<Leader> newLeaders = new ArrayList<Leader>();
+		List<Member> newMembers = new ArrayList<Member>();
+	
+		for(int i = 0;i<leaders.size();i++){
+			Leader ld = leaders.get(i);
+			if(ld.getPhase() == 0){
+				int ep = eGreedy(rnd);
+				if(ep == 0){
+					if(ld.lE > ld.mE){
+						newLeaders.add(ld);
+					}else if(ld.lE < ld.mE){
+						roleChangeCount++;
+						Member mem = new Member(ld);
+						mem.lastSelectTick = tick;
+						newMembers.add(mem);
+					}else{
+						int p = rnd.NextInt(2);
+						if(p == 0){
+							newLeaders.add(ld);
+						}else if(p == 1){
+							roleChangeCount++;
+							Member mem = new Member(ld);
+							mem.lastSelectTick = tick;
+							newMembers.add(mem);
+						}	
+					}
+				}else if(ep == 1){
+					int p = rnd.NextInt(2);
+					if(p == 0){
+						newLeaders.add(ld);
+					}else if(p == 1){
+						roleChangeCount++;
+						Member mem = new Member(ld);
+						mem.lastSelectTick = tick;
+						newMembers.add(mem);
+					}
+				}
+			}else{
+				newLeaders.add(ld);
+			}
 		}
 		
+		for(int i = 0;i<members.size();i++){
+			Member mem = members.get(i);
+			if(mem.getPhase() == 0){
+				int ep = eGreedy(rnd);
+				if(ep == 0){
+					if(mem.lE < mem.mE){
+						newMembers.add(mem);
+					}else if(mem.lE > mem.mE){
+						roleChangeCount++;
+						Leader ld = new Leader(mem); 
+						newLeaders.add(ld);
+					}else{
+						int p = (int)rnd.NextUnif() * 2;
+						if(p == 0){
+							roleChangeCount++;
+							Leader leader = new Leader(mem);
+							newLeaders.add(leader);
+						}else if(p == 1){
+							newMembers.add(mem);
+						}
+					}
+				}else if(ep == 1){
+					int p = (int)rnd.NextUnif() * 2;
+					if(p == 0){
+						roleChangeCount++;
+						Leader leader = new Leader(mem);
+						newLeaders.add(leader);
+					}else if(p == 1){
+						newMembers.add(mem);
+					}
+				}
+			}else{
+				newMembers.add(mem);
+			}
+		}
+		leaders = newLeaders;
+		members = newMembers;
 	}
+	
+	//---------------------------------------------------------------------------------------
 	
 	void update(Environment e){
 		
-		for(int i=0;i<100;i++){
+		for(int i=0;i<leaders.size();i++){
 			Leader leader = leaders.get(i);
 			leader.deagent.clear();
-			for(int j=0;j<400;j++){
+			for(int j=0;j<members.size();j++){
 				Member member = members.get(j);
 				if(leader.getthreshold() < leader.de[member.getmyid()]){
 					leader.adddeagent(member);
@@ -72,10 +170,10 @@ public class test {
 			}
 			leader.updatedeagent();
 		}
-		for(int i=0;i<400;i++){
+		for(int i=0;i<members.size();i++){
 			Member member = members.get(i);
 			member.deagent.clear();
-			for(int j=0;j<100;j++){
+			for(int j=0;j<leaders.size();j++){
 				Leader leader = leaders.get(j);
 				if(member.getthreshold() < member.de[leader.getmyid()]){
 					member.adddeagent(leader);
@@ -85,13 +183,16 @@ public class test {
 			member.updatedeagent();
 		}
 		e.decrementdelay();
-		communicationtime += e.checkdelay();
+		communicationtime += e.checkdelay(leaders,members);
 	}
+	
+	//---------------------------------------------------------------------------------------
 	
 	public void run(){
 		Environment e = new Environment();
 		Sfmt rnd = new Sfmt(17/*seed*/);
 		initialize(rnd);
+		
 		PrintWriter pw = null;
 		try{
 			FileWriter fw = new FileWriter("test2.csv", false); 
@@ -118,17 +219,21 @@ public class test {
 		int wastetask = 0;
 		int sumOfExcutionTime = 0;
 		int numOfExcutingTask = 0;
-		
+		//e.addTask(5/*mu*/, rnd);
 		for(int tick=0;tick<20001;tick++){
+			System.out.println(leaders.size());
+			System.out.println(members.size());
 			System.out.println("tick: " + tick);
-			Random r = new Random(17);
+			Random r = new Random(13);
 			Collections.shuffle(leaders, r);
 			Collections.shuffle(members, r);
-			e.addTask(rnd.NextPoisson(7)/*mu*/, rnd);
+			e.addTask(rnd.NextPoisson(5)/*mu*/, rnd);
 				
 			//リーダの行動
 			for(int i=0;i<leaders.size();i++){
 				Leader ld = leaders.get(i);
+				roleReject += ld.getRejectMessages().size();
+				ld.sendRejectMessage(e);
 				switch(ld.getPhase()){
 				case 0:
 					if(!e.TaskisEmpty()){//タスクがあれば
@@ -151,16 +256,18 @@ public class test {
 							wastetask++;
 							break;
 						}
-						/*
 						for (int j=0; j<messagestomember.size(); j++){
+							
 							System.out.println("send message from Leader " + messagestomember.get(j).getfrom().getmyid() + " to Member " + messagestomember.get(j).getto().getmyid() + " " + messagestomember.get(j).getsubtask() + " delay " + messagestomember.get(j).getdelay());
 						}
-						*/
+						
 						//メッセージを送る
 						for(int j=0;j<messagestomember.size();j++){
 							ld.sendmessagetomember(messagestomember.get(j), e);
 						}
 						ld.setphase(1);
+					}else{
+						ld.updateE(0, false);
 					}
 					break;
 				case 1:
@@ -169,20 +276,24 @@ public class test {
 						//全部返信がきててアロケーションできるなら
 						ld.taskallocate(e);
 						ld.setphase(2);
+						
 						//excutiontask++;
 					}else if(ld.waitreply() == 1){
 						//全部返信がきててアロケーションできないなら
 						ld.failallocate(e);
-						//System.out.println("waste task due to allocation " + ld.getmyid());
+						System.out.println("waste task due to allocation " + ld.getmyid());
 						wastetask++;
 						ld.setphase(0);
 						ld.clearall();
+						
 					}
 					break;
 				
 				case 2:
 					ld.reduceexcutiontime();
 					if(ld.checkmyexcution() == 0){
+						//System.out.println("finish my task");
+						
 						if(ld.checkexcution() == 0){
 							ld.setphase(0);
 							excutiontask++;
@@ -222,10 +333,18 @@ public class test {
 							mem.lastSelectTick = tick;
 						}else{
 							selectReject += messages.size();
+							if(tick - mem.lastSelectTick > mem.thresholdV){
+								mem.updateE(1, false);
+								mem.lastSelectTick = tick;
+							}
 						}
-						
 						//メッセージ集合を初期化
 						mem.clearmessages();
+					}else{
+						if(tick - mem.lastSelectTick > mem.thresholdV){
+							mem.updateE(1, false);
+							mem.lastSelectTick = tick;
+						}
 					}
 					break;
 				case 1:
@@ -238,12 +357,14 @@ public class test {
 					MessagetoMember messagetom;
 					if((messagetom = mem.gettaskmessage()) != null){
 						if(messagetom.taskisallocated()){
+							System.out.println("taskexcuting" + mem + " " + mem.getmyid());
 							mem.taskexcution(messagetom);
 							mem.setcondition(false);
 							mem.setphase(2);
 							sumOfExcutionTime += mem.getExcutiontime();
 							numOfExcutingTask++;
 						}else{
+							System.out.println("task is not allocated " + mem.getmyid());
 							mem.setphase(0);
 							mem.setcondition(false);
 							mem.clearall();
@@ -251,6 +372,13 @@ public class test {
 					}
 					break;
 				case 2:
+					/*
+					List<MessagetoMember> messages2 = mem.getmessages();
+					activeReject2 += messages2.size();
+					mem.sendreplymessages(e, null, messages2);	
+					mem.clearmessages();
+					*/
+					
 					mem.reduceexcutiontime();
 					if(mem.checkexcution(e) == 0){
 						//System.out.println("member next phase 0" + mem.getmyid());
@@ -268,7 +396,9 @@ public class test {
 				}
 				
 			}	
+			selectRole(rnd, tick);
 			update(e);
+			
 			if(tick % 100 == 0){
 				pw.print(tick);
 	        	pw.print(",");
@@ -289,24 +419,44 @@ public class test {
 			}
 		}
 		System.out.println(wastetask);
+		pw.close();
+		pw1.close();
+		System.out.println("leader :");
+		for(int i=0;i<leaders.size();i++){
+			System.out.println(leaders.get(i).getmyid() + " " + leaders.get(i).getPhase());
+		}
+		System.out.println("member :");
+		for(int i=0;i<members.size();i++){
+			System.out.println(members.get(i).getmyid() + " " + members.get(i).getPhase());
+		}
+		System.out.println("role change count " + roleChangeCount);
+		System.out.println("active reject count " + activeReject);
+		System.out.println("active reject2 count " + activeReject2);
+		System.out.println("select reject count " + selectReject);
+		System.out.println("role reject count " + roleReject);
 		
-		for(int i=0;i<100;i++){
+		for(int i=0;i<leaders.size();i++){
 			Collections.sort(leaders, new LeaderIdComparator());
 			Leader leader = leaders.get(i);
 			if(!leader.deagent.isEmpty()){
 				System.out.println("number of leader " + leader.getmyid() + " deagent is " + leader.deagent.size());
 				for(int j=0;j<leader.deagent.size();j++){
 					Agent agent = leader.deagent.get(j);
-					System.out.println("member " + agent.getmyid() + " de = " + leader.de[agent.getmyid()]);
+					System.out.println("agent " + agent.getmyid() + " de = " + leader.de[agent.getmyid()]);
 				}
 			}
 		}
 		
-		for(int i=0;i<400;i++){
+		for(int i=0;i<members.size();i++){
 			Collections.sort(members, new MemberIdComparator());
 			Member member = members.get(i);
-			if(!member.deagent.isEmpty())
-			System.out.println("number of member " + member.getmyid() + " deagent is " + member.deagent.size() + " " + member.averageOfCapability());
+			if(!member.deagent.isEmpty()){
+				System.out.println("number of member " + member.getmyid() + " deagent is " + member.deagent.size() + " " + member.averageOfCapability());
+				for(int j=0;j<member.deagent.size();j++){
+					Agent agent = member.deagent.get(j);
+					System.out.println("agent " + agent.getmyid() + " de = " + member.de[agent.getmyid()]);
+				}
+			}
 		}
 		
 		/*
@@ -315,11 +465,10 @@ public class test {
 			System.out.println("member " + member.getmyid() + " last active " + member.lasttick + " " +member.isactive());
 		}
 		*/
-		System.out.println("active reject count " + activeReject);
-		System.out.println("select reject count " + selectReject);
-		pw.close();
-		pw1.close();
+		
 	}
+	
+	//---------------------------------------------------------------------------------------
 	
 	public int eGreedy(Sfmt rnd) {
 		int A;

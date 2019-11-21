@@ -15,21 +15,42 @@ public class Member extends Agent{
 	
 	private int excutiontime;
 	
+	final int thresholdV = 100;
+	
 	private boolean active = false;
 	
 	static int countr = 0,counta = 0;
 	
-	Queue<SubTask> taskqueue = new ArrayDeque<SubTask>();
+	Queue<MessagetoMember> taskqueue = new ArrayDeque<MessagetoMember>();
 	
 	SubTask excutingtask = null;
 	
+	int lastSelectTick = 0;
+	
+	int messageAgreeCount = 0;
+	
+	int receiveTaskMessageCount = 0;
+	
 	//List<Member> deagent = new ArrayList<Member>();
+	
+	//---------------------------------------------------------------------------------------
 	
 	Member(Sfmt rnd){
 		super(rnd);
-		numofdeagent = 1;
+		numofdeagent = 0;
 		threshold = 0.5 * averageOfCapability();
 	}
+	
+	//---------------------------------------------------------------------------------------
+	
+	Member(Leader ld){
+		super(ld);
+		numofdeagent = 1;
+		threshold = 0.5 * averageOfCapability();
+		
+	}
+	
+	//---------------------------------------------------------------------------------------
 	
 	public MessagetoMember decideRandomMessage(List<MessagetoMember> messages, Sfmt rnd){
 		MessagetoMember decide = null;
@@ -38,6 +59,8 @@ public class Member extends Agent{
 		decide = messages.get(p);
 		return decide;
 	}
+	
+	//---------------------------------------------------------------------------------------
 	
 	
 	public MessagetoMember decideMessage(List<MessagetoMember> messages){
@@ -68,36 +91,35 @@ public class Member extends Agent{
 		return decide;
 	}
 	
+	//---------------------------------------------------------------------------------------
+	
 	public List<MessagetoMember> getmessages(){
 		return messagestom; 
 	}
+	
+	//---------------------------------------------------------------------------------------
 	
 	public void sendreplymessages(Environment e, MessagetoMember decide, List<MessagetoMember> messages){
 		
 		if(decide != null){
 			excutiontime = setexcutiontime(decide.getsubtask());
-			MessagetoLeader mtol = new MessagetoLeader(this, decide.getfrom(), decide.getsubtask(), true, 0/*type*/, excutiontime); 
-			//System.out.println("send message from Member " + mtol.getfrom().getmyid() + " to Leader " + mtol.getto().getmyid() + " " + mtol.getsubtask() + " " + mtol.memberaccept());
+			MessagetoLeader mtol = new MessagetoLeader(decide.getto(), decide.getfrom(), decide.getsubtask(), true, 0/*type*/, excutiontime); 
+			mtol.setNewMember(this);
+			System.out.println("send message from Member " + mtol.getfrom().getmyid() + " to Leader " + mtol.getto().getmyid() + " " + mtol.getsubtask() + " " + mtol.memberaccept());
 			e.addmessagetoleader(mtol);
 		}
 		for(int i=0;i<messages.size();i++){
 			MessagetoMember mtom = messages.get(i);
 			if(!(mtom.equals(decide))){
-				MessagetoLeader mtol = new MessagetoLeader(this, mtom.getfrom(), mtom.getsubtask(), false, 0/*type*/,excutiontime); 
-				/*
-				System.out.println("send message from Member " + mtol.getfrom().getmyid() + " to Leader " + mtol.getto().getmyid() + " " + mtol.getsubtask() + " " + mtol.memberaccept());
-				if(this.getPhase() == 0){
-					countr++;
-					System.out.println("because of regret " + countr);
-				}else if(this.getPhase() == 1){
-					counta++;
-					System.out.println("because of active " + counta);
-				}
-				*/
+				MessagetoLeader mtol = new MessagetoLeader(mtom.getto(), mtom.getfrom(), mtom.getsubtask(), false, 0/*type*/,excutiontime);
+				System.out.println("Member " + getmyid() + " reject message from " + mtol.getto().getmyid() + " because of active");
 				e.addmessagetoleader(mtol);
 			}
 		}
 	}
+	
+	//---------------------------------------------------------------------------------------
+	
 	public void sendreplymessagesCNP(Environment e, SubTask decide, MessagetoMember mtom){
 		int et = 0;
 		if(decide != null){
@@ -107,38 +129,57 @@ public class Member extends Agent{
 		MessagetoLeader mtol = new MessagetoLeader(this, mtom.getfrom(), decide, 2/*type*/, et); 
 		e.addmessagetoleader(mtol);
 	}
+	
+	//---------------------------------------------------------------------------------------
+	
 	public int setexcutiontime(SubTask s){
 		int et = 0;
 		for(int i=0;i<3/*リソースの種類*/;i++){
-			if(s.getcapacity(i) != 0){
-				et =(int)Math.ceil((double)s.getcapacity(i) / capacity[i]);
+			int a = (int)Math.ceil((double)s.getcapacity(i) / capacity[i]);
+			if(et < a ){
+				et = a;
 			}
 		}
 		return et;
 	}
+	
+	//---------------------------------------------------------------------------------------
+	
 	public void taskexcution(MessagetoMember message){
 		//System.out.println("Start Excution from Leader " + message.getfrom().getmyid() + " to Member " + message.getto().getmyid() + " " + message.getsubtask()+ " excutiontime : " + excutiontime);
-		finishexcution = new MessagetoLeader(this, message.getfrom(), message.getsubtask(), 1, excutiontime);
+		excutiontime = setexcutiontime(message.getsubtask());
+		System.out.println("taskexcuting" + this + " " + this.getmyid());
+		finishexcution = new MessagetoLeader(message.getto(), message.getfrom(), message.getsubtask(), 1, excutiontime);
 	}
 	
-	public void taskexcution(){
+	//---------------------------------------------------------------------------------------
+	
+	public void taskexcution(Environment e){
 		if(excutingtask == null){
 			if(!taskqueue.isEmpty()){
-				excutingtask = taskqueue.poll(); 
+				MessagetoMember mToM = taskqueue.poll();
+				excutingtask = mToM.getsubtask(); 
 				excutiontime = setexcutiontime(excutingtask);
+				finishexcution = new MessagetoLeader(mToM.getto(), mToM.getfrom(), mToM.getsubtask(), 1, excutiontime);
+				
 			}
 		}else{
 			excutiontime--;
 			if(excutiontime == 0){
+				System.out.println("sent finish excution message");
+				e.addmessagetoleader(finishexcution);
 				excutingtask = null;
+				finishexcution = null;
 			}
 		}
 	}
 	
+	//---------------------------------------------------------------------------------------
+	
 	public int checkexcution(Environment e){
 		if(excutiontime == 0 && finishexcution != null){
 			e.addmessagetoleader(finishexcution);
-			//System.out.println("finishexcution id : " + this.getmyid());
+			System.out.println("send finish message from " + this + " " + this.getmyid() + " to " + finishexcution.getto().getmyid() );
 			return 0;
 		}
 		if(finishexcution == null){
@@ -146,21 +187,35 @@ public class Member extends Agent{
 		}
 		return 2;
 	}
+	
+	//---------------------------------------------------------------------------------------
+	
 	public void reduceexcutiontime(){
 		excutiontime--;
 	}
 	
-	public void getmessage(MessagetoMember message, Environment e){
+	//---------------------------------------------------------------------------------------
+	
+	public void getmessage(MessagetoMember message){
 		if(message.gettype() == 0/*message 受理or拒否*/){
 			messagestom.add(message);
 		}else if(message.gettype() == 1/*task allocate*/){
+			receiveTaskMessageCount++;
 			taskmessage = message;
+			//System.out.println(taskmessage.getsubtask());
+			//excutiontime = setexcutiontime(message.getsubtask());
+			if(message.taskisallocated()){
+				taskqueue.add(message);
+			}
+			updateE(1,message.taskisallocated());
 			updatede(message, message.taskisallocated());
 		}else if(message.gettype() == 2){
 			taskmessage = message;
 		}
 		
 	}
+	
+	//---------------------------------------------------------------------------------------
 	
 	public void updatede(MessagetoMember message, boolean success){
 		double delta = 0.0;
@@ -175,6 +230,8 @@ public class Member extends Agent{
 		
 	}
 	
+	//---------------------------------------------------------------------------------------
+	
 	public void updatedeRational(MessagetoMember message, boolean success){
 		double delta = 0.0;
 		if(success){
@@ -187,29 +244,49 @@ public class Member extends Agent{
 		//System.out.println("de[" + message.getfrom().getmyid() + "] = " + this.de[message.getfrom().getmyid()]);
 		
 	}
+	
+	//---------------------------------------------------------------------------------------
+	
 	public int getExcutiontime(){
 		return excutiontime;
 	}
 	
+	//---------------------------------------------------------------------------------------
+	
 	public boolean isactive(){
 		return active;
 	}
+	
+	//---------------------------------------------------------------------------------------
+	
 	public void setcondition(boolean b){
 		active = b;
 	}
+	
+	//---------------------------------------------------------------------------------------
 
 	public boolean havemessage(){
 		return !messagestom.isEmpty();
 	}
 	
+	//---------------------------------------------------------------------------------------
+	
 	public void clearall(){
 		finishexcution = null;
 		taskmessage = null;
 	}
+	
+	//---------------------------------------------------------------------------------------
+	
 	public void clearmessages(){
 		messagestom.clear();
 	}
+	
+	//---------------------------------------------------------------------------------------
+	
 	public MessagetoMember gettaskmessage(){
 		return taskmessage;
 	}
+	
+	//---------------------------------------------------------------------------------------
 }

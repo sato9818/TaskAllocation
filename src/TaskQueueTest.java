@@ -9,15 +9,11 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Random;
 
-public class test {
+public class TaskQueueTest {
 	List<Leader> leaders = new ArrayList<Leader>();
-	
 	List<Member> members = new ArrayList<Member>();
 	
 	double communicationtime = 0.0;
-	
-	int activeReject = 0;
-	int selectReject = 0;
 	
 	void initialize(Sfmt rnd){
 		List<Grid> grid = new ArrayList<Grid>();
@@ -124,7 +120,7 @@ public class test {
 			Random r = new Random(17);
 			Collections.shuffle(leaders, r);
 			Collections.shuffle(members, r);
-			e.addTask(rnd.NextPoisson(7)/*mu*/, rnd);
+			e.addTask(rnd.NextPoisson(5)/*mu*/, rnd);
 				
 			//リーダの行動
 			for(int i=0;i<leaders.size();i++){
@@ -183,6 +179,7 @@ public class test {
 				case 2:
 					ld.reduceexcutiontime();
 					if(ld.checkmyexcution() == 0){
+						//System.out.println("phase 2");
 						if(ld.checkexcution() == 0){
 							ld.setphase(0);
 							excutiontask++;
@@ -197,6 +194,11 @@ public class test {
 			//メンバの行動
 			for(int i=0;i<members.size();i++){
 				Member mem = members.get(i);
+				if(mem.havemessage()){
+					mem.setphase(0);
+				}else{
+					mem.setphase(1);
+				}
 				switch(mem.getPhase()){
 				case 0:
 					if(mem.havemessage()){//メッセージが来ていたら
@@ -211,17 +213,17 @@ public class test {
 							System.out.println("Epsilon");
 							decide = mem.decideRandomMessage(messages,rnd);
 						}
+						if(mem.taskqueue.size() > 4){
+							decide = null;
+						}
 						//来てるメッセージ全ての返信をする
 						mem.sendreplymessages(e, decide, messages);	
 						//受理したメッセージがあれば次のphaseへ
 						if(decide != null){
-							selectReject += messages.size() - 1;
 							//System.out.println("member next phase 1" + mem.getmyid());
 							mem.setcondition(true);
 							mem.setphase(1);
 							mem.lastSelectTick = tick;
-						}else{
-							selectReject += messages.size();
 						}
 						
 						//メッセージ集合を初期化
@@ -230,40 +232,8 @@ public class test {
 					break;
 				case 1:
 					//allocationまち
-					List<MessagetoMember> messages = mem.getmessages();
-					activeReject += messages.size();
-					mem.sendreplymessages(e, null, messages);	
-					mem.clearmessages();
-					
-					MessagetoMember messagetom;
-					if((messagetom = mem.gettaskmessage()) != null){
-						if(messagetom.taskisallocated()){
-							mem.taskexcution(messagetom);
-							mem.setcondition(false);
-							mem.setphase(2);
-							sumOfExcutionTime += mem.getExcutiontime();
-							numOfExcutingTask++;
-						}else{
-							mem.setphase(0);
-							mem.setcondition(false);
-							mem.clearall();
-						}
-					}
-					break;
-				case 2:
-					mem.reduceexcutiontime();
-					if(mem.checkexcution(e) == 0){
-						//System.out.println("member next phase 0" + mem.getmyid());
-						mem.setphase(0);
-						mem.clearall();
-						mem.setcondition(false);
-					}else if(mem.checkexcution(e) == 1){
-						//System.out.println("no task");
-						//System.out.println("member next phase 0" + mem.getmyid());
-						mem.setphase(0);
-						mem.clearall();
-						mem.setcondition(false);
-					}
+					//System.out.println("phase 1");
+					mem.taskexcution(e);
 					break;
 				}
 				
@@ -315,8 +285,6 @@ public class test {
 			System.out.println("member " + member.getmyid() + " last active " + member.lasttick + " " +member.isactive());
 		}
 		*/
-		System.out.println("active reject count " + activeReject);
-		System.out.println("select reject count " + selectReject);
 		pw.close();
 		pw1.close();
 	}

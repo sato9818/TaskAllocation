@@ -2,8 +2,11 @@
 public class MessagetoMember extends Message{
 	private Leader from;
 	private Member to;
+	
 	private Task task;
 	private boolean havetask = false;
+	
+	//---------------------------------------------------------------------------------------
 	
 	MessagetoMember(Leader f, Member t, SubTask s){
 		//タスクを受理するかしないか
@@ -12,6 +15,8 @@ public class MessagetoMember extends Message{
 		to = t;
 		setdelay(f,t);
 	}
+	
+	//---------------------------------------------------------------------------------------
 	
 	MessagetoMember(Leader f, Member t, SubTask s, boolean th){
 		//受理メッセージに対するタスクを与える
@@ -22,6 +27,8 @@ public class MessagetoMember extends Message{
 		havetask = th;
 	}
 	
+	//---------------------------------------------------------------------------------------
+	
 	MessagetoMember(Leader from, Member to, Task task){
 		//CNP
 		super(null, 0);
@@ -31,20 +38,29 @@ public class MessagetoMember extends Message{
 		setdelay(from, to);
 	}
 	
+	//---------------------------------------------------------------------------------------
+	
 	public Task gettask(){
 		return task;
 	}
+	
+	//---------------------------------------------------------------------------------------
 	
 	public Leader getfrom(){
 		return from;
 	}
 	
+	//---------------------------------------------------------------------------------------
+	
 	public Member getto(){
 		return to;
 	}
+	
+	//---------------------------------------------------------------------------------------
 	
 	public boolean taskisallocated(){
 		return havetask;
 	}
 	
+	//---------------------------------------------------------------------------------------
 }

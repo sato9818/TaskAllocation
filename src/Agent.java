@@ -18,6 +18,10 @@ public class Agent {
 	private double capave = 0.0;
 	protected double threshold;
 	private int distance[] = new int[500];
+	protected double lE = 0.5;
+	protected double mE = 0.5;
+	
+	//---------------------------------------------------------------------------------------
 	
 	Agent(Sfmt rnd){
 		setcapacity(rnd);
@@ -25,18 +29,54 @@ public class Agent {
 		myid = num;
 		num++;
 		//initial de
-		
 	}
+	
+	//---------------------------------------------------------------------------------------
+	
+	Agent(Agent agent){
+		myid = agent.getmyid();
+		capacity = agent.capacity;
+		de = agent.de;
+		gridx = agent.getPositionx();
+		gridy = agent.getPositiony();
+		deagent = agent.deagent;
+		capave = agent.capave;
+		distance = agent.distance;
+		lE = agent.lE;
+		mE = agent.mE;
+	}
+	
+	//---------------------------------------------------------------------------------------
+	
+	public void updateE(int roleType, boolean success){
+		double delta;
+		if(success){
+			delta = 1.0;
+		}else{
+			delta = 0.0;
+		}
+		if(roleType == 0){
+			lE = (1.0 - 0.05) * lE + 0.05 * delta; 
+		}else if(roleType == 1){
+			mE = (1.0 - 0.05) * mE + 0.05 * delta; 
+		}
+	}
+	
+	//---------------------------------------------------------------------------------------
 	
 	public void setdistance(Agent agent){
 		int dis = (int)Math.ceil((double)manhattan(this.getPositionx(), agent.getPositionx(), this.getPositiony(), agent.getPositiony()) / 100 * 5/**/ );
 		distance[agent.getmyid()] = dis;
 	}
 	
+	//---------------------------------------------------------------------------------------
+	
 	double euclid(double x1, double x2, double y1, double y2) {
 		double d = Math.sqrt((x2-x1)*(x2-x1)+(y2-y1)*(y2-y1));
 		return d;
 	}
+	
+	//---------------------------------------------------------------------------------------
 	
 	private int manhattantorus(int x1, int x2, int y1, int y2){
 		int x = Math.abs(x1-x2);
@@ -45,15 +85,22 @@ public class Agent {
 		if(y > 25) y = Math.abs(y-50);
 		return x + y;
 	}
+	
+	//---------------------------------------------------------------------------------------
+	
 	private int manhattan(int x1, int x2, int y1, int y2){
 		int x = Math.abs(x1-x2);
 		int y = Math.abs(y1-y2);
 		return x + y;
 	}
 	
+	//---------------------------------------------------------------------------------------
+	
 	public int getdistance(int id){
 		return distance[id];
 	}
+	
+	//---------------------------------------------------------------------------------------
 	
 	private void initialde(){
 		for(int i=0;i<500;i++){
@@ -63,11 +110,13 @@ public class Agent {
 		}
 	}
 	
+	//---------------------------------------------------------------------------------------
+	
 	private void setcapacity(Sfmt rnd){
 		while(capacity[0] == 0 && capacity[1] == 0 && capacity[2] == 0){
 			int p = 0;
 			for(int i=0;i<3;i++){
-				capacity[i] = rnd.NextInt(6);
+				capacity[i] = 1 + rnd.NextInt(6);
 				capave += (double)capacity[i];
 				if(capacity[i] != 0){
 					p++;
@@ -77,30 +126,44 @@ public class Agent {
 		}
 	}
 	
+	//---------------------------------------------------------------------------------------
+	
 	public void setPosition(int x, int y){
 		gridx = x;
 		gridy = y;
 	}
 	
+	//---------------------------------------------------------------------------------------
+	
 	public int getPositionx(){
 		return gridx;
 	}
+	
+	//---------------------------------------------------------------------------------------
 	
 	public int getPositiony(){
 		return gridy;
 	}
 	
+	//---------------------------------------------------------------------------------------
+	
 	public void reducede(int id){
 		de[id] = Math.max(de[id]-0.000002, 0.0);
 	}
+	
+	//---------------------------------------------------------------------------------------
 	
 	public int getmyid(){
 		return myid;
 	}
 	
+	//---------------------------------------------------------------------------------------
+	
 	public int getPhase(){
 		return phase;
 	}
+	
+	//---------------------------------------------------------------------------------------
 	
 	public void setphase(int phase){
 		/*Leader
@@ -115,17 +178,26 @@ public class Agent {
 		this.phase = phase;
 		
 	}
+	
+	//---------------------------------------------------------------------------------------
+	
 	public double averageOfCapability(){
 		return capave;
 	}
+	
+	//---------------------------------------------------------------------------------------
 	
 	public void adddeagent(Agent agent){
 		deagent.add(agent);
 	}
 	
+	//---------------------------------------------------------------------------------------
+	
 	public double getthreshold(){
 		return threshold;
 	}
+	
+	//---------------------------------------------------------------------------------------
 	
 	public void updatedeagent(){
 		if(numofdeagent < deagent.size()){
@@ -137,6 +209,9 @@ public class Agent {
 			deagent = buf;
 		}
 	}
+	
+	//---------------------------------------------------------------------------------------
+	
 	public List<Agent> sortagent(List<Agent> agents){
 		for (int i = 0; i < agents.size() - 1; i++) {
             for (int j = agents.size() - 1; j > i; j--) {
@@ -147,4 +222,6 @@ public class Agent {
         }
 		return agents;
 	}
+	
+	//---------------------------------------------------------------------------------------
 }
