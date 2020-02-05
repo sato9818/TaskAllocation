@@ -285,8 +285,8 @@ public class Member extends Agent{
 		if(success){
 //			delta = (double)message.getsubtask().getutility() / (message.getdistance() * 2 + excutiontime);
 			//System.out.println("excutiontime " + excutiontime);
-//			delta = 1 / (message.getdistance() * 2 + excutiontime);
-			delta = 1;
+			delta = 1 / (message.getdistance() * 2 + excutiontime);
+//			delta = 1;
 		}
 		this.de[message.getfrom().getmyid()] = 
 					(1.0 - 0.01/**/) * this.de[message.getfrom().getmyid()] 

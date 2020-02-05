@@ -423,15 +423,15 @@ public class Leader extends Agent{
 	public void updatede(MessagetoLeader message, boolean success, int executedTime){
 		double delta = 0.0;
 		if(success){
-//			delta = (double)message.getsubtask().getutility() 
-//			/  //---------------------------------------------------------------
-//					(executedTime) ;
+			delta = (double)message.getsubtask().getutility() 
+			/  //---------------------------------------------------------------
+					(executedTime) ;
 //			System.out.println(executedTime);
 //			delta = (double)message.getdistance() / 10 * 0.3  + message.getExcutionTime() / 10 * 0.7;
 			
 //			delta = (double)message.getsubtask().getutility() / (message.getdistance() * 2 + message.getExcutionTime()) ;
 			//System.out.println("excutiontime " + message.getExcutionTime());
-			delta = 1;
+//			delta = 1;
 			
 		}
 		this.de[message.getfrom().getmyid()] = 
