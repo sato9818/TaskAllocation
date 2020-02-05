@@ -423,7 +423,7 @@ public class TaskDeviation {
 			Sfmt rnd = new Sfmt(seed._seeds[a]/*seed*/);
 			Random r = new Random(seed._seeds[a]);
 			initialize(rnd);
-			for(int tick=0;tick<150001;tick++){
+			for(int tick=0;tick<1001;tick++){
 				System.out.println("tick: " + tick);
 				
 				Collections.shuffle(leaders, r);
