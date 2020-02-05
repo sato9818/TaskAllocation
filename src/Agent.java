@@ -8,7 +8,7 @@ import java.util.Map;
 public class Agent {
 	static int num = 0;
 	int capacity[] = new int[3];
-	double de[] = new double[500];
+	double de[] = new double[1000];
 	private int myid;
 	private int gridx;
 	private int gridy;
@@ -17,15 +17,20 @@ public class Agent {
 	protected int numofdeagent;
 	private double capave = 0.0;
 	protected double threshold;
-	private int distance[] = new int[500];
+	private int distance[] = new int[1000];
 	protected double lE = 0.5;
 	protected double mE = 0.5;
+	private int presentTick = 0;
 	
 	//---------------------------------------------------------------------------------------
 	
 	Agent(Sfmt rnd){
 		setcapacity(rnd);
 		initialde();
+		if(num == 500){
+			num = 0;
+		}
+		
 		myid = num;
 		num++;
 		//initial de
@@ -48,6 +53,60 @@ public class Agent {
 	
 	//---------------------------------------------------------------------------------------
 	
+	public void setTick(int tick){
+		presentTick = tick;
+	}
+	
+	//---------------------------------------------------------------------------------------
+	
+	public int getTick(){
+		return presentTick;
+	}
+	
+	//---------------------------------------------------------------------------------------
+	
+	public int getArea(){
+		if(this.getPositionx() < 25 && this.getPositiony() < 25){
+			return 0;
+		}else if(this.getPositionx() >= 25 && this.getPositiony() < 25){
+			return 1;
+		}else if(this.getPositionx() < 25 && this.getPositiony() >= 25){
+			return 2;
+		}else{
+			return 3;
+		}
+	}
+	
+	//---------------------------------------------------------------------------------------
+	
+	public int getAreaExpand(){
+		int x = this.getPositionx();
+		int y = this.getPositiony();
+		if(x < 33 && y < 33){
+			return 0;
+		}else if(x >= 33 && x < 66 && y < 33){
+			return 1;
+		}else if(x >= 66 && x < 99 && y < 33){
+			return 2;
+		}else if(x < 33 && y >= 33 && y < 66){
+			return 3;
+		}else if(x >= 33 && x < 66 && y >= 33 && y < 66){
+			return 4;
+		}else if(x >= 66 && x < 99 && y >= 33 && y < 66){
+			return 5;
+		}else if(x < 33 && y >= 66 && y < 99){
+			return 6;
+		}else if(x >= 33 && x < 66 && y >= 66 && y < 99){
+			return 7;
+		}else if(x >= 66 && x < 99 && y >= 66 && y < 99){
+			return 8;
+		}else{
+			return 9;
+		}
+	}
+	
+	//---------------------------------------------------------------------------------------
+	
 	public void updateE(int roleType, boolean success){
 		double delta;
 		if(success){
@@ -65,7 +124,7 @@ public class Agent {
 	//---------------------------------------------------------------------------------------
 	
 	public void setdistance(Agent agent){
-		int dis = (int)Math.ceil((double)manhattan(this.getPositionx(), agent.getPositionx(), this.getPositiony(), agent.getPositiony()) / 100 * 5/**/ );
+		int dis = (int)Math.ceil((double)manhattan(this.getPositionx(), agent.getPositionx(), this.getPositiony(), agent.getPositiony()) / 200 * 10/**/ );
 		distance[agent.getmyid()] = dis;
 	}
 	
@@ -103,7 +162,7 @@ public class Agent {
 	//---------------------------------------------------------------------------------------
 	
 	private void initialde(){
-		for(int i=0;i<500;i++){
+		for(int i=0;i<1000;i++){
 			if(i != this.getmyid()){
 				de[i] = 0.5;
 			}
@@ -116,7 +175,7 @@ public class Agent {
 		while(capacity[0] == 0 && capacity[1] == 0 && capacity[2] == 0){
 			int p = 0;
 			for(int i=0;i<3;i++){
-				capacity[i] = 1 + rnd.NextInt(6);
+				capacity[i] = 1 + rnd.NextInt(5);
 				capave += (double)capacity[i];
 				if(capacity[i] != 0){
 					p++;

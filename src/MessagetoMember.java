@@ -2,7 +2,7 @@
 public class MessagetoMember extends Message{
 	private Leader from;
 	private Member to;
-	
+	private Member mfrom;
 	private Task task;
 	private boolean havetask = false;
 	
@@ -40,6 +40,15 @@ public class MessagetoMember extends Message{
 	
 	//---------------------------------------------------------------------------------------
 	
+	MessagetoMember(Member mfrom, Member to,SubTask s){
+		super(s, 3);
+		this.mfrom = mfrom;
+		this.to = to;
+		setdelay(mfrom, to);
+	}
+	
+	//---------------------------------------------------------------------------------------
+	
 	public Task gettask(){
 		return task;
 	}
@@ -48,6 +57,12 @@ public class MessagetoMember extends Message{
 	
 	public Leader getfrom(){
 		return from;
+	}
+	
+	//---------------------------------------------------------------------------------------
+	
+	public Member getmfrom(){
+		return mfrom;
 	}
 	
 	//---------------------------------------------------------------------------------------

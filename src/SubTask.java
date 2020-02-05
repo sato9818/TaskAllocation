@@ -2,12 +2,13 @@
 public class SubTask {
 	private int reqCapa[] = new int[3/**/];
 	private int utility = 0;
+	private int taskId;
 	Leader from;
 	Member to;
 	
 	//---------------------------------------------------------------------------------------
 	
-	SubTask(Sfmt rnd){
+	SubTask(Sfmt rnd, int id){
 		//int r = randomInt(rnd);
 		int r = rnd.NextInt(3);
 		int c = 5 + rnd.NextInt(6);
@@ -19,6 +20,13 @@ public class SubTask {
 			}
 		}
 		utility += reqCapa[r];	
+		this.taskId = id;
+	}
+	
+	//---------------------------------------------------------------------------------------
+	
+	public int getTaskId(){
+		return taskId;
 	}
 	
 	//---------------------------------------------------------------------------------------

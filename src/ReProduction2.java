@@ -1,3 +1,4 @@
+import java.awt.image.AreaAveragingScaleFilter;
 import java.io.BufferedWriter;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -7,7 +8,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Random;
 
-public class Reproduction {
+public class ReProduction2 {
 	List<Leader> leaders = new ArrayList<Leader>();
 	List<Member> members = new ArrayList<Member>();
 	
@@ -22,8 +23,8 @@ public class Reproduction {
 	
 	void initialize(Sfmt rnd){
 		List<Grid> grid = new ArrayList<Grid>();
-		for(int i=0;i<51;i++){
-			for(int j=0;j<51;j++){
+		for(int i=0;i<50;i++){
+			for(int j=0;j<50;j++){
 				Grid g = new Grid(i,j);
 				grid.add(g);
 			}
@@ -182,6 +183,7 @@ public class Reproduction {
 		}
 		e.decrementdelay();
 		communicationtime += e.checkdelay(leaders,members);
+		
 	}
 	
 	//---------------------------------------------------------------------------------------
@@ -190,6 +192,7 @@ public class Reproduction {
 		Environment e = new Environment();
 		Sfmt rnd = new Sfmt(13/*seed*/);
 		initialize(rnd);
+		
 		
 		PrintWriter pw = null;
 		try{
@@ -227,25 +230,27 @@ public class Reproduction {
 			System.out.println(ex);
 		}
 		
-		int excutiontask = 0;
+		int allExecutionTask = 0;
 		int wastetask = 0;
 		int sumOfExcutionTime = 0;
 		int numOfExcutingTask = 0;
 		//e.addTask(5/*mu*/, rnd);
-		for(int tick=0;tick<150001;tick++){
+		for(int tick=0;tick<50001;tick++){
 			System.out.println(leaders.size());
 			System.out.println(members.size());
 			System.out.println("tick: " + tick);
 			Random r = new Random(13);
 			Collections.shuffle(leaders, r);
 			Collections.shuffle(members, r);
-			e.addTask(rnd.NextPoisson(10)/*mu*/, rnd);
-				
+			
+			e.addTask(rnd.NextPoisson(19)/*mu*/, rnd);
+			
 			//リーダの行動
 			for(int i=0;i<leaders.size();i++){
 				Leader ld = leaders.get(i);
 				roleReject += ld.getRejectMessages().size();
 				ld.sendRejectMessage(e);
+
 				switch(ld.getPhase()){
 				case 0:
 					if(!e.TaskisEmpty()){//タスクがあれば
@@ -269,10 +274,10 @@ public class Reproduction {
 							break;
 						}
 						
-						for (int j=0; j<messagestomember.size(); j++){
-							
-							System.out.println("send message from Leader " + messagestomember.get(j).getfrom().getmyid() + " to Member " + messagestomember.get(j).getto().getmyid() + " " + messagestomember.get(j).getsubtask() + " delay " + messagestomember.get(j).getdelay());
-						}
+//						for (int j=0; j<messagestomember.size(); j++){
+//							
+//							System.out.println("send message from Leader " + messagestomember.get(j).getfrom().getmyid() + " to Member " + messagestomember.get(j).getto().getmyid() + " " + messagestomember.get(j).getsubtask() + " delay " + messagestomember.get(j).getdelay());
+//						}
 						
 						//メッセージを送る
 						for(int j=0;j<messagestomember.size();j++){
@@ -287,8 +292,9 @@ public class Reproduction {
 					//メッセージの返信を見て
 					if(ld.waitreply() == 0){
 						//全部返信がきててアロケーションできるなら
-						ld.taskallocate(e);
-						ld.setphase(2);
+						int time = ld.taskallocate(e);
+						ld.setphase(0);
+						ld.clearall();
 						//excutiontask++;
 					}else if(ld.waitreply() == 1){
 						//全部返信がきててアロケーションできないなら
@@ -299,18 +305,6 @@ public class Reproduction {
 						ld.clearall();
 					}
 					break;
-				
-				case 2:
-					ld.reduceexcutiontime();
-					if(ld.checkmyexcution() == 0){
-						//System.out.println("finish my task");
-						if(ld.checkexcution() == 0){
-							ld.setphase(0);
-							excutiontask++;
-							ld.clearall();
-						}
-					}
-					break;
 				}
 				
 			}	
@@ -318,9 +312,13 @@ public class Reproduction {
 			//メンバの行動
 			for(int i=0;i<members.size();i++){
 				Member mem = members.get(i);
-				if(mem.havemessage()){
+
+
+				if(mem.excutingtask != null){
+					mem.setphase(1);
+				}else if(mem.havemessage()){
 					mem.setphase(0);
-				}else if(mem.taskqueue.size() != 0 || mem.excutingtask != null){
+				}else if(mem.taskqueue.size() != 0){
 					mem.setphase(1);
 				}else{
 					mem.setphase(2);
@@ -331,21 +329,30 @@ public class Reproduction {
 						//来てるメッセージを取得
 						List<MessagetoMember> messages = mem.getmessages();
 						//メッセージから受理するメッセージを選ぶ
-						int p = eGreedy(rnd);
-						MessagetoMember decide = null;
-						if(p == 0){
-							decide = mem.decideMessage(messages);
-						}else if(p == 1){
-							System.out.println("Epsilon");
-							decide = mem.decideRandomMessage(messages,rnd);
+						int flag = 0;
+						while(!messages.isEmpty()){
+							boolean decide = true;
+							int p = eGreedy(rnd);
+							MessagetoMember mtom = null;
+							if(p == 0){
+								mtom = mem.decideMessage(messages);
+							}else if(p == 1){
+								System.out.println("Epsilon");
+								mtom = mem.decideRandomMessage(messages,rnd);
+								System.out.println(mtom);
+							}
+							if(mem.numOfMessage + mem.taskqueue.size() > 4){
+								decide = false;
+							}
+							if(decide){
+								mem.numOfMessage++;
+								flag = 1;
+							}
+							mem.sendreplymessages(e, mtom, decide);
+							messages.remove(mtom);
 						}
-						if(mem.taskqueue.size() > 4){
-							decide = null;
-						}
-						//来てるメッセージ全ての返信をする
-						mem.sendreplymessages(e, decide, messages);	
 						//受理したメッセージがあれば次のphaseへ
-						if(decide != null){
+						if(flag == 1){
 							selectReject += messages.size() - 1;
 							mem.messageAgreeCount++;
 							//System.out.println("member next phase 1" + mem.getmyid());
@@ -388,17 +395,18 @@ public class Reproduction {
 			}	
 			selectRole(rnd, tick);
 			update(e);
+			allExecutionTask += calcuExecutedTask();
 			
 			if(tick % 100 == 0){
 				pw.print(tick);
 	        	pw.print(",");
-	        	pw.print(excutiontask);
+	        	pw.print(allExecutionTask);
 	        	pw.print(",");
 	        	pw.print((double)sumOfExcutionTime / numOfExcutingTask);
 	        	pw.println();
 	        	sumOfExcutionTime = 0;
 				numOfExcutingTask = 0;
-				excutiontask = 0;
+				allExecutionTask = 0;
 			}
 			if(tick % 100 == 0){
 				pw1.print(tick);
@@ -435,7 +443,7 @@ public class Reproduction {
 		System.out.println("role reject count " + roleReject);
 		
 		for(int i=0;i<leaders.size();i++){
-			Collections.sort(leaders, new LeaderIdComparator());
+			
 			Leader leader = leaders.get(i);
 			if(!leader.deagent.isEmpty()){
 				System.out.println("number of leader " + leader.getmyid() + " deagent is " + leader.deagent.size());
@@ -458,13 +466,28 @@ public class Reproduction {
 			}
 		}
 		printAgentGrid(leaders,members);
-		/*
-		for(int i=0;i<400;i++){
-			Member member = members.get(i);
-			System.out.println("member " + member.getmyid() + " last active " + member.lasttick + " " +member.isactive());
-		}
-		*/
 		
+		
+		
+	}
+	
+	//---------------------------------------------------------------------------------------
+	
+	public int calcuExecutedTask(){
+		int executedTask = 0;
+		for(int i=0;i<leaders.size();i++){
+			Leader leader = leaders.get(i);
+			int area = leader.getAreaExpand();
+			int ldTaskCount = leader.getCountExecutedTask();
+			executedTask += ldTaskCount;
+		}
+		for(int i=0;i<members.size();i++){
+			Member member = members.get(i);
+			int area = member.getAreaExpand();
+			int memTaskCount = member.getCountExecutedTask();
+			executedTask += memTaskCount;
+		}
+		return executedTask;
 	}
 	
 	//---------------------------------------------------------------------------------------

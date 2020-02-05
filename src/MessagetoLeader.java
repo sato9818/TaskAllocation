@@ -34,6 +34,7 @@ public class MessagetoLeader extends Message{
 		super(null, ty);
 		this.from = from;
 		lFrom = f;
+		setdelay(f,from);
 	}
 	
 	//---------------------------------------------------------------------------------------

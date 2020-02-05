@@ -7,7 +7,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Random;
 
-public class Reproduction {
+public class ExpandDeviation {
 	List<Leader> leaders = new ArrayList<Leader>();
 	List<Member> members = new ArrayList<Member>();
 	
@@ -22,8 +22,8 @@ public class Reproduction {
 	
 	void initialize(Sfmt rnd){
 		List<Grid> grid = new ArrayList<Grid>();
-		for(int i=0;i<51;i++){
-			for(int j=0;j<51;j++){
+		for(int i=0;i<99;i++){
+			for(int j=0;j<99;j++){
 				Grid g = new Grid(i,j);
 				grid.add(g);
 			}
@@ -31,7 +31,7 @@ public class Reproduction {
 		
 		Collections.shuffle(grid, new Random(13));
 		
-		for(int i=0;i<500;i++){
+		for(int i=0;i<1000;i++){
 			int p = rnd.NextInt(2);
 			if(p == 0){
 				Leader leader = new Leader(rnd);
@@ -182,6 +182,7 @@ public class Reproduction {
 		}
 		e.decrementdelay();
 		communicationtime += e.checkdelay(leaders,members);
+		
 	}
 	
 	//---------------------------------------------------------------------------------------
@@ -232,15 +233,26 @@ public class Reproduction {
 		int sumOfExcutionTime = 0;
 		int numOfExcutingTask = 0;
 		//e.addTask(5/*mu*/, rnd);
-		for(int tick=0;tick<150001;tick++){
+		for(int tick=0;tick<50001;tick++){
 			System.out.println(leaders.size());
 			System.out.println(members.size());
 			System.out.println("tick: " + tick);
 			Random r = new Random(13);
 			Collections.shuffle(leaders, r);
 			Collections.shuffle(members, r);
-			e.addTask(rnd.NextPoisson(10)/*mu*/, rnd);
-				
+			
+			e.addTask(rnd.NextPoisson(19)/*mu*/, rnd);
+			
+//			e.addTask(rnd.NextPoisson(1)/*mu*/, rnd, 0);
+//			e.addTask(rnd.NextPoisson(2)/*mu*/, rnd, 1);
+//			e.addTask(rnd.NextPoisson(2)/*mu*/, rnd, 2);
+//			e.addTask(rnd.NextPoisson(4)/*mu*/, rnd, 3);
+//			e.addTask(rnd.NextPoisson(1)/*mu*/, rnd, 4);
+//			e.addTask(rnd.NextPoisson(1)/*mu*/, rnd, 5);
+//			e.addTask(rnd.NextPoisson(2)/*mu*/, rnd, 6);
+//			e.addTask(rnd.NextPoisson(4)/*mu*/, rnd, 7);
+//			e.addTask(rnd.NextPoisson(2)/*mu*/, rnd, 8);
+	
 			//リーダの行動
 			for(int i=0;i<leaders.size();i++){
 				Leader ld = leaders.get(i);
@@ -248,6 +260,7 @@ public class Reproduction {
 				ld.sendRejectMessage(e);
 				switch(ld.getPhase()){
 				case 0:
+					//int area = ld.getArea();
 					if(!e.TaskisEmpty()){//タスクがあれば
 						//タスクを取得
 						Task task = e.pushTask();
@@ -269,10 +282,10 @@ public class Reproduction {
 							break;
 						}
 						
-						for (int j=0; j<messagestomember.size(); j++){
-							
-							System.out.println("send message from Leader " + messagestomember.get(j).getfrom().getmyid() + " to Member " + messagestomember.get(j).getto().getmyid() + " " + messagestomember.get(j).getsubtask() + " delay " + messagestomember.get(j).getdelay());
-						}
+//						for (int j=0; j<messagestomember.size(); j++){
+//							
+//							System.out.println("send message from Leader " + messagestomember.get(j).getfrom().getmyid() + " to Member " + messagestomember.get(j).getto().getmyid() + " " + messagestomember.get(j).getsubtask() + " delay " + messagestomember.get(j).getdelay());
+//						}
 						
 						//メッセージを送る
 						for(int j=0;j<messagestomember.size();j++){
@@ -287,8 +300,9 @@ public class Reproduction {
 					//メッセージの返信を見て
 					if(ld.waitreply() == 0){
 						//全部返信がきててアロケーションできるなら
-						ld.taskallocate(e);
-						ld.setphase(2);
+						int time = ld.taskallocate(e);
+						ld.setphase(0);
+						ld.clearall();
 						//excutiontask++;
 					}else if(ld.waitreply() == 1){
 						//全部返信がきててアロケーションできないなら
@@ -299,18 +313,6 @@ public class Reproduction {
 						ld.clearall();
 					}
 					break;
-				
-				case 2:
-					ld.reduceexcutiontime();
-					if(ld.checkmyexcution() == 0){
-						//System.out.println("finish my task");
-						if(ld.checkexcution() == 0){
-							ld.setphase(0);
-							excutiontask++;
-							ld.clearall();
-						}
-					}
-					break;
 				}
 				
 			}	
@@ -318,9 +320,11 @@ public class Reproduction {
 			//メンバの行動
 			for(int i=0;i<members.size();i++){
 				Member mem = members.get(i);
-				if(mem.havemessage()){
+				if(mem.excutingtask != null){
+					mem.setphase(1);
+				}else if(mem.havemessage()){
 					mem.setphase(0);
-				}else if(mem.taskqueue.size() != 0 || mem.excutingtask != null){
+				}else if(mem.taskqueue.size() != 0){
 					mem.setphase(1);
 				}else{
 					mem.setphase(2);
@@ -331,21 +335,31 @@ public class Reproduction {
 						//来てるメッセージを取得
 						List<MessagetoMember> messages = mem.getmessages();
 						//メッセージから受理するメッセージを選ぶ
-						int p = eGreedy(rnd);
-						MessagetoMember decide = null;
-						if(p == 0){
-							decide = mem.decideMessage(messages);
-						}else if(p == 1){
-							System.out.println("Epsilon");
-							decide = mem.decideRandomMessage(messages,rnd);
+						int flag = 0;
+						while(!messages.isEmpty()){
+							boolean decide = true;
+							int p = eGreedy(rnd);
+							MessagetoMember mtom = null;
+							if(p == 0){
+								mtom = mem.decideMessage(messages);
+							}else if(p == 1){
+								System.out.println("Epsilon");
+								mtom = mem.decideRandomMessage(messages,rnd);
+								System.out.println(mtom);
+							}
+							if(mem.numOfMessage + mem.taskqueue.size() > 4){
+								decide = false;
+							}
+							//来てるメッセージ全ての返信をする
+							if(decide){
+								mem.numOfMessage++;
+								flag = 1;
+							}
+							mem.sendreplymessages(e, mtom, decide);
+							messages.remove(mtom);
 						}
-						if(mem.taskqueue.size() > 4){
-							decide = null;
-						}
-						//来てるメッセージ全ての返信をする
-						mem.sendreplymessages(e, decide, messages);	
 						//受理したメッセージがあれば次のphaseへ
-						if(decide != null){
+						if(flag == 1){
 							selectReject += messages.size() - 1;
 							mem.messageAgreeCount++;
 							//System.out.println("member next phase 1" + mem.getmyid());
@@ -388,6 +402,7 @@ public class Reproduction {
 			}	
 			selectRole(rnd, tick);
 			update(e);
+			excutiontask += calcuExecutedTask();
 			
 			if(tick % 100 == 0){
 				pw.print(tick);
@@ -458,13 +473,24 @@ public class Reproduction {
 			}
 		}
 		printAgentGrid(leaders,members);
-		/*
-		for(int i=0;i<400;i++){
-			Member member = members.get(i);
-			System.out.println("member " + member.getmyid() + " last active " + member.lasttick + " " +member.isactive());
-		}
-		*/
 		
+		
+		
+	}
+	
+	//---------------------------------------------------------------------------------------
+	
+	public int calcuExecutedTask(){
+		int executedTask = 0;
+		for(int i=0;i<leaders.size();i++){
+			Leader leader = leaders.get(i);
+			executedTask += leader.getCountExecutedTask();
+		}
+		for(int i=0;i<members.size();i++){
+			Member member = members.get(i);
+			executedTask += member.getCountExecutedTask();
+		}
+		return executedTask;
 	}
 	
 	//---------------------------------------------------------------------------------------

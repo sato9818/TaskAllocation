@@ -2,6 +2,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class Task {
+	static int num = 0;
+	private int id;
 	private List<SubTask> subtasks = new ArrayList<SubTask>();
 	
 	private int utility = 0;
@@ -10,14 +12,18 @@ public class Task {
 	
 	Task(Sfmt rnd){
 		int numOfSubtask;
-		numOfSubtask = 3 + rnd.NextInt(4); 
-		
+		numOfSubtask = 3 + rnd.NextInt(4);
+		if(num == 1000000){
+			num = 0;
+		}
+		id=num;
+		num++;
 		for(int i=0;i<numOfSubtask;i++){
-			SubTask subtask = new SubTask(rnd);
+			SubTask subtask = new SubTask(rnd, id);
 			subtasks.add(subtask);
 			utility +=subtask.getutility();
 		}
-		
+		 
 	}
 	
 	//---------------------------------------------------------------------------------------

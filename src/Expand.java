@@ -1,3 +1,4 @@
+import java.awt.image.AreaAveragingScaleFilter;
 import java.io.BufferedWriter;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -7,11 +8,43 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Random;
 
-public class Reproduction {
+public class Expand {
 	List<Leader> leaders = new ArrayList<Leader>();
 	List<Member> members = new ArrayList<Member>();
 	
-	double communicationtime = 0.0;
+	int times = 5;
+	
+	int areaExecutedTask[] = new int[9];
+	int areaMemberCount[] = new int[9];
+	int areaLeaderCount[] = new int[9];
+	int areaWasteCount[] = new int[9];
+	int areaExecutedTime[] = new int[9];
+	int areaLeaderMemberCount[][] = new int[9][9];
+	int areaExecutedSubTask[] = new int[9];
+	
+	int executedTaskSummary[] = new int[150001];
+	int areaExecutedTaskSummary[][] = new int[9][150001];
+	
+	int wasteTaskSummary[] = new int[150001];
+	int areawasteTaskSummary[][] = new int[9][150001];
+	
+	double executedTimeSummary[] = new double[150001];
+	double areaExecutedTimeSummary[][] = new double[9][150001];
+	
+	double communicationTimeSummary[] = new double[150001];
+	double areaCommunicationTimeSummary[][] = new double[9][150001];
+	
+	int memberCountSummary[] = new int[150001];
+	int areaMemberCountSummary[][] = new int[9][150001];
+	
+	int leaderCountSummary[] = new int[150001];
+	int areaLeaderCountSummary[][] = new int[9][150001];
+	
+	int areaLeaderMemberCountSummary[][][] = new int[9][9][150001];
+
+			
+	double communicationtime[] = new double[9];
+	
 	int roleChangeCount = 0;
 	int activeReject = 0;
 	int activeReject2 = 0;
@@ -22,8 +55,8 @@ public class Reproduction {
 	
 	void initialize(Sfmt rnd){
 		List<Grid> grid = new ArrayList<Grid>();
-		for(int i=0;i<51;i++){
-			for(int j=0;j<51;j++){
+		for(int i=0;i<99;i++){
+			for(int j=0;j<99;j++){
 				Grid g = new Grid(i,j);
 				grid.add(g);
 			}
@@ -31,7 +64,7 @@ public class Reproduction {
 		
 		Collections.shuffle(grid, new Random(13));
 		
-		for(int i=0;i<500;i++){
+		for(int i=0;i<1000;i++){
 			int p = rnd.NextInt(2);
 			if(p == 0){
 				Leader leader = new Leader(rnd);
@@ -181,7 +214,10 @@ public class Reproduction {
 			member.updatedeagent();
 		}
 		e.decrementdelay();
-		communicationtime += e.checkdelay(leaders,members);
+		double[] buf = e.checkdelay(leaders,members);
+		for(int i=0;i<9;i++){
+			communicationtime[i] += buf[i];
+		}
 	}
 	
 	//---------------------------------------------------------------------------------------
@@ -191,6 +227,7 @@ public class Reproduction {
 		Sfmt rnd = new Sfmt(13/*seed*/);
 		initialize(rnd);
 		
+		
 		PrintWriter pw = null;
 		try{
 			FileWriter fw = new FileWriter("test2.csv", false); 
@@ -198,6 +235,14 @@ public class Reproduction {
             pw.print("tick");
         	pw.print(",");
         	pw.print("excution task");
+        	pw.print(",");
+        	pw.print("waste task");
+        	for(int i=1;i<10;i++){
+        		pw.print(",");
+            	pw.print(i);
+            	pw.print(",");
+            	pw.print(i + "w");
+        	}
         	pw.println();
 		}catch(IOException ex){
 			System.out.println(ex);
@@ -207,6 +252,10 @@ public class Reproduction {
 			FileWriter fw1 = new FileWriter("communicationtime.csv", false); 
             pw1 = new PrintWriter(new BufferedWriter(fw1));
             pw1.print("tick");
+        	for(int i=1;i<10;i++){
+        		pw1.print(",");
+            	pw1.print(i);
+        	}
         	pw1.print(",");
         	pw1.print("communication time");
         	pw1.println();
@@ -222,12 +271,48 @@ public class Reproduction {
         	pw2.print("leader");
         	pw2.print(",");
         	pw2.print("member");
+        	for(int i=1;i<10;i++){
+        		pw2.print(",");
+        		pw2.print("leader:" + i);
+        		pw2.print(",");
+            	pw2.print("member:" + i);
+        	}
         	pw2.println();
 		}catch(IOException ex){
 			System.out.println(ex);
 		}
+		PrintWriter pw3 = null;
+		try{
+			FileWriter fw3 = new FileWriter("ExecutedTime.csv", false); 
+            pw3 = new PrintWriter(new BufferedWriter(fw3));
+            pw3.print("tick");
+        	pw3.print(",");
+        	pw3.print("ExecutedTime");
+        	for(int i=1;i<10;i++){
+        		pw3.print(",");
+            	pw3.print(i);
+        	}
+        	pw3.println();
+		}catch(IOException ex){
+			System.out.println(ex);
+		}
+		PrintWriter pw4 = null;
+		try{
+			FileWriter fw4 = new FileWriter("LeaderMember.csv", false); 
+            pw4 = new PrintWriter(new BufferedWriter(fw4));
+            pw4.print("tick");
+            for(int i=0;i<9;i++){
+            	for(int j=0;j<9;j++){
+            		pw4.print(",");
+                	pw4.print(i + "_" + j);
+            	}
+            }
+        	pw4.println();
+		}catch(IOException ex){
+			System.out.println(ex);
+		}
 		
-		int excutiontask = 0;
+		int allExecutionTask = 0;
 		int wastetask = 0;
 		int sumOfExcutionTime = 0;
 		int numOfExcutingTask = 0;
@@ -239,18 +324,32 @@ public class Reproduction {
 			Random r = new Random(13);
 			Collections.shuffle(leaders, r);
 			Collections.shuffle(members, r);
-			e.addTask(rnd.NextPoisson(10)/*mu*/, rnd);
-				
+			
+//			e.addTask(rnd.NextPoisson(19)/*mu*/, rnd);
+			
+			e.addTask(rnd.NextPoisson(2)/*mu*/, rnd, 0);
+			e.addTask(rnd.NextPoisson(4)/*mu*/, rnd, 1);
+			e.addTask(rnd.NextPoisson(4)/*mu*/, rnd, 2);
+			e.addTask(rnd.NextPoisson(8)/*mu*/, rnd, 3);
+			e.addTask(rnd.NextPoisson(2)/*mu*/, rnd, 4);
+			e.addTask(rnd.NextPoisson(2)/*mu*/, rnd, 5);
+			e.addTask(rnd.NextPoisson(4)/*mu*/, rnd, 6);
+			e.addTask(rnd.NextPoisson(8)/*mu*/, rnd, 7);
+			e.addTask(rnd.NextPoisson(2)/*mu*/, rnd, 8);
+	
 			//リーダの行動
 			for(int i=0;i<leaders.size();i++){
 				Leader ld = leaders.get(i);
+				ld.setTick(tick);
 				roleReject += ld.getRejectMessages().size();
 				ld.sendRejectMessage(e);
+				int area = ld.getAreaExpand();
+				if(tick % 100 == 0)areaLeaderCount[area]++;
 				switch(ld.getPhase()){
 				case 0:
-					if(!e.TaskisEmpty()){//タスクがあれば
+					if(!e.TaskisEmpty(area)){//タスクがあれば
 						//タスクを取得
-						Task task = e.pushTask();
+						Task task = e.pushTask(area);
 						//System.out.println("Subtask size is " + task.getSubTasks().size());
 						//候補メンバーに送るメッセージを決める(e-greedy法)
 						int p = eGreedy(rnd);
@@ -266,13 +365,14 @@ public class Reproduction {
 						if(messagestomember == null){
 							//System.out.println("waste task due to lack of member " + ld.getmyid());
 							wastetask++;
+							areaWasteCount[area]++;
 							break;
 						}
 						
-						for (int j=0; j<messagestomember.size(); j++){
-							
-							System.out.println("send message from Leader " + messagestomember.get(j).getfrom().getmyid() + " to Member " + messagestomember.get(j).getto().getmyid() + " " + messagestomember.get(j).getsubtask() + " delay " + messagestomember.get(j).getdelay());
-						}
+//						for (int j=0; j<messagestomember.size(); j++){
+//							
+//							System.out.println("send message from Leader " + messagestomember.get(j).getfrom().getmyid() + " to Member " + messagestomember.get(j).getto().getmyid() + " " + messagestomember.get(j).getsubtask() + " delay " + messagestomember.get(j).getdelay());
+//						}
 						
 						//メッセージを送る
 						for(int j=0;j<messagestomember.size();j++){
@@ -287,28 +387,21 @@ public class Reproduction {
 					//メッセージの返信を見て
 					if(ld.waitreply() == 0){
 						//全部返信がきててアロケーションできるなら
-						ld.taskallocate(e);
-						ld.setphase(2);
+						int[] areaMember = ld.taskallocate(e, tick);
+						for(int k=0;k<9;k++){
+							areaLeaderMemberCount[area][k] += areaMember[k];
+						}
+						ld.setphase(0);
+						ld.clearall();
 						//excutiontask++;
 					}else if(ld.waitreply() == 1){
 						//全部返信がきててアロケーションできないなら
 						ld.failallocate(e);
 						//System.out.println("waste task due to allocation " + ld.getmyid());
 						wastetask++;
+						areaWasteCount[area]++;
 						ld.setphase(0);
 						ld.clearall();
-					}
-					break;
-				
-				case 2:
-					ld.reduceexcutiontime();
-					if(ld.checkmyexcution() == 0){
-						//System.out.println("finish my task");
-						if(ld.checkexcution() == 0){
-							ld.setphase(0);
-							excutiontask++;
-							ld.clearall();
-						}
 					}
 					break;
 				}
@@ -318,9 +411,14 @@ public class Reproduction {
 			//メンバの行動
 			for(int i=0;i<members.size();i++){
 				Member mem = members.get(i);
-				if(mem.havemessage()){
+				mem.setTick(tick);
+				int area = mem.getAreaExpand();
+				if(tick % 100 == 0)areaMemberCount[area]++;
+				if(mem.excutingtask != null){
+					mem.setphase(1);
+				}else if(mem.havemessage()){
 					mem.setphase(0);
-				}else if(mem.taskqueue.size() != 0 || mem.excutingtask != null){
+				}else if(mem.taskqueue.size() != 0){
 					mem.setphase(1);
 				}else{
 					mem.setphase(2);
@@ -331,21 +429,30 @@ public class Reproduction {
 						//来てるメッセージを取得
 						List<MessagetoMember> messages = mem.getmessages();
 						//メッセージから受理するメッセージを選ぶ
-						int p = eGreedy(rnd);
-						MessagetoMember decide = null;
-						if(p == 0){
-							decide = mem.decideMessage(messages);
-						}else if(p == 1){
-							System.out.println("Epsilon");
-							decide = mem.decideRandomMessage(messages,rnd);
+						int flag = 0;
+						while(!messages.isEmpty()){
+							boolean decide = true;
+							int p = eGreedy(rnd);
+							MessagetoMember mtom = null;
+							if(p == 0){
+								mtom = mem.decideMessage(messages);
+							}else if(p == 1){
+								System.out.println("Epsilon");
+								mtom = mem.decideRandomMessage(messages,rnd);
+								System.out.println(mtom);
+							}
+							if(mem.numOfMessage + mem.taskqueue.size() > 4){
+								decide = false;
+							}
+							if(decide){
+								mem.numOfMessage++;
+								flag = 1;
+							}
+							mem.sendreplymessages(e, mtom, decide);
+							messages.remove(mtom);
 						}
-						if(mem.taskqueue.size() > 4){
-							decide = null;
-						}
-						//来てるメッセージ全ての返信をする
-						mem.sendreplymessages(e, decide, messages);	
 						//受理したメッセージがあれば次のphaseへ
-						if(decide != null){
+						if(flag == 1){
 							selectReject += messages.size() - 1;
 							mem.messageAgreeCount++;
 							//System.out.println("member next phase 1" + mem.getmyid());
@@ -355,6 +462,7 @@ public class Reproduction {
 							if(tick - mem.lastSelectTick > mem.thresholdV){
 								mem.updateE(1, false);
 								mem.lastSelectTick = tick;
+//								System.out.println("");
 							}
 						}
 						//メッセージ集合を初期化
@@ -363,14 +471,18 @@ public class Reproduction {
 						if(tick - mem.lastSelectTick > mem.thresholdV){
 							mem.updateE(1, false);
 							mem.lastSelectTick = tick;
+//							System.out.println("aaaaaaaaaaaaaaaaaaaaa");
 						}
 					}
 					break;
 				case 1:
 					//allocationまち
-					int et = mem.taskexcution(e);
-					sumOfExcutionTime = sumOfExcutionTime + et;
-					if(et > 0){
+					SubTask st = mem.taskexcution(e);
+					if(st != null){
+						int time = tick - mem.allocateTimeMap.get(st.getTaskId());
+						areaExecutedTime[area] += time;
+						areaExecutedSubTask[area]++;
+						sumOfExcutionTime = sumOfExcutionTime + time;
 						numOfExcutingTask++;
 					}
 					break;
@@ -388,83 +500,150 @@ public class Reproduction {
 			}	
 			selectRole(rnd, tick);
 			update(e);
+			allExecutionTask += calcuExecutedTask();
 			
 			if(tick % 100 == 0){
-				pw.print(tick);
-	        	pw.print(",");
-	        	pw.print(excutiontask);
-	        	pw.print(",");
-	        	pw.print((double)sumOfExcutionTime / numOfExcutingTask);
-	        	pw.println();
+				executedTimeSummary[tick] += (double)sumOfExcutionTime / numOfExcutingTask;
+	        	for(int k=0;k<9;k++){
+	        		if(areaExecutedTask[k] != 0){
+	        			areaExecutedTimeSummary[k][tick] += (double)areaExecutedTime[k] / areaExecutedSubTask[k];
+	        		}
+	        		areaExecutedSubTask[k] = 0;
+	        		areaExecutedTime[k] = 0;
+	        	}
 	        	sumOfExcutionTime = 0;
 				numOfExcutingTask = 0;
-				excutiontask = 0;
+			}
+			
+			if(tick % 100 == 0){
+				executedTaskSummary[tick] +=allExecutionTask;
+	        	
+	        	for(int k=0;k<9;k++){
+	        		areaExecutedTaskSummary[k][tick] += areaExecutedTask[k];
+	        		areawasteTaskSummary[k][tick] += areaWasteCount[k];
+	        		wasteTaskSummary[tick] += areaWasteCount[k];
+		        	areaExecutedTask[k] = 0;
+		        	areaWasteCount[k] = 0;
+	        	}
+				allExecutionTask = 0;
 			}
 			if(tick % 100 == 0){
-				pw1.print(tick);
-	        	pw1.print(",");
-	        	pw1.print(communicationtime / 100);	
-	        	pw1.println();
-	        	communicationtime = 0;
+				double allCmmu = 0.0;	
+	        	for(int k=0;k<9;k++){
+	        		double ave = communicationtime[k] / 100;
+	        		areaCommunicationTimeSummary[k][tick] += ave;
+	        		allCmmu += ave;
+	        		communicationtime[k] = 0;
+	        	}
+	        	communicationTimeSummary[tick] += allCmmu / 9;	
 			}
 			if(tick % 100 == 0){
-				pw2.print(tick);
-	        	pw2.print(",");
-	        	pw2.print(leaders.size());
-	        	pw2.print(",");
-	        	pw2.print(members.size());
-	        	pw2.println();
+	        	leaderCountSummary[tick] += leaders.size();
+	        	memberCountSummary[tick] += members.size();
+	        	for(int k=0;k<9;k++){
+	        		areaLeaderCountSummary[k][tick] += areaLeaderCount[k];
+	        		areaMemberCountSummary[k][tick] += areaMemberCount[k];
+		        	areaLeaderCount[k] = 0;
+		        	areaMemberCount[k] = 0;
+	        	}
+			}
+			if(tick % 100 == 0){
+	        	for(int k=0;k<9;k++){
+	        		for(int l=0;l<9;l++){
+	        			areaLeaderMemberCountSummary[k][l][tick] += areaLeaderMemberCount[k][l];
+	        			areaLeaderMemberCount[k][l] = 0;
+	        		}
+	        	}
 			}
 		}
-		System.out.println(wastetask);
+		
+		for(int i=0;i<150001;i+=100){
+			pw.print(i);
+			pw.print(",");
+			pw.print(executedTaskSummary[i] / times);
+			pw.print(",");
+			pw.print(wasteTaskSummary[i] / times);
+			for(int j=0;j<9;j++){
+				pw.print(",");
+				pw.print(areaExecutedTaskSummary[j][i] / times);
+				pw.print(",");
+				pw.print(areaExecutedTaskSummary[j][i] / times);
+			}
+			pw.println();
+			
+			pw1.print(i);
+			
+			for(int j=0;j<9;j++){
+				pw1.print(",");
+				pw1.print(areaCommunicationTimeSummary[j][i] / times);
+			}
+			pw1.print(",");
+			pw1.print(communicationTimeSummary[i] / times);
+			pw1.println();
+			
+			pw2.print(i);
+			pw2.print(",");
+			pw2.print(leaderCountSummary[i] / times);
+			pw2.print(",");
+			pw2.print(memberCountSummary[i] / times);
+			for(int j=0;j<9;j++){
+				pw2.print(",");
+				pw2.print(areaLeaderCountSummary[j][i] / times);
+				pw2.print(",");
+				pw2.print(areaMemberCountSummary[j][i] / times);
+			}
+			pw2.println();
+			
+			pw3.print(i);
+			pw3.print(",");
+			pw3.print(executedTimeSummary[i] / times);
+			for(int j=0;j<9;j++){
+				pw3.print(",");
+				pw3.print(areaExecutedTimeSummary[j][i] / times);
+			}
+			pw3.println();
+			
+			pw4.print(i);
+			for(int j=0;j<9;j++){
+				for(int k=0;k<9;k++){
+					pw4.print(",");
+					pw4.print(areaLeaderMemberCountSummary[j][k][i] / times);
+				}
+			}
+			pw4.println();
+		}
+		
 		pw.close();
 		pw1.close();
 		pw2.close();
-		System.out.println("leader :");
-		for(int i=0;i<leaders.size();i++){
-			System.out.println(leaders.get(i).getmyid() + " " + leaders.get(i).getPhase());
-		}
-		System.out.println("member :");
-		for(int i=0;i<members.size();i++){
-			System.out.println(members.get(i).getmyid() + " " + members.get(i).getPhase());
-		}
-		System.out.println("role change count " + roleChangeCount);
-		System.out.println("active reject count " + activeReject);
-		System.out.println("active reject2 count " + activeReject2);
-		System.out.println("select reject count " + selectReject);
-		System.out.println("role reject count " + roleReject);
+		pw3.close();
+		pw4.close();
 		
-		for(int i=0;i<leaders.size();i++){
-			Collections.sort(leaders, new LeaderIdComparator());
-			Leader leader = leaders.get(i);
-			if(!leader.deagent.isEmpty()){
-				System.out.println("number of leader " + leader.getmyid() + " deagent is " + leader.deagent.size());
-				for(int j=0;j<leader.deagent.size();j++){
-					Agent agent = leader.deagent.get(j);
-					System.out.println("agent " + agent.getmyid() + " de = " + leader.de[agent.getmyid()]);
-				}
-			}
-		}
-		
-		for(int i=0;i<members.size();i++){
-			Collections.sort(members, new MemberIdComparator());
-			Member member = members.get(i);
-			if(!member.deagent.isEmpty()){
-				System.out.println("number of member " + member.getmyid() + " deagent is " + member.deagent.size() + " " + member.averageOfCapability());
-				for(int j=0;j<member.deagent.size();j++){
-					Agent agent = member.deagent.get(j);
-					System.out.println("agent " + agent.getmyid() + " de = " + member.de[agent.getmyid()]);
-				}
-			}
-		}
 		printAgentGrid(leaders,members);
-		/*
-		for(int i=0;i<400;i++){
-			Member member = members.get(i);
-			System.out.println("member " + member.getmyid() + " last active " + member.lasttick + " " +member.isactive());
-		}
-		*/
 		
+		
+		
+	}
+	
+	//---------------------------------------------------------------------------------------
+	
+	public int calcuExecutedTask(){
+		int executedTask = 0;
+		for(int i=0;i<leaders.size();i++){
+			Leader leader = leaders.get(i);
+			int area = leader.getAreaExpand();
+			int ldTaskCount = leader.getCountExecutedTask();
+			areaExecutedTask[area] += ldTaskCount;
+			executedTask += ldTaskCount;
+		}
+		for(int i=0;i<members.size();i++){
+			Member member = members.get(i);
+			int area = member.getAreaExpand();
+			int memTaskCount = member.getCountExecutedTask();
+			areaExecutedTask[area] += memTaskCount;
+			executedTask += memTaskCount;
+		}
+		return executedTask;
 	}
 	
 	//---------------------------------------------------------------------------------------
