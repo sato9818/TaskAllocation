@@ -65,29 +65,29 @@ public class TaskDeviation {
 		
 		Collections.shuffle(grid, new Random(13));
 		
-		for(int i=0;i<500;i++){
-			int p = rnd.NextInt(2);
-			if(p == 0){
-				Leader leader = new Leader(rnd);
-				leader.setPosition(grid.get(i).x, grid.get(i).y);
-				leaders.add(leader);
-			}else if(p == 1){
-				Member member = new Member(rnd);
-				member.setPosition(grid.get(i).x, grid.get(i).y);
-				members.add(member);
-			}
-		}
+//		for(int i=0;i<500;i++){
+//			int p = rnd.NextInt(2);
+//			if(p == 0){
+//				Leader leader = new Leader(rnd);
+//				leader.setPosition(grid.get(i).x, grid.get(i).y);
+//				leaders.add(leader);
+//			}else if(p == 1){
+//				Member member = new Member(rnd);
+//				member.setPosition(grid.get(i).x, grid.get(i).y);
+//				members.add(member);
+//			}
+//		}
 		
-//		for(int i=0;i<90;i++){
-//			Leader leader = new Leader(rnd);
-//			leader.setPosition(grid.get(i).x, grid.get(i).y);
-//			leaders.add(leader);
-//		}
-//		for(int i=90;i<500;i++){
-//			Member member = new Member(rnd);
-//			member.setPosition(grid.get(i).x, grid.get(i).y);
-//			members.add(member);
-//		}
+		for(int i=0;i<90;i++){
+			Leader leader = new Leader(rnd);
+			leader.setPosition(grid.get(i).x, grid.get(i).y);
+			leaders.add(leader);
+		}
+		for(int i=90;i<500;i++){
+			Member member = new Member(rnd);
+			member.setPosition(grid.get(i).x, grid.get(i).y);
+			members.add(member);
+		}
 		
 		for(int i=0;i<leaders.size();i++){
 			Leader leader = leaders.get(i);
@@ -423,7 +423,7 @@ public class TaskDeviation {
 			Sfmt rnd = new Sfmt(seed._seeds[a]/*seed*/);
 			Random r = new Random(seed._seeds[a]);
 			initialize(rnd);
-			for(int tick=0;tick<1001;tick++){
+			for(int tick=0;tick<150001;tick++){
 				System.out.println("tick: " + tick);
 				
 				Collections.shuffle(leaders, r);
@@ -592,7 +592,7 @@ public class TaskDeviation {
 						mem.setphase(1);
 					}
 				}	
-				selectRole(rnd, tick);
+//				selectRole(rnd, tick);
 				update(e);
 				allExecutionTask += calcuExecutedTask();
 				
