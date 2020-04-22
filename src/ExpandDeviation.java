@@ -7,6 +7,16 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Random;
 
+import Agent.Agent;
+import Agent.Leader;
+import Agent.Member;
+import Comparator.LeaderIdComparator;
+import Comparator.MemberIdComparator;
+import Environment.Environment;
+import Environment.Grid;
+import Random.Sfmt;
+import Task.Task;
+
 public class ExpandDeviation {
 	List<Leader> leaders = new ArrayList<Leader>();
 	List<Member> members = new ArrayList<Member>();
@@ -161,10 +171,10 @@ public class ExpandDeviation {
 			leader.deagent.clear();
 			for(int j=0;j<members.size();j++){
 				Member member = members.get(j);
-				if(leader.getthreshold() < leader.de[member.getmyid()]){
+				if(leader.getthreshold() < leader.de[member.getMyId()]){
 					leader.adddeagent(member);
 				}
-				leader.reducede(member.getmyid());
+				leader.reducede(member.getMyId());
 			}
 			leader.updatedeagent();
 		}
@@ -173,10 +183,10 @@ public class ExpandDeviation {
 			member.deagent.clear();
 			for(int j=0;j<leaders.size();j++){
 				Leader leader = leaders.get(j);
-				if(member.getthreshold() < member.de[leader.getmyid()]){
+				if(member.getthreshold() < member.de[leader.getMyId()]){
 					member.adddeagent(leader);
 				}
-				member.reducede(leader.getmyid());
+				member.reducede(leader.getMyId());
 			}
 			member.updatedeagent();
 		}
@@ -269,10 +279,10 @@ public class ExpandDeviation {
 						int p = eGreedy(rnd);
 						List<MessagetoMember> messagestomember = null;
 						if(p == 0){
-							messagestomember = ld.selectmember(members, task);
+							messagestomember = ld.selectMember(members, task);
 						}else if(p == 1){
 							//System.out.println("Epsilon");
-							messagestomember = ld.selectrandommember(members, task);
+							messagestomember = ld.selectRandomMember(members, task);
 						}
 						
 						//候補メンバーが足りなければタスクは破棄
@@ -289,7 +299,7 @@ public class ExpandDeviation {
 						
 						//メッセージを送る
 						for(int j=0;j<messagestomember.size();j++){
-							ld.sendmessagetomember(messagestomember.get(j), e);
+							ld.sendMessage(messagestomember.get(j), e);
 						}
 						ld.setphase(1);
 					}else{
@@ -298,15 +308,15 @@ public class ExpandDeviation {
 					break;
 				case 1:
 					//メッセージの返信を見て
-					if(ld.waitreply() == 0){
+					if(ld.waitReply() == 0){
 						//全部返信がきててアロケーションできるなら
 						int time = ld.taskallocate(e);
 						ld.setphase(0);
 						ld.clearall();
 						//excutiontask++;
-					}else if(ld.waitreply() == 1){
+					}else if(ld.waitReply() == 1){
 						//全部返信がきててアロケーションできないなら
-						ld.failallocate(e);
+						ld.failAllocate(e);
 						//System.out.println("waste task due to allocation " + ld.getmyid());
 						wastetask++;
 						ld.setphase(0);
@@ -320,20 +330,20 @@ public class ExpandDeviation {
 			//メンバの行動
 			for(int i=0;i<members.size();i++){
 				Member mem = members.get(i);
-				if(mem.excutingtask != null){
+				if(mem.excutingTask != null){
 					mem.setphase(1);
-				}else if(mem.havemessage()){
+				}else if(mem.haveMessages()){
 					mem.setphase(0);
-				}else if(mem.taskqueue.size() != 0){
+				}else if(mem.taskQueue.size() != 0){
 					mem.setphase(1);
 				}else{
 					mem.setphase(2);
 				}
 				switch(mem.getPhase()){
 				case 0:
-					if(mem.havemessage()){//メッセージが来ていたら
+					if(mem.haveMessages()){//メッセージが来ていたら
 						//来てるメッセージを取得
-						List<MessagetoMember> messages = mem.getmessages();
+						List<MessagetoMember> messages = mem.getMessages();
 						//メッセージから受理するメッセージを選ぶ
 						int flag = 0;
 						while(!messages.isEmpty()){
@@ -347,15 +357,15 @@ public class ExpandDeviation {
 								mtom = mem.decideRandomMessage(messages,rnd);
 								System.out.println(mtom);
 							}
-							if(mem.numOfMessage + mem.taskqueue.size() > 4){
+							if(mem.expectedTasks + mem.taskQueue.size() > 4){
 								decide = false;
 							}
 							//来てるメッセージ全ての返信をする
 							if(decide){
-								mem.numOfMessage++;
+								mem.expectedTasks++;
 								flag = 1;
 							}
-							mem.sendreplymessages(e, mtom, decide);
+							mem.sendReplyMessages(e, mtom, decide);
 							messages.remove(mtom);
 						}
 						//受理したメッセージがあれば次のphaseへ
@@ -394,7 +404,7 @@ public class ExpandDeviation {
 				}else{
 					mem.setcondition(true);
 				}
-				if(!mem.isactive() && mem.taskqueue.size() == 0 && mem.excutingtask == null){
+				if(!mem.isactive() && mem.taskQueue.size() == 0 && mem.excutingTask == null){
 					mem.setphase(0);
 				}else{
 					mem.setphase(1);
@@ -437,11 +447,11 @@ public class ExpandDeviation {
 		pw2.close();
 		System.out.println("leader :");
 		for(int i=0;i<leaders.size();i++){
-			System.out.println(leaders.get(i).getmyid() + " " + leaders.get(i).getPhase());
+			System.out.println(leaders.get(i).getMyId() + " " + leaders.get(i).getPhase());
 		}
 		System.out.println("member :");
 		for(int i=0;i<members.size();i++){
-			System.out.println(members.get(i).getmyid() + " " + members.get(i).getPhase());
+			System.out.println(members.get(i).getMyId() + " " + members.get(i).getPhase());
 		}
 		System.out.println("role change count " + roleChangeCount);
 		System.out.println("active reject count " + activeReject);
@@ -453,10 +463,10 @@ public class ExpandDeviation {
 			Collections.sort(leaders, new LeaderIdComparator());
 			Leader leader = leaders.get(i);
 			if(!leader.deagent.isEmpty()){
-				System.out.println("number of leader " + leader.getmyid() + " deagent is " + leader.deagent.size());
+				System.out.println("number of leader " + leader.getMyId() + " deagent is " + leader.deagent.size());
 				for(int j=0;j<leader.deagent.size();j++){
 					Agent agent = leader.deagent.get(j);
-					System.out.println("agent " + agent.getmyid() + " de = " + leader.de[agent.getmyid()]);
+					System.out.println("agent " + agent.getMyId() + " de = " + leader.de[agent.getMyId()]);
 				}
 			}
 		}
@@ -465,10 +475,10 @@ public class ExpandDeviation {
 			Collections.sort(members, new MemberIdComparator());
 			Member member = members.get(i);
 			if(!member.deagent.isEmpty()){
-				System.out.println("number of member " + member.getmyid() + " deagent is " + member.deagent.size() + " " + member.averageOfCapability());
+				System.out.println("number of member " + member.getMyId() + " deagent is " + member.deagent.size() + " " + member.averageOfCapability());
 				for(int j=0;j<member.deagent.size();j++){
 					Agent agent = member.deagent.get(j);
-					System.out.println("agent " + agent.getmyid() + " de = " + member.de[agent.getmyid()]);
+					System.out.println("agent " + agent.getMyId() + " de = " + member.de[agent.getMyId()]);
 				}
 			}
 		}
@@ -523,18 +533,18 @@ public class ExpandDeviation {
             	Leader leader = leaders.get(i);
             	pw.print("Leader");
             	pw.print(",");
-            	pw.print(leader.getPositionx());
+            	pw.print(leader.getPositionX());
             	pw.print(",");
-            	pw.print(leader.getPositiony());
+            	pw.print(leader.getPositionY());
             	pw.println();
             }
             for(int i=0;i<members.size();i++){
             	Member member = members.get(i);
             	pw.print("Member");
             	pw.print(",");
-            	pw.print(member.getPositionx());
+            	pw.print(member.getPositionX());
             	pw.print(",");
-            	pw.print(member.getPositiony());
+            	pw.print(member.getPositionY());
             	pw.println();
             }
             pw.close();

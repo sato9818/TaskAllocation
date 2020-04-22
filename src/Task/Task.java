@@ -1,5 +1,8 @@
+package Task;
 import java.util.ArrayList;
 import java.util.List;
+
+import Random.Sfmt;
 
 public class Task {
 	static int num = 0;
@@ -10,7 +13,7 @@ public class Task {
 	
 	//---------------------------------------------------------------------------------------
 	
-	Task(Sfmt rnd){
+	public Task(Sfmt rnd){
 		int numOfSubtask;
 		numOfSubtask = 3 + rnd.NextInt(4);
 		if(num == 1000000){

@@ -1,3 +1,4 @@
+package Environment;
 
 public class Grid {
 	final int x;

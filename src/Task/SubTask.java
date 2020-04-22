@@ -1,56 +1,54 @@
+package Task;
+import Agent.Leader;
+import Agent.Member;
+import Random.Sfmt;
 
-public class MessagetoMember extends Message{
-	private Leader from;
-	private Member to;
-	private Member mfrom;
-	private Task task;
-	private boolean havetask = false;
+public class SubTask {
+	private int reqCapa[] = new int[3/**/];
+	private int utility = 0;
+	private int taskId;
+	Leader from;
+	Member to;
 	
 	//---------------------------------------------------------------------------------------
 	
-	MessagetoMember(Leader f, Member t, SubTask s){
-		//タスクを受理するかしないか
-		super(s, 0);
-		from = f;
-		to = t;
-		setdelay(f,t);
+	SubTask(Sfmt rnd, int id){
+		//int r = randomInt(rnd);
+		int r = rnd.NextInt(3);
+		int c = 5 + rnd.NextInt(6);
+		for(int i=0;i<3;i++){
+			if(i == r){
+				reqCapa[i] = c;
+			}else{
+				reqCapa[i] = 0;
+			}
+		}
+		utility += reqCapa[r];	
+		this.taskId = id;
 	}
 	
 	//---------------------------------------------------------------------------------------
 	
-	MessagetoMember(Leader f, Member t, SubTask s, boolean th){
-		//受理メッセージに対するタスクを与える
-		super(s, 1);
-		from = f;
-		to = t;
-		setdelay(f,t);
-		havetask = th;
+	public int getTaskId(){
+		return taskId;
 	}
 	
 	//---------------------------------------------------------------------------------------
 	
-	MessagetoMember(Leader from, Member to, Task task){
-		//CNP
-		super(null, 0);
-		this.from = from;
-		this.to = to;
-		this.task = task;
-		setdelay(from, to);
+	public int getutility(){
+		return utility;
 	}
 	
 	//---------------------------------------------------------------------------------------
 	
-	MessagetoMember(Member mfrom, Member to,SubTask s){
-		super(s, 3);
-		this.mfrom = mfrom;
-		this.to = to;
-		setdelay(mfrom, to);
+	public int getcapacity(int i){
+		return reqCapa[i];
 	}
 	
 	//---------------------------------------------------------------------------------------
 	
-	public Task gettask(){
-		return task;
+	public void setfrom(Leader l){
+		from = l;
 	}
 	
 	//---------------------------------------------------------------------------------------
@@ -61,8 +59,8 @@ public class MessagetoMember extends Message{
 	
 	//---------------------------------------------------------------------------------------
 	
-	public Member getmfrom(){
-		return mfrom;
+	public void setto(Member m){
+		to = m;
 	}
 	
 	//---------------------------------------------------------------------------------------
@@ -73,8 +71,15 @@ public class MessagetoMember extends Message{
 	
 	//---------------------------------------------------------------------------------------
 	
-	public boolean taskisallocated(){
-		return havetask;
+	public int randomInt(Sfmt rnd){
+		int p = rnd.NextInt(10);
+		if(p < 7){
+			return 0;
+		}else if(p < 9){
+			return 1;
+		}else{
+			return 2;
+		}
 	}
 	
 	//---------------------------------------------------------------------------------------

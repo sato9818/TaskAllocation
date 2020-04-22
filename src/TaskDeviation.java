@@ -8,9 +8,16 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Random;
 
+import Agent.Leader;
+import Agent.Member;
+import Environment.Environment;
+import Random.Seed;
+import Random.Sfmt;
+import Task.SubTask;
+import Task.Task;
+
 public class TaskDeviation {
-	List<Leader> leaders = new ArrayList<Leader>();
-	List<Member> members = new ArrayList<Member>();
+	
 	
 	int times = 100;
 	
@@ -49,69 +56,7 @@ public class TaskDeviation {
 	int selectReject = 0;
 	int roleReject = 0;
 	
-	//---------------------------------------------------------------------------------------
-	
-	void initialize(Sfmt rnd){
-		leaders.clear();
-		members.clear();
-		
-		List<Grid> grid = new ArrayList<Grid>();
-		for(int i=0;i<50;i++){
-			for(int j=0;j<50;j++){
-				Grid g = new Grid(i,j);
-				grid.add(g);
-			}
-		}
-		
-		Collections.shuffle(grid, new Random(13));
-		
-//		for(int i=0;i<500;i++){
-//			int p = rnd.NextInt(2);
-//			if(p == 0){
-//				Leader leader = new Leader(rnd);
-//				leader.setPosition(grid.get(i).x, grid.get(i).y);
-//				leaders.add(leader);
-//			}else if(p == 1){
-//				Member member = new Member(rnd);
-//				member.setPosition(grid.get(i).x, grid.get(i).y);
-//				members.add(member);
-//			}
-//		}
-		
-		for(int i=0;i<90;i++){
-			Leader leader = new Leader(rnd);
-			leader.setPosition(grid.get(i).x, grid.get(i).y);
-			leaders.add(leader);
-		}
-		for(int i=90;i<500;i++){
-			Member member = new Member(rnd);
-			member.setPosition(grid.get(i).x, grid.get(i).y);
-			members.add(member);
-		}
-		
-		for(int i=0;i<leaders.size();i++){
-			Leader leader = leaders.get(i);
-			for(int j=0;j<members.size();j++){
-				Member member = members.get(j);
-				leader.setdistance(member);
-			}
-			for(int j=0;j<leaders.size();j++){
-				Leader ld = leaders.get(j);
-				leader.setdistance(ld);
-			}
-		}
-		for(int i=0;i<members.size();i++){
-			Member member = members.get(i);
-			for(int j=0;j<leaders.size();j++){
-				Leader leader = leaders.get(j);
-				member.setdistance(leader);
-			}
-			for(int j=0;j<members.size();j++){
-				Member mem = members.get(j);
-				member.setdistance(mem);
-			}
-		}
-	}
+
 	
 	//---------------------------------------------------------------------------------------
 	
@@ -206,10 +151,10 @@ public class TaskDeviation {
 			leader.deagent.clear();
 			for(int j=0;j<members.size();j++){
 				Member member = members.get(j);
-				if(leader.getthreshold() < leader.de[member.getmyid()]){
+				if(leader.getthreshold() < leader.de[member.getMyId()]){
 					leader.adddeagent(member);
 				}
-				leader.reducede(member.getmyid());
+				leader.reducede(member.getMyId());
 			}
 			leader.updatedeagent();
 		}
@@ -218,10 +163,10 @@ public class TaskDeviation {
 			member.deagent.clear();
 			for(int j=0;j<leaders.size();j++){
 				Leader leader = leaders.get(j);
-				if(member.getthreshold() < member.de[leader.getmyid()]){
+				if(member.getthreshold() < member.de[leader.getMyId()]){
 					member.adddeagent(leader);
 				}
-				member.reducede(leader.getmyid());
+				member.reducede(leader.getMyId());
 			}
 			member.updatedeagent();
 		}
@@ -415,26 +360,21 @@ public class TaskDeviation {
 //			}catch(IOException ex){
 //				System.out.println(ex);
 //			}
-			
-			
-			
-			Environment e = new Environment();
 			Seed seed = new Seed();
 			Sfmt rnd = new Sfmt(seed._seeds[a]/*seed*/);
 			Random r = new Random(seed._seeds[a]);
-			initialize(rnd);
+			Environment e = new Environment(rnd, seed._seeds[a]);
+			
 			for(int tick=0;tick<150001;tick++){
-				System.out.println("tick: " + tick);
 				
-				Collections.shuffle(leaders, r);
-				Collections.shuffle(members, r);
+				
 				
 	//			e.addTask(rnd.NextPoisson(19)/*mu*/, rnd);
 				
 				areaWasteCount[0] += e.addTask(rnd.NextPoisson(2)/*mu*/, rnd, 0);
-				areaWasteCount[1] +=e.addTask(rnd.NextPoisson(4)/*mu*/, rnd, 1);
-				areaWasteCount[2] +=e.addTask(rnd.NextPoisson(8)/*mu*/, rnd, 2);
-				areaWasteCount[3] +=e.addTask(rnd.NextPoisson(4)/*mu*/, rnd, 3);
+				areaWasteCount[1] += e.addTask(rnd.NextPoisson(4)/*mu*/, rnd, 1);
+				areaWasteCount[2] += e.addTask(rnd.NextPoisson(8)/*mu*/, rnd, 2);
+				areaWasteCount[3] += e.addTask(rnd.NextPoisson(4)/*mu*/, rnd, 3);
 		
 				//リーダの行動
 				for(int i=0;i<leaders.size();i++){
@@ -453,15 +393,15 @@ public class TaskDeviation {
 							int p = eGreedy(rnd);
 							List<MessagetoMember> messagestomember = null;
 							if(p == 0){
-								messagestomember = ld.selectmember(members, task);
+								messagestomember = ld.selectMember(members, task);
 							}else if(p == 1){
 								//System.out.println("Epsilon");
-								messagestomember = ld.selectrandommember(members, task);
+								messagestomember = ld.selectRandomMember(members, task);
 							}
 							
 							//候補メンバーが足りなければタスクは破棄
 							if(messagestomember == null){
-								System.out.println("waste task due to lack of member " + ld.getmyid());
+								System.out.println("waste task due to lack of member " + ld.getMyId());
 								areaWasteCount[area]++;
 								break;
 							}
@@ -470,7 +410,7 @@ public class TaskDeviation {
 							
 							//メッセージを送る
 							for(int j=0;j<messagestomember.size();j++){
-								ld.sendmessagetomember(messagestomember.get(j), e);
+								ld.sendMessage(messagestomember.get(j), e);
 							}
 							ld.setphase(1);
 						}else{
@@ -479,18 +419,18 @@ public class TaskDeviation {
 						break;
 					case 1:
 						//メッセージの返信を見て
-						if(ld.waitreply() == 0){
+						if(ld.waitReply() == 0){
 							//全部返信がきててアロケーションできるなら
-							int[] areaMember = ld.taskallocate(e, tick);
+							int[] areaMember = ld.taskAllocate(e, tick);
 							for(int k=0;k<4;k++){
 								areaLeaderMemberCount[area][k] += areaMember[k];
 							}
 							ld.setphase(0);
 							ld.clearall();
 							//excutiontask++;
-						}else if(ld.waitreply() == 1){
+						}else if(ld.waitReply() == 1){
 							//全部返信がきててアロケーションできないなら
-							ld.failallocate(e);
+							ld.failAllocate(e);
 							//System.out.println("waste task due to allocation " + ld.getmyid());
 							areaWasteCount[area]++;
 							ld.setphase(0);
@@ -508,21 +448,21 @@ public class TaskDeviation {
 					mem.setTick(tick);
 					int area = mem.getArea();
 					if(tick % 100 == 0)areaMemberCount[area]++;
-					if(mem.excutingtask != null){
+					if(mem.excutingTask != null){
 						mem.setphase(1);
-					}else if(mem.havemessage()){
+					}else if(mem.haveMessages()){
 						mem.setphase(0);
-					}else if(mem.taskqueue.size() != 0){
+					}else if(mem.taskQueue.size() != 0){
 						mem.setphase(1);
 					}else{
 						mem.setphase(2);
 					}
 					switch(mem.getPhase()){
 					case 0:
-						if(mem.havemessage()){//メッセージが来ていたら
+						if(mem.haveMessages()){//メッセージが来ていたら
 							
 							//来てるメッセージを取得
-							List<MessagetoMember> messages = mem.getmessages();
+							List<MessagetoMember> messages = mem.getMessages();
 							//メッセージから受理するメッセージを選ぶ
 							int flag = 0;
 							while(!messages.isEmpty()){
@@ -536,14 +476,14 @@ public class TaskDeviation {
 									mtom = mem.decideRandomMessage(messages,rnd);
 									
 								}
-								if(mem.numOfMessage + mem.taskqueue.size() > 4){
+								if(mem.expectedTasks + mem.taskQueue.size() > 4){
 									decide = false;
 								}
 								if(decide){
-									mem.numOfMessage++;
+									mem.expectedTasks++;
 									flag = 1;
 								}
-								mem.sendreplymessages(e, mtom, decide);
+								mem.sendReplyMessages(e, mtom, decide);
 								
 								messages.remove(mtom);
 							}
@@ -586,13 +526,13 @@ public class TaskDeviation {
 					}else{
 						mem.setcondition(true);
 					}
-					if(!mem.isactive() && mem.taskqueue.size() == 0 && mem.excutingtask == null){
+					if(!mem.isactive() && mem.taskQueue.size() == 0 && mem.excutingTask == null){
 						mem.setphase(0);
 					}else{
 						mem.setphase(1);
 					}
 				}	
-//				selectRole(rnd, tick);
+				selectRole(rnd, tick);
 				update(e);
 				allExecutionTask += calcuExecutedTask();
 				
@@ -803,18 +743,7 @@ public class TaskDeviation {
 	
 	//---------------------------------------------------------------------------------------
 	
-	public int eGreedy(Sfmt rnd) {
-		int A;
-        int randNum = rnd.NextInt(101);
-        if (randNum <= 0.05 * 100.0) {
-        	//eの確率
-			A = rnd.NextInt(2);
-        } else {
-        	//(1-e)の確率
-        	A = 0;
-        }
-        return A;
-	}
+	
 	
 	public void printAgentGrid(List<Leader> leaders, List<Member> members){
 		try {
@@ -831,18 +760,18 @@ public class TaskDeviation {
             	Leader leader = leaders.get(i);
             	pw.print("Leader");
             	pw.print(",");
-            	pw.print(leader.getPositionx());
+            	pw.print(leader.getPositionX());
             	pw.print(",");
-            	pw.print(leader.getPositiony());
+            	pw.print(leader.getPositionY());
             	pw.println();
             }
             for(int i=0;i<members.size();i++){
             	Member member = members.get(i);
             	pw.print("Member");
             	pw.print(",");
-            	pw.print(member.getPositionx());
+            	pw.print(member.getPositionX());
             	pw.print(",");
-            	pw.print(member.getPositiony());
+            	pw.print(member.getPositionY());
             	pw.println();
             }
             pw.close();
