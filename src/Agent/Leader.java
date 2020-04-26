@@ -31,10 +31,12 @@ public class Leader extends Agent{
 	//サブタスクとそれを処理するメンバのリスト
 	private HashMap<SubTask, Agent> team = new HashMap<SubTask, Agent>();
 	
+	int time = 0;
+	
 	
 	//---------------------------------------------------------------------------------------
-	public Leader(Sfmt rnd, Area area, int x, int y){
-		super(rnd, area, x, y);
+	public Leader(Area area, int x, int y){
+		super(area, x, y);
 	}
 	//---------------------------------------------------------------------------------------
 	public Leader(Member mem){
@@ -55,7 +57,7 @@ public class Leader extends Agent{
 				Task task = area.pushTask();
 				tookTask ++;
 				//候補メンバーに送るメッセージを決める(e-greedy法)
-				int p = eGreedy(rnd);
+				int p = eGreedy();
 				List<Message> messages = null;
 				if(p == 0){
 					messages = selectMember(agents, task, false);
@@ -67,6 +69,9 @@ public class Leader extends Agent{
 				//メッセージを送る
 				for(int j=0;j<messages.size();j++){
 					allMessages.add(messages.get(j));
+					if(getMyId() == 301){
+						System.out.println(messages.get(j));
+					}
 				}
 				phase = WAIT_MEMBER;
 			}else{
@@ -74,19 +79,27 @@ public class Leader extends Agent{
 			}
 			break;
 		case WAIT_MEMBER:
+			time++;
+			if(time == 100){
+				System.out.println("leader " + getMyId() + " not active.");
+				System.exit(1);
+			}
 			//メッセージの返信を見て
 			if(waitReply() == 0){
 				//全部返信がきててアロケーションできるなら
 				taskAllocate(tick);
 				phase = SELECT_MEMBER;
 				clearall();
+				time = 0;
 			}else if(waitReply() == 1){
 				//全部返信がきててアロケーションできないなら
 				failAllocate();
 				wastedTask[this.getArea().getId()][tick]++;
 				phase = SELECT_MEMBER;
 				clearall();
+				time = 0;
 			}
+			
 			break;
 		}
 	}
@@ -213,7 +226,7 @@ public class Leader extends Agent{
 	//---------------------------------------------------------------------------------------
 	@Override
 	public void readMessage(Message message, int tick){
-//		if(getMyId() == 280) System.out.println(message);
+		if(getMyId() == 301) System.out.println(message);
 		switch(message.getType()){
 		case SOLICITATION:
 			Message m = new Message(ACCEPTANCE, this, message.from(), message.getSubTask(), false);

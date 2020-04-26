@@ -2,6 +2,7 @@ package Task;
 import Agent.Leader;
 import Agent.Member;
 import Random.Sfmt;
+import Environment.Environment;
 
 public class SubTask {
 	private int reqCapa[] = new int[3/**/];
@@ -12,10 +13,10 @@ public class SubTask {
 	
 	//---------------------------------------------------------------------------------------
 	
-	SubTask(Sfmt rnd, int id){
+	SubTask(int id){
 		//int r = randomInt(rnd);
-		int r = rnd.NextInt(3);
-		int c = 5 + rnd.NextInt(6);
+		int r = Environment.rnd.NextInt(3);
+		int c = 5 + Environment.rnd.NextInt(6);
 		for(int i=0;i<3;i++){
 			if(i == r){
 				reqCapa[i] = c;

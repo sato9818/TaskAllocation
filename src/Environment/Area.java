@@ -8,6 +8,7 @@ import Task.Task;
 public class Area {
 	static int num = 0;
 	
+	
 	private Queue<Task> taskQueue = new ArrayDeque<Task>();
 	private final int minX;
 	private final int maxX;
@@ -15,6 +16,8 @@ public class Area {
 	private final int maxY;
 	private final int workload;
 	private final int id;
+	
+	private int taskCount = 0; 
 	
 	
 	Area(int workload, int minX, int minY, int maxX, int maxY){
@@ -39,9 +42,11 @@ public class Area {
 	
 	//---------------------------------------------------------------------------------------
 	
-	public void addTask(Sfmt rnd){
-		for(int i=0;i<rnd.NextPoisson(workload);i++){
-			Task task = new Task(rnd);
+	public void addTask(){
+		int p = Environment.rnd.NextPoisson(workload);
+		taskCount += p;
+		for(int i=0;i<p;i++){
+			Task task = new Task();
 			taskQueue.add(task);
 		}
 	}
@@ -70,6 +75,7 @@ public class Area {
 		return "X: " + minX + " ~ " + maxX + "\n" +
 				"Y: " + minY + " ~ " + maxY + "\n" +
 				"Workload: " + workload + "\n" +
-				"Queue Size: " + taskQueue.size();
+				"Queue Size: " + taskQueue.size() + "\n" +
+				"Produce Task: " + taskCount;
 	}
 }

@@ -28,7 +28,8 @@ public class Environment {
 	private List<Agent> agents = new ArrayList<Agent>();
 	private List<Area> areas = new ArrayList<Area>();
 	private HashMap<Integer, List<Message>> agentIdToMessageList = new HashMap<Integer, List<Message>>();
-	Sfmt rnd;
+	public static Sfmt rnd;
+	public static Random r;
 	
 	public static double communicationTime[][] = new double[NUM_OF_AREA][EXPERIMENTAL_DURATION];
 	public static double countSentMessages[][] = new double[NUM_OF_AREA][EXPERIMENTAL_DURATION];
@@ -38,10 +39,11 @@ public class Environment {
 	
 	//---------------------------------------------------------------------------------------
 	
-	public Environment(Sfmt rnd, int seed){
-		this.rnd = rnd;
+	public Environment(int seed){
+		rnd = new Sfmt(seed);
+		r = new Random(seed);
 		generateAreas();
-		generateAgents(seed);
+		generateAgents();
 		for(int i=0;i<NUM_OF_AGENT;i++){
 			agentIdToMessageList.put(agents.get(i).getMyId(), new ArrayList<Message>());
 		}
@@ -74,7 +76,7 @@ public class Environment {
 	
 	//---------------------------------------------------------------------------------------
 	
-	private void generateAgents(int seed){
+	private void generateAgents(){
 		
 		List<Grid> grid = new ArrayList<Grid>();
 		for(int i=0;i<GRID_X;i++){
@@ -84,18 +86,18 @@ public class Environment {
 			}
 		}
 		
-		Collections.shuffle(grid, new Random(seed));
+		Collections.shuffle(grid, r);
 		
 		for(int i=0;i<NUM_OF_AGENT;i++){
 			int x = grid.get(i).x;
 			int y = grid.get(i).y;
 			int p = rnd.NextInt(2);
 			if(p == 0){
-				Leader leader = new Leader(rnd, identifyArea(x, y), x, y);
+				Leader leader = new Leader(identifyArea(x, y), x, y);
 				leaders.add(leader);
 				agents.add(leader);
 			}else if(p == 1){
-				Member member = new Member(rnd, identifyArea(x, y), x, y);
+				Member member = new Member(identifyArea(x, y), x, y);
 				members.add(member);
 				agents.add(member);
 			}
@@ -127,17 +129,16 @@ public class Environment {
 	
 	//---------------------------------------------------------------------------------------
 	
-	public void run(int tick, Random r){
-		System.out.println("tick: " + tick + "---------------------------------");
+	public void run(int tick){
+		System.out.println("tick: " + tick + "---------------------------------------------------------------------------------------------------");
 		System.out.println("Leader: " + leaders.size());
 		System.out.println("Member: " + members.size());
 		System.out.println(Agent.tookTask);
 		System.out.println(Agent.finishSubTask);
 		
 		for(int i=0;i<areas.size();i++){
-			areas.get(i).addTask(rnd);
+			areas.get(i).addTask();
 		}
-		
 		updateDependablityAgent();
 		agentsGetMessages(tick);
 		
@@ -215,7 +216,7 @@ public class Environment {
 		for(int i = 0;i<leaders.size();i++){
 			Leader ld = leaders.get(i);
 			if(ld.getPhase() == SELECT_MEMBER){
-				int ep = eGreedy(rnd);
+				int ep = eGreedy();
 				if(ep == 0){
 					if(ld.getLeaderEvaluation() > ld.getMemberEvaluation()){
 						newLeaders.add(ld);
@@ -248,7 +249,7 @@ public class Environment {
 		for(int i = 0;i<members.size();i++){
 			Member mem = members.get(i);
 			if(mem.roleChangable()){
-				int ep = eGreedy(rnd);
+				int ep = eGreedy();
 				if(ep == 0){
 					if(mem.getLeaderEvaluation() < mem.getMemberEvaluation()){
 						newMembers.add(mem);
@@ -335,7 +336,7 @@ public class Environment {
 	
 	//---------------------------------------------------------------------------------------
 	
-	public int eGreedy(Sfmt rnd) {
+	public int eGreedy() {
 		int A;
         int randNum = rnd.NextInt(101);
         if (randNum <= EPSILON * 100.0) {

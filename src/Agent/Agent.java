@@ -1,4 +1,5 @@
 package Agent;
+
 import static Constants.Constants.*;
 
 import java.util.ArrayList;
@@ -10,6 +11,7 @@ import java.util.List;
 import java.util.Map;
 
 import Environment.Area;
+import Environment.Environment;
 import Message.Message;
 import Random.Sfmt;
 import Task.SubTask;
@@ -17,7 +19,7 @@ import Task.SubTask;
 public class Agent {
 	//固有番号をつけるためのもの
 	static int num = 0;
-	Sfmt rnd;
+	
 	
 	//定数------------------------------------------------------------------------------------
 	
@@ -69,13 +71,12 @@ public class Agent {
 	
 	//---------------------------------------------------------------------------------------
 	
-	Agent(Sfmt rnd, Area area, int x, int y){
-		setCapacity(rnd);
+	Agent(Area area, int x, int y){
+		setCapacity();
 		initializeDependability();
 		gridX = x;
 		gridY = y;
 		this.area = area;
-		this.rnd = rnd;
 		myId = num;
 		num++;
 	}
@@ -94,7 +95,6 @@ public class Agent {
 		distance = agent.distance;
 		leaderEvaluation = agent.leaderEvaluation;
 		memberEvaluation = agent.memberEvaluation;
-		rnd = agent.rnd;
 		memberListMap = agent.memberListMap;
 		executionTimeMap = agent.executionTimeMap;
 	}
@@ -163,11 +163,11 @@ public class Agent {
 	
 	//---------------------------------------------------------------------------------------
 	
-	private void setCapacity(Sfmt rnd){
+	private void setCapacity(){
 		while(capacity[0] == 0 && capacity[1] == 0 && capacity[2] == 0){
 			int p = 0;
 			for(int i=0;i<3;i++){
-				capacity[i] = 1 + rnd.NextInt(5);
+				capacity[i] = 1 + Environment.rnd.NextInt(5);
 				capave += (double)capacity[i];
 				if(capacity[i] != 0){
 					p++;
@@ -299,12 +299,12 @@ public class Agent {
 
 	//---------------------------------------------------------------------------------------
 	
-	public int eGreedy(Sfmt rnd) {
+	public int eGreedy() {
 		int A;
-        int randNum = rnd.NextInt(101);
+        int randNum = Environment.rnd.NextInt(101);
         if (randNum <= 0.05 * 100.0) {
         	//eの確率
-			A = rnd.NextInt(2);
+			A = Environment.rnd.NextInt(2);
         } else {
         	//(1-e)の確率
         	A = 0;

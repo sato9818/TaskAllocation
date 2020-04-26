@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.Queue;
 
 import Environment.Area;
+import Environment.Environment;
 import Message.Message;
 import Random.Sfmt;
 import Task.SubTask;
@@ -35,8 +36,8 @@ public class Member extends Agent{
 	
 	//---------------------------------------------------------------------------------------
 	
-	public Member(Sfmt rnd, Area area, int x, int y){
-		super(rnd, area, x, y);
+	public Member(Area area, int x, int y){
+		super(area, x, y);
 	}
 	
 	//---------------------------------------------------------------------------------------
@@ -68,12 +69,12 @@ public class Member extends Agent{
 			if(!solicitationMessages.isEmpty()){
 				while(!solicitationMessages.isEmpty()){
 					boolean decide = true;
-					int p = eGreedy(rnd);
+					int p = eGreedy();
 					Message message = null;
 					if(p == 0){
 						message = decideMessage(solicitationMessages, null);
 					}else if(p == 1){
-						message = decideMessage(solicitationMessages, rnd);
+						message = decideMessage(solicitationMessages, Environment.rnd);
 						
 					}
 					if(expectedTasks + taskQueue.size() > 4){
@@ -102,7 +103,7 @@ public class Member extends Agent{
 					excutingTime = et;
 					finishMessage = new Message(FINISH, this, allocationMessage.from(), allocationMessage.getSubTask(), et);
 				}else{
-					if(expectedTasks > 0){
+					if(expectedTasks > 0 || solicitationMessages.size() > 0){
 						phase = ACTIVE;
 					}else if(expectedTasks == 0){
 						phase = INACTIVE;
@@ -113,7 +114,10 @@ public class Member extends Agent{
 			}
 			break;
 		}
-//		System.out.println(phase);
+		if(getMyId() == 283){
+			System.out.println("Phase is "+ phase);
+		}
+		
 	}
 	
 	//---------------------------------------------------------------------------------------
@@ -202,7 +206,7 @@ public class Member extends Agent{
 			waitingTime[this.getArea().getId()][tick] += tick - allocateTimeMap.get(finishMessage.getSubTask().getTaskId());
 			excutingTask = null;
 			finishMessage = null;
-			if(taskQueue.size() > 0 || expectedTasks > 0){
+			if(taskQueue.size() > 0 || expectedTasks > 0 || solicitationMessages.size() > 0){
 				phase = ACTIVE;
 			}else{
 				phase = INACTIVE;
@@ -245,7 +249,7 @@ public class Member extends Agent{
 		if(success){
 //			delta = (double)message.getsubtask().getutility() / (message.getdistance() * 2 + excutiontime);
 			//System.out.println("excutiontime " + excutiontime);
-			delta = 1 / (this.getdistance(message.from().getMyId()) * 2 + excutingTime);
+			delta = 1 / (this.getdistance(message.from().getMyId()) * 2);
 //			delta = 1;
 		}
 		this.de[message.from().getMyId()] = 

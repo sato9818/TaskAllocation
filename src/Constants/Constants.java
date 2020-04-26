@@ -44,7 +44,7 @@ public class Constants {
 	
 	
 	//tick
-	public static final int EXPERIMENTAL_DURATION = 50001;
+	public static final int EXPERIMENTAL_DURATION = 10001;
 	
 //	-------------------------------------------------------------------------------------------------
 	
