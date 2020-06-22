@@ -5,9 +5,11 @@ import java.util.Queue;
 import Random.Sfmt;
 import Task.Task;
 
+import static Constants.Constants.*;
+
 public class Area {
 	static int num = 0;
-	
+	public static int overflowedTask[][] = new int[NUM_OF_AREA][EXPERIMENTAL_DURATION];
 	
 	private Queue<Task> taskQueue = new ArrayDeque<Task>();
 	private final int minX;
@@ -16,6 +18,7 @@ public class Area {
 	private final int maxY;
 	private final int workload;
 	private final int id;
+	
 	
 	private int taskCount = 0; 
 	
@@ -28,6 +31,9 @@ public class Area {
 		this.maxY = maxY;
 		id = num;
 		num++;
+		if(num == NUM_OF_AREA){
+			num = 0;
+		}
 	}
 	
 	//---------------------------------------------------------------------------------------
@@ -42,12 +48,17 @@ public class Area {
 	
 	//---------------------------------------------------------------------------------------
 	
-	public void addTask(){
+	public void addTask(int tick){
 		int p = Environment.rnd.NextPoisson(workload);
 		taskCount += p;
 		for(int i=0;i<p;i++){
 			Task task = new Task();
-			taskQueue.add(task);
+			if(taskQueue.size() > TASK_QUEUE_SIZE){
+				overflowedTask[getId()][tick]++;
+			}else{
+				taskQueue.add(task);
+			}
+			
 		}
 	}
 	

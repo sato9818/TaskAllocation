@@ -13,6 +13,7 @@ import java.util.Random;
 
 import Comparator.SubUtilityComparator;
 import Environment.Area;
+import Environment.Environment;
 import Message.Message;
 import Random.Sfmt;
 import Task.SubTask;
@@ -69,9 +70,6 @@ public class Leader extends Agent{
 				//メッセージを送る
 				for(int j=0;j<messages.size();j++){
 					allMessages.add(messages.get(j));
-					if(getMyId() == 301){
-						System.out.println(messages.get(j));
-					}
 				}
 				phase = WAIT_MEMBER;
 			}else{
@@ -102,6 +100,7 @@ public class Leader extends Agent{
 			
 			break;
 		}
+		
 	}
 	
 	//---------------------------------------------------------------------------------------
@@ -116,18 +115,6 @@ public class Leader extends Agent{
 		leaderEvaluation = (1.0 - LEARNING_RATE) * leaderEvaluation + LEARNING_RATE * delta; 
 	}
 
-	//---------------------------------------------------------------------------------------
-	
-	public List<Agent> sortmemberDE(List<Agent> agents){
-		for (int i = 0; i < agents.size() - 1; i++) {
-            for (int j = agents.size() - 1; j > i; j--) {
-                if (de[agents.get(j - 1).getMyId()] <= de[agents.get(j).getMyId()]) {
-                    Collections.swap(agents,j-1,j);
-                }
-            }
-        }
-		return agents;
-	}
 	//---------------------------------------------------------------------------------------
 	public List<Member> sortmemberDistance(List<Member> members){
 		for (int i = 0; i < members.size() - 1; i++) {
@@ -148,15 +135,16 @@ public class Leader extends Agent{
 		List<SubTask> confsubtask = new ArrayList<SubTask>();
 		List<Message> messages = new ArrayList<Message>();
 		
-		List<Agent> copyDeAgents = new ArrayList<Agent>(deagent);
+		List<Agent> copyDeAgents = new ArrayList<Agent>(deAgents);
 		List<Agent> copyAgents = new ArrayList<Agent>(agents);
+		Collections.shuffle(copyAgents, Environment.r);
 		copyAgents.remove(this);
 		if(random){
 			copyDeAgents.clear();
 		}else{
 			Collections.sort(subtasks, new SubUtilityComparator());
-			copyAgents = sortmemberDE(copyAgents);
-			copyDeAgents = sortmemberDE(copyDeAgents);
+			copyAgents = sortMemberDeAgent(copyAgents);
+			copyDeAgents = sortMemberDeAgent(copyDeAgents);
 		}
 		
 		for(int i=0;i<SOLICITATION_REDUNDANCY;i++){
@@ -190,30 +178,17 @@ public class Leader extends Agent{
 	
 	//---------------------------------------------------------------------------------------
 	
-	public int setexcutiontime(SubTask s){
-		int et = 0;
-		for(int i=0;i<3/*リソースの種類*/;i++){
-			if(s.getcapacity(i) != 0){
-				et =(int)Math.ceil((double)s.getcapacity(i) / capacity[i]);
-			}
-		}
-		return et;
-	}
-	
-	
-	//---------------------------------------------------------------------------------------
-	
 	private void makeTeam(Message message){
 		SubTask subtask = message.getSubTask();
 		Agent member = message.from();
 		//サブタスクとそれを処理するメンバの組み合わせを作っている
 		
 			if(team.containsKey(subtask)){
-				if(deagent.contains(member) && !deagent.contains(team.get(subtask))){
+				if(deAgents.contains(member) && !deAgents.contains(team.get(subtask))){
 					team.put(subtask, member);
 				}else if(de[member.getMyId()] > de[team.get(subtask).getMyId()] && 
-						!(!deagent.contains(member) && 
-						deagent.contains(team.get(subtask)))){
+						!(!deAgents.contains(member) && 
+						deAgents.contains(team.get(subtask)))){
 					team.put(subtask, member);
 				}
 			}else{
@@ -226,7 +201,6 @@ public class Leader extends Agent{
 	//---------------------------------------------------------------------------------------
 	@Override
 	public void readMessage(Message message, int tick){
-		if(getMyId() == 301) System.out.println(message);
 		switch(message.getType()){
 		case SOLICITATION:
 			Message m = new Message(ACCEPTANCE, this, message.from(), message.getSubTask(), false);
@@ -310,14 +284,11 @@ public class Leader extends Agent{
 	
 	//---------------------------------------------------------------------------------------
 	
-	public void updatedeagent(){
-		if(LEADER_DEPENDABLITY_AGENT_THRESHOLD < deagent.size()){
-			deagent = sortagent(deagent);
-			List<Agent> buf = new ArrayList<Agent>();
-			for(int i=0;i<LEADER_DEPENDABLITY_AGENT_THRESHOLD;i++){
-				buf.add(deagent.get(i));
-			}
-			deagent = buf;
+	public void selectAction(){
+		if(LEADER_DEPENDABLITY_AGENT_THRESHOLD <= deAgents.size()){
+			reciprocityAction = true;
+		}else{
+			reciprocityAction = false;
 		}
 	}
 	

@@ -8,23 +8,31 @@ import Agent.Agent;
 
 import static Constants.Constants.*;
 
+import Environment.Area;
 import Environment.Environment;
+import Random.Seed;
 import Random.Sfmt;
 
 public class Main {
 	
 	public static void main(String[] args){
-		Environment e = new Environment(7);
-		for(int tick=0;tick<EXPERIMENTAL_DURATION;tick++){
-			e.run(tick);
+		for(int trial = 0;trial<TRIAL_COUNT;trial++){
+			Environment e = new Environment(Seed._seeds[trial]);
+			for(int tick=0;tick<EXPERIMENTAL_DURATION;tick++){
+				e.run(tick);
+			}
+			e.printArea();
+//			e.printDeAgent();
+			
 		}
+		
 		export();
-		e.printArea();
+		
 	}
 	private static void export(){
 		for(int i=0;i<NUM_OF_AREA;i++){
 			try{
-				FileWriter fw = new FileWriter("Area" + i + ".csv", false); 
+				FileWriter fw = new FileWriter("csv/Area" + i + ".csv", false); 
 	            PrintWriter pw = new PrintWriter(new BufferedWriter(fw));
 	            pw.print("tick");
 	        	pw.print(",");
@@ -43,6 +51,14 @@ public class Main {
 	        	pw.print("leader count");
 	        	pw.print(",");
 	        	pw.print("member count");
+	        	pw.print(",");
+	        	pw.print("reciprocity leader count");
+	        	pw.print(",");
+	        	pw.print("reciprocity member count");
+	        	pw.print(",");
+	        	pw.print("message count");
+	        	pw.print(",");
+	        	pw.print("overflowed task");
 	        	for(int j=0;j<NUM_OF_AREA;j++){
 	        		pw.print(",");
 		        	pw.print("allocate area "+ j +" member");
@@ -55,6 +71,8 @@ public class Main {
 	        	double executedTime = 0;
 	        	double waitingTime = 0;
 	        	double allExecutedTime = 0;
+	        	int messageCount = 0;
+	        	int overflowedTask = 0;
 //	        	int leaderCount = 0;
 //	        	int memberCount = 0;
 	        	
@@ -67,7 +85,8 @@ public class Main {
 	        		executedTime += divide(Agent.executedTime[i][tick] , Agent.executedSubTask[i][tick]);
 	        		waitingTime += divide(Agent.waitingTime[i][tick] , Agent.executedSubTask[i][tick]);
 	        		allExecutedTime += divide(Agent.allExecutedTime[i][tick] , Agent.executedSubTask[i][tick]);
-	        		
+	        		messageCount += Environment.countSentMessages[i][tick];
+	        		overflowedTask += Area.overflowedTask[i][tick];
 	        		for(int j=0;j<NUM_OF_AREA;j++){
 	        			allocatedMember[j] += Agent.allocationMemberCount[i][j][tick];
 		        	}
@@ -75,11 +94,11 @@ public class Main {
 					if(tick % 100 == 0){
 						pw.print(tick);
 			        	pw.print(",");
-			        	pw.print(executedTask);
+			        	pw.print(executedTask / TRIAL_COUNT);
 			        	pw.print(",");
-			        	pw.print(wastedTask);
+			        	pw.print(wastedTask / TRIAL_COUNT);
 			        	pw.print(",");
-			        	pw.print(communicationTime / 100);
+			        	pw.print(communicationTime / 100 );
 			        	pw.print(",");
 			        	pw.print(executedTime / 100);
 			        	pw.print(",");
@@ -87,12 +106,20 @@ public class Main {
 			        	pw.print(",");
 			        	pw.print(allExecutedTime / 100);
 			        	pw.print(",");
-			        	pw.print(Environment.countLeaders[i][tick]);
+			        	pw.print(Environment.countLeaders[i][tick] / TRIAL_COUNT);
 			        	pw.print(",");
-			        	pw.print(Environment.countMembers[i][tick]);
+			        	pw.print(Environment.countMembers[i][tick] / TRIAL_COUNT);
+			        	pw.print(",");
+			        	pw.print(Environment.reciprocityLeaders[i][tick] / TRIAL_COUNT);
+			        	pw.print(",");
+			        	pw.print(Environment.reciprocityMembers[i][tick] / TRIAL_COUNT);
+			        	pw.print(",");
+			        	pw.print(messageCount / TRIAL_COUNT);
+			        	pw.print(",");
+			        	pw.print(overflowedTask / TRIAL_COUNT);
 			        	for(int j=0;j<NUM_OF_AREA;j++){
 			        		pw.print(",");
-				        	pw.print(allocatedMember[j]);
+				        	pw.print(allocatedMember[j] / TRIAL_COUNT);
 			        	}
 			        	pw.println();
 			        	
@@ -102,6 +129,8 @@ public class Main {
 		        		executedTime = 0;
 		        		waitingTime = 0;
 		        		allExecutedTime = 0;
+		        		messageCount = 0;
+		        		overflowedTask = 0;
 		        		for(int j=0;j<NUM_OF_AREA;j++){
 		        			allocatedMember[j] = 0;
 			        	}
@@ -115,7 +144,7 @@ public class Main {
 			
 		}
 		try{
-			FileWriter fw = new FileWriter("Environment.csv", false); 
+			FileWriter fw = new FileWriter("csv/Environment.csv", false); 
             PrintWriter pw = new PrintWriter(new BufferedWriter(fw));
             pw.print("tick");
         	pw.print(",");
@@ -134,6 +163,16 @@ public class Main {
         	pw.print("leader count");
         	pw.print(",");
         	pw.print("member count");
+        	pw.print(",");
+        	pw.print("reciprocity leader count");
+        	pw.print(",");
+        	pw.print("reciprocity member count");
+        	pw.print(",");
+        	pw.print("message count");
+        	pw.print(",");
+        	pw.print("overflowed task");
+        	pw.print(",");
+        	pw.print("average subtask queue size");
         	pw.println();
         	
             int executedTask = 0;
@@ -144,6 +183,11 @@ public class Main {
         	double allExecutedTime = 0;
         	int leaderCount = 0;
         	int memberCount = 0;
+        	int reciprocityMembers = 0;
+        	int reciprocityLeaders = 0;
+        	int messageCount = 0;
+        	int overflowedTask = 0;
+        	double avgSubTaskQueue = 0;
             for(int tick=0;tick<EXPERIMENTAL_DURATION;tick++){
             	for(int i=0;i<NUM_OF_AREA;i++){
             		executedTask += Agent.executedTask[i][tick];
@@ -152,29 +196,44 @@ public class Main {
 	        		executedTime += divide(Agent.executedTime[i][tick] , Agent.executedSubTask[i][tick]);
 	        		waitingTime += divide(Agent.waitingTime[i][tick] , Agent.executedSubTask[i][tick]);
 	        		allExecutedTime += divide(Agent.allExecutedTime[i][tick] , Agent.executedSubTask[i][tick]);
+	        		messageCount += Environment.countSentMessages[i][tick];
+	        		overflowedTask += Area.overflowedTask[i][tick];
+	        		avgSubTaskQueue += Environment.avgSubTaskQueue[tick];
 	        		if(tick % 100 == 0){
 	        			leaderCount += Environment.countLeaders[i][tick];
 	        			memberCount += Environment.countMembers[i][tick];
+	        			reciprocityLeaders += Environment.reciprocityLeaders[i][tick];
+	        			reciprocityMembers += Environment.reciprocityMembers[i][tick];
 	        		}
 	        	}
             	if(tick % 100 == 0){
 					pw.print(tick);
 		        	pw.print(",");
-		        	pw.print(executedTask);
+		        	pw.print(executedTask / TRIAL_COUNT);
 		        	pw.print(",");
-		        	pw.print(wastedTask);
+		        	pw.print(wastedTask / TRIAL_COUNT);
 		        	pw.print(",");
-		        	pw.print(communicationTime / 100);
+		        	pw.print(communicationTime / 100 / NUM_OF_AREA );
 		        	pw.print(",");
-		        	pw.print(executedTime / 100);
+		        	pw.print(executedTime / 100 / NUM_OF_AREA);
 		        	pw.print(",");
-		        	pw.print(waitingTime / 100);
+		        	pw.print(waitingTime / 100 / NUM_OF_AREA);
 		        	pw.print(",");
-		        	pw.print(allExecutedTime / 100);
+		        	pw.print(allExecutedTime / 100 / NUM_OF_AREA);
 		        	pw.print(",");
-		        	pw.print(leaderCount);
+		        	pw.print(leaderCount / TRIAL_COUNT);
 		        	pw.print(",");
-		        	pw.print(memberCount);
+		        	pw.print(memberCount / TRIAL_COUNT);
+		        	pw.print(",");
+		        	pw.print(reciprocityLeaders / TRIAL_COUNT);
+		        	pw.print(",");
+		        	pw.print(reciprocityMembers / TRIAL_COUNT);
+		        	pw.print(",");
+		        	pw.print(messageCount / TRIAL_COUNT);
+		        	pw.print(",");
+		        	pw.print(overflowedTask / TRIAL_COUNT);
+		        	pw.print(",");
+		        	pw.print(avgSubTaskQueue / TRIAL_COUNT / 100);
 		        	pw.println();
 		        	
 		        	executedTask = 0;
@@ -185,7 +244,11 @@ public class Main {
 	        		allExecutedTime = 0;
 	        		leaderCount = 0;
 	        		memberCount = 0;
-	        		
+	        		reciprocityMembers = 0;
+	            	reciprocityLeaders = 0;
+	            	messageCount = 0;
+	            	overflowedTask = 0;
+	            	avgSubTaskQueue = 0;
 				}
             }
             pw.close();

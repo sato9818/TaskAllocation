@@ -35,6 +35,10 @@ public class Environment {
 	public static double countSentMessages[][] = new double[NUM_OF_AREA][EXPERIMENTAL_DURATION];
 	public static int countMembers[][] = new int[NUM_OF_AREA][EXPERIMENTAL_DURATION];
 	public static int countLeaders[][] = new int[NUM_OF_AREA][EXPERIMENTAL_DURATION];
+	public static int reciprocityMembers[][] = new int[NUM_OF_AREA][EXPERIMENTAL_DURATION];
+	public static int reciprocityLeaders[][] = new int[NUM_OF_AREA][EXPERIMENTAL_DURATION];
+	public static double avgSubTaskQueue[] = new double[EXPERIMENTAL_DURATION];
+
 	
 	
 	//---------------------------------------------------------------------------------------
@@ -55,11 +59,16 @@ public class Environment {
 		int divX = GRID_X / NUM_OF_VERTICAL_DIVISION;
 		int divY = GRID_Y / NUM_OF_HORIZONTAL_DIVISION;
 		
-		
+		int count = 0;
 		for(int i=0;i<NUM_OF_VERTICAL_DIVISION;i++){
 			for(int j=0;j<NUM_OF_HORIZONTAL_DIVISION;j++){
-				double p = rnd.NextUnif();
-				int workload = 2;
+//				double p = rnd.NextUnif();
+				int workload = LOW_WORKLOAD;
+				if(count == 2 || count == 3){
+					workload = MODERATE_WORKLOAD;
+				}else if(count == 1){
+					workload = HIGH_WORKLOAD;
+				}
 //				if(p < 1.0 / 3){
 //					workload = LOW_WORKLOAD;
 //				}else if(p < 2.0 / 3){
@@ -69,6 +78,7 @@ public class Environment {
 //				}
 				Area area = new Area(workload, i*divX, j*divY, (i+1) * divX - 1, (j+1) * divY - 1);
 				areas.add(area);
+				count++;
 			}
 		}
 		
@@ -137,9 +147,11 @@ public class Environment {
 		System.out.println(Agent.finishSubTask);
 		
 		for(int i=0;i<areas.size();i++){
-			areas.get(i).addTask();
+			areas.get(i).addTask(tick);
 		}
-		updateDependablityAgent();
+		if(RECIPROCITY){
+			updateDependablityAgent();
+		}
 		agentsGetMessages(tick);
 		
 		Collections.shuffle(leaders, r);
@@ -152,6 +164,7 @@ public class Environment {
 		collectMessages();
 		changeRole();
 		countAgents(tick);
+		decreaseDependability();
 	}
 	
 	//---------------------------------------------------------------------------------------
@@ -257,7 +270,7 @@ public class Environment {
 						Leader ld = new Leader(mem); 
 						newLeaders.add(ld);
 					}else{
-						int p = (int)rnd.NextUnif() * 2;
+						int p = (int)rnd.NextInt(2);
 						if(p == 0){
 							Leader leader = new Leader(mem);
 							newLeaders.add(leader);
@@ -266,7 +279,7 @@ public class Environment {
 						}
 					}
 				}else if(ep == 1){
-					int p = (int)rnd.NextUnif() * 2;
+					int p = (int)rnd.NextInt(2);
 					if(p == 0){
 						Leader leader = new Leader(mem);
 						newLeaders.add(leader);
@@ -289,11 +302,27 @@ public class Environment {
 	
 	private void countAgents(int tick){
 		for(int i=0;i<leaders.size();i++){
-			countLeaders[leaders.get(i).getArea().getId()][tick]++;
+			Leader leader = leaders.get(i);
+			countLeaders[leader.getArea().getId()][tick]++;
+			if(leader.isReciprocity() == true){
+				reciprocityLeaders[leader.getArea().getId()][tick]++;
+			}else{
+//				System.out.println("not reciprocity");
+			}
+			
 		}
+		double buf = 0;
 		for(int i=0;i<members.size();i++){
-			countMembers[members.get(i).getArea().getId()][tick]++;
+			Member member = members.get(i);
+			buf += (double)member.getSubTaskQueueSize();
+			countMembers[member.getArea().getId()][tick]++;
+			if(member.isReciprocity() == true){
+				reciprocityMembers[member.getArea().getId()][tick]++;
+			}else{
+//				System.out.println("not reciprocity");
+			}
 		}
+		avgSubTaskQueue[tick] += buf / (double)members.size();
 	}
 	
 	//---------------------------------------------------------------------------------------
@@ -307,9 +336,8 @@ public class Environment {
 				if(LEADER_DEPENDABLITY_DEGREE_THRESHOLD < leader.getDependablity(member.getMyId())){
 					leader.adddeagent(member);
 				}
-				leader.reducede(member.getMyId());
 			}
-			leader.updatedeagent();
+			leader.selectAction();
 		}
 		for(int i=0;i<members.size();i++){
 			Member member = members.get(i);
@@ -319,10 +347,19 @@ public class Environment {
 				if(MEMBER_DEPENDABLITY_DEGREE_THRESHOLD < member.getDependablity(leader.getMyId())){
 					member.adddeagent(leader);
 				}
-				member.reducede(leader.getMyId());
 			}
-			member.updatedeagent();
+			member.selectAction();
 		}
+	}
+	
+	//---------------------------------------------------------------------------------------
+	
+	private void decreaseDependability(){
+		for(int j=0;j<agents.size();j++){
+			for(int i=0;i<agents.size();i++){
+				agents.get(j).reducede(agents.get(i).getMyId());
+			}
+    	}
 	}
 	
 	//---------------------------------------------------------------------------------------
@@ -330,6 +367,41 @@ public class Environment {
 	public void printArea(){
 		for(int j=0;j<NUM_OF_AREA;j++){
 			System.out.println(areas.get(j));
+    	}
+	}
+	
+	//---------------------------------------------------------------------------------------
+	
+	public void printDeAgent(){
+		//0:0.3以下 1:0.3~0.4 2:0.4~0.5 3:0.5~0.6 4: 0.6~0.7 5:0.7~0.8 6:0.8以上
+		int[][] range = new int[500][7];
+		for(int j=0;j<agents.size();j++){
+			int count = 0;
+
+			for(int i=0;i<agents.size();i++){
+				double de = agents.get(j).getDependablity(i);
+				if(de < 0.3){
+					range[agents.get(j).getMyId()][0] ++;
+				}else if(de < 0.4){
+					range[agents.get(j).getMyId()][1] ++;
+				}else if(de < 0.5){
+					range[agents.get(j).getMyId()][2] ++;
+				}else if(de < 0.6){
+					range[agents.get(j).getMyId()][3] ++;
+				}else if(de < 0.7){
+					range[agents.get(j).getMyId()][4] ++;
+				}else if(de < 0.8){
+					range[agents.get(j).getMyId()][5] ++;
+				}else{
+					range[agents.get(j).getMyId()][6] ++;
+				}
+					
+			}
+			
+			for(int i=0;i<7;i++){
+				System.out.println(agents.get(j).getMyId() + ": [" + i + "] " + range[agents.get(j).getMyId()][i]);
+			}
+			
     	}
 	}
 	

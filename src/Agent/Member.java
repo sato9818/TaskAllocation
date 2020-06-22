@@ -61,23 +61,29 @@ public class Member extends Agent{
 				if(inactiveTime > INACTIVE_THRESHOLD){
 					updateRoleEvaluation(false);
 					roleChangable = true;
+					inactiveTime = 0;
 				}
 				break;
 			}
 		case ACTIVE:
 				//メッセージから受理するメッセージを選ぶ
-			if(!solicitationMessages.isEmpty()){
+			if(!solicitationMessages.isEmpty() && expectedTasks + taskQueue.size() < 5){
+				int p = eGreedy();
+				
 				while(!solicitationMessages.isEmpty()){
 					boolean decide = true;
-					int p = eGreedy();
 					Message message = null;
 					if(p == 0){
 						message = decideMessage(solicitationMessages, null);
+						if(this.isReciprocity()){
+							if(!deAgents.contains(message.from())){
+								decide = false;
+							}
+						}
 					}else if(p == 1){
 						message = decideMessage(solicitationMessages, Environment.rnd);
-						
 					}
-					if(expectedTasks + taskQueue.size() > 4){
+					if(expectedTasks + taskQueue.size() > 6){
 						decide = false;
 					}
 					if(decide){
@@ -107,15 +113,13 @@ public class Member extends Agent{
 						phase = ACTIVE;
 					}else if(expectedTasks == 0){
 						phase = INACTIVE;
+						roleChangable = true;
 					}
 				}
 			}else{
 				executeTask(tick);
 			}
 			break;
-		}
-		if(getMyId() == 283){
-			System.out.println("Phase is "+ phase);
 		}
 		
 	}
@@ -130,32 +134,14 @@ public class Member extends Agent{
 			int p = (int)(rnd.NextUnif() * messageSize);
 			decide = messages.get(p);
 			return decide;
+		}else{
+			messages = sortMemberDeMessage(messages);
+			Message message = messages.get(0);
+//			for(int i=0;i<messages.size();i++){
+//				System.out.println("member: " + getMyId() + " " + de[messages.get(i).from().getMyId()]);
+//			}
+			return message;
 		}
-		for(int i=0;i<messages.size();i++){
-			Message message = messages.get(i);
-			Agent leader = message.from();
-			if(deagent.isEmpty()){
-				if(decide == null){ 
-					decide = message;
-				}else{
-					//信頼度高いリーダーを優先
-					if(de[leader.getMyId()] > de[decide.from().getMyId()]){
-						decide = message;
-					}
-				}	
-			}else{
-				if(deagent.contains(leader) && !deagent.contains(decide)){
-					decide = message;
-				}else if(deagent.contains(leader) && deagent.contains(decide)){
-					if(de[leader.getMyId()] > de[decide.from().getMyId()]){
-						decide = message;
-					}
-				}else if(!deagent.contains(leader) && !deagent.contains(decide)){
-					decide = null;
-				}
-			}
-		}
-		return decide;
 	}
 	
 	//---------------------------------------------------------------------------------------
@@ -183,18 +169,7 @@ public class Member extends Agent{
 	}
 	
 	
-	//---------------------------------------------------------------------------------------
 	
-	public int getExcutingTime(SubTask s){
-		int et = 0;
-		for(int i=0;i<TYPES_OF_RESOURCE;i++){
-			int a = (int)Math.ceil((double)s.getcapacity(i) / capacity[i]);
-			if(et < a ){
-				et = a;
-			}
-		}
-		return et;
-	}
 	
 	//---------------------------------------------------------------------------------------
 	
@@ -247,9 +222,9 @@ public class Member extends Agent{
 	public void updateDependablity(Message message, boolean success){
 		double delta = 0.0;
 		if(success){
-//			delta = (double)message.getsubtask().getutility() / (message.getdistance() * 2 + excutiontime);
-			//System.out.println("excutiontime " + excutiontime);
-			delta = 1 / (this.getdistance(message.from().getMyId()) * 2);
+			delta = (double)message.getSubTask().getutility() / (double)(this.getdistance(message.from().getMyId()) * 2 + getExcutingTime(message.getSubTask()));
+//			System.out.println("excutiontime " + this.getdistance(message.from().getMyId()));
+//			delta = 1.0 / (this.getdistance(message.from().getMyId()) * 2 + getExcutingTime(message.getSubTask()));
 //			delta = 1;
 		}
 		this.de[message.from().getMyId()] = 
@@ -273,14 +248,11 @@ public class Member extends Agent{
 	
 	//---------------------------------------------------------------------------------------
 	
-	public void updatedeagent(){
-		if(MEMBER_DEPENDABLITY_AGENT_THRESHOLD < deagent.size()){
-			deagent = sortagent(deagent);
-			List<Agent> buf = new ArrayList<Agent>();
-			for(int i=0;i<MEMBER_DEPENDABLITY_AGENT_THRESHOLD;i++){
-				buf.add(deagent.get(i));
-			}
-			deagent = buf;
+	public void selectAction(){
+		if(MEMBER_DEPENDABLITY_AGENT_THRESHOLD <= deAgents.size()){
+			reciprocityAction = true;
+		}else{
+			reciprocityAction = false;
 		}
 	}
 	
@@ -304,4 +276,7 @@ public class Member extends Agent{
 	}
 	
 	//---------------------------------------------------------------------------------------
+	public int getSubTaskQueueSize(){
+		return taskQueue.size();
+	}
 }

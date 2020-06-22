@@ -5,11 +5,13 @@ public class Constants {
 	//設定系
 	//Option
 	public static final boolean ROLE_CHNAGEABLE = true;
+	public static final boolean RECIPROCITY = true;
 	
 	//エリア分割
 	public static final int NUM_OF_VERTICAL_DIVISION = 2;
 	public static final int NUM_OF_HORIZONTAL_DIVISION = 2;
 	public static final int NUM_OF_AREA = NUM_OF_VERTICAL_DIVISION * NUM_OF_HORIZONTAL_DIVISION;
+	public static final int TASK_QUEUE_SIZE = 1000;
 	
 	//グリッドの範囲
 	public static final int GRID_X = 50;
@@ -24,27 +26,28 @@ public class Constants {
 	public static final int HIGH_WORKLOAD = 8;
 	
 	//学習系
-	public static final double LEARNING_RATE = 0.05;
+	public static final double LEARNING_RATE = 0.01;
 	public static final double EPSILON = 0.05;
 	
 	//エージェント/メッセージ
 	public static final int SOLICITATION_REDUNDANCY = 2;
 	
 	//リーダー
-	public static final int LEADER_DEPENDABLITY_AGENT_THRESHOLD = 0;
-	public static final int LEADER_DEPENDABLITY_DEGREE_THRESHOLD = 1000;
+	public static final int LEADER_DEPENDABLITY_AGENT_THRESHOLD = 1;
+	public static final double LEADER_DEPENDABLITY_DEGREE_THRESHOLD = 0.7;
 	
 	//メンバ
 	public static final int INACTIVE_THRESHOLD = 100;
-	public static final int MEMBER_DEPENDABLITY_AGENT_THRESHOLD = 0;
-	public static final int MEMBER_DEPENDABLITY_DEGREE_THRESHOLD = 1000;
+	public static final int MEMBER_DEPENDABLITY_AGENT_THRESHOLD = 2;
+	public static final double MEMBER_DEPENDABLITY_DEGREE_THRESHOLD = 0.7;
 	
 	//エージェント
 	public static final int TYPES_OF_RESOURCE = 3;
 	
 	
 	//tick
-	public static final int EXPERIMENTAL_DURATION = 10001;
+	public static final int EXPERIMENTAL_DURATION = 200000;
+	public static final int TRIAL_COUNT = 5;
 	
 //	-------------------------------------------------------------------------------------------------
 	

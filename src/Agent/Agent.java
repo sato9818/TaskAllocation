@@ -44,7 +44,7 @@ public class Agent {
 	//フェイズ
 	protected int phase = 0;
 	//信頼エージェントのリスト
-	List<Agent> deagent = new ArrayList<Agent>();
+	protected List<Agent> deAgents = new ArrayList<Agent>();
 	//各エージェントとの距離
 	private int distance[] = new int[NUM_OF_AGENT];
 	//届いたメッセージの置き場
@@ -56,6 +56,8 @@ public class Agent {
 	HashMap<Integer, List<Agent>> memberListMap = new HashMap<Integer, List<Agent>>();
 	//タスクidとそれを割り当てた時間のMap
 	HashMap<Integer, Integer> executionTimeMap = new HashMap<Integer, Integer>();
+	//互恵主義か合理主義か
+	protected boolean reciprocityAction = false;
 	
 	//集計用------------------------------------------------------------------------------------
 	
@@ -79,6 +81,9 @@ public class Agent {
 		this.area = area;
 		myId = num;
 		num++;
+		if(num == NUM_OF_AGENT){
+			num = 0;
+		}
 	}
 	
 	//---------------------------------------------------------------------------------------
@@ -90,7 +95,7 @@ public class Agent {
 		de = agent.de;
 		gridX = agent.getPositionX();
 		gridY = agent.getPositionY();
-		deagent = agent.deagent;
+		deAgents = agent.deAgents;
 		capave = agent.capave;
 		distance = agent.distance;
 		leaderEvaluation = agent.leaderEvaluation;
@@ -104,6 +109,31 @@ public class Agent {
 	public void readMessage(Message message, int tick){
 	}
 		
+	//---------------------------------------------------------------------------------------
+	
+	public List<Agent> sortMemberDeAgent(List<Agent> agents){
+		for (int i = 0; i < agents.size() - 1; i++) {
+            for (int j = agents.size() - 1; j > i; j--) {
+                if (de[agents.get(j - 1).getMyId()] < de[agents.get(j).getMyId()]) {
+                    Collections.swap(agents,j-1,j);
+                }
+            }
+        }
+		return agents;
+	}
+	
+	//---------------------------------------------------------------------------------------
+	
+	public List<Message> sortMemberDeMessage(List<Message> messages){
+		for (int i = 0; i < messages.size() - 1; i++) {
+            for (int j = messages.size() - 1; j > i; j--) {
+                if (de[messages.get(j - 1).from().getMyId()] < de[messages.get(j).from().getMyId()]) {
+                    Collections.swap(messages,j-1,j);
+                }
+            }
+        }
+		return messages;
+	}
 	
 	//---------------------------------------------------------------------------------------
 	
@@ -188,7 +218,7 @@ public class Agent {
 		updateDependablity(message,true,tick - startTick);
 		executedSubTask[this.getArea().getId()][tick]++;
 		allExecutedTime[this.getArea().getId()][tick] += tick - startTick;
-		executedTime[this.getArea().getId()][tick] = message.getExecutedTime();
+		executedTime[this.getArea().getId()][tick] += message.getExecutedTime();
 		if(executingMember.isEmpty()){
 			memberListMap.remove(taskId);
 			executedTask[this.getArea().getId()][tick]++;
@@ -203,19 +233,31 @@ public class Agent {
 		if(success){
 			delta = (double)message.getSubTask().getutility() 
 			/  //---------------------------------------------------------------
-					(executedTime) ;
-//				System.out.println(executedTime);
-//				delta = (double)message.getdistance() / 10 * 0.3  + message.getExcutionTime() / 10 * 0.7;
+					(double)(executedTime) ;
 			
-//				delta = (double)message.getsubtask().getutility() / (message.getdistance() * 2 + message.getExcutionTime()) ;
-			//System.out.println("excutiontime " + message.getExcutionTime());
+//				delta = (double)message.getSubTask().getutility() / (this.getdistance(message.from().getMyId()) * 2 + getExcutingTime(message.getSubTask())) ;
+//			System.out.println("excutiontime " + getExcutingTime(message.getSubTask()));
 //				delta = 1;
+//			System.out.println(executedTime);
 			
 		}
 		this.de[message.from().getMyId()] = 
 					(1.0 - 0.01/**/) * this.de[message.from().getMyId()] 
 					+ 0.01 * delta;
 		
+	}
+	
+	//---------------------------------------------------------------------------------------
+	
+	public int getExcutingTime(SubTask s){
+		int et = 0;
+		for(int i=0;i<TYPES_OF_RESOURCE;i++){
+			int a = (int)Math.ceil((double)s.getcapacity(i) / capacity[i]);
+			if(et < a ){
+				et = a;
+			}
+		}
+		return et;
 	}
 	
 	//---------------------------------------------------------------------------------------
@@ -257,7 +299,7 @@ public class Agent {
 	//---------------------------------------------------------------------------------------
 	
 	public void adddeagent(Agent agent){
-		deagent.add(agent);
+		deAgents.add(agent);
 	}
 	
 	//---------------------------------------------------------------------------------------
@@ -288,7 +330,7 @@ public class Agent {
 	//---------------------------------------------------------------------------------------
 	
 	public void clearDependablityAgent(){
-		deagent.clear();
+		deAgents.clear();
 	}
 
 	//---------------------------------------------------------------------------------------
@@ -296,13 +338,18 @@ public class Agent {
 	public double getDependablity(int id){
 		return de[id];
 	}
+	//---------------------------------------------------------------------------------------
+	
+	public boolean isReciprocity(){
+		return reciprocityAction;
+	}
 
 	//---------------------------------------------------------------------------------------
 	
 	public int eGreedy() {
 		int A;
         int randNum = Environment.rnd.NextInt(101);
-        if (randNum <= 0.05 * 100.0) {
+        if (randNum <= EPSILON * 100.0) {
         	//eの確率
 			A = Environment.rnd.NextInt(2);
         } else {
