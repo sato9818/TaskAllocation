@@ -5,7 +5,7 @@ public class Constants {
 	//設定系
 	//Option
 	public static final boolean ROLE_CHNAGEABLE = true;
-	public static final boolean RECIPROCITY = true;
+	public static boolean RECIPROCITY = true;
 	
 	//エリア分割
 	public static final int NUM_OF_VERTICAL_DIVISION = 2;
@@ -21,16 +21,17 @@ public class Constants {
 	public static final int NUM_OF_AGENT = 500;
 	
 	//負荷
-	public static final int LOW_WORKLOAD = 2;
-	public static final int MODERATE_WORKLOAD = 4;
-	public static final int HIGH_WORKLOAD = 8;
+	public static final double LOW_WORKLOAD = 1;
+	public static final double MODERATE_WORKLOAD = 4;
+	public static final double HIGH_WORKLOAD = 4;
 	
 	//学習系
-	public static final double LEARNING_RATE = 0.01;
+	public static final double LEARNING_RATE = 0.05;
 	public static final double EPSILON = 0.05;
 	
 	//エージェント/メッセージ
 	public static final int SOLICITATION_REDUNDANCY = 2;
+	public static final int SUB_TASK_QUEUE_SIZE = 5;
 	
 	//リーダー
 	public static final int LEADER_DEPENDABLITY_AGENT_THRESHOLD = 1;
@@ -38,16 +39,25 @@ public class Constants {
 	
 	//メンバ
 	public static final int INACTIVE_THRESHOLD = 100;
-	public static final int MEMBER_DEPENDABLITY_AGENT_THRESHOLD = 2;
+	public static final int MEMBER_DEPENDABLITY_AGENT_THRESHOLD = 3;
 	public static final double MEMBER_DEPENDABLITY_DEGREE_THRESHOLD = 0.7;
 	
 	//エージェント
 	public static final int TYPES_OF_RESOURCE = 3;
 	
+	//タスク数
+	public static int BASIC_SUBTASKS = 3;
+	public static final int SUBTASK_FLUCTUATION = 3;
 	
 	//tick
-	public static final int EXPERIMENTAL_DURATION = 200000;
-	public static final int TRIAL_COUNT = 5;
+	public static final int EXPERIMENTAL_DURATION = 150001;
+	
+	public static final int CHANGE_WORKLOAD_TIME = 150001;
+	public static final int RESTORE_WORKLOAD_TIME = 150001;
+	public static final int CHANGE_SUBTASKS_TIME = 150001;
+	public static final int RESTORE_SUBTASKS_TIME = 150001;
+	
+	public static final int TRIAL_COUNT = 1;
 	
 //	-------------------------------------------------------------------------------------------------
 	
@@ -56,6 +66,8 @@ public class Constants {
 	public static final int ACCEPTANCE = 1;
 	public static final int ALLOCATION = 2;
 	public static final int FINISH = 3;
+	public static final int REFUSE = 4;
+	public static final int COLLAPSE_TEAM = 5;
 
 	
 	//リーダーの状態

@@ -16,14 +16,14 @@ public class Area {
 	private final int maxX;
 	private final int minY;
 	private final int maxY;
-	private final int workload;
+	private double workload;
 	private final int id;
 	
 	
 	private int taskCount = 0; 
 	
 	
-	Area(int workload, int minX, int minY, int maxX, int maxY){
+	Area(double workload, int minX, int minY, int maxX, int maxY){
 		this.workload = workload;
 		this.minX = minX;
 		this.minY = minY;
@@ -72,6 +72,12 @@ public class Area {
 		
 	public Task pushTask(){
 		return taskQueue.poll();
+	}
+	
+	//---------------------------------------------------------------------------------------
+	
+	public void changeWorkload(double workload){
+		this.workload = workload;
 	}
 	
 	//---------------------------------------------------------------------------------------

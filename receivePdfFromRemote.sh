@@ -1,3 +1,3 @@
 #!/bin/bash
 
-scp -r gpum-4:/home/koki/TaskAllocation/pdf ./
+scp -r trashcan5:/Users/k.sato/TaskAllocation/pdf trashcan5:/Users/k.sato/TaskAllocation/csv trashcan5:/Users/k.sato/TaskAllocation/*.csv ./

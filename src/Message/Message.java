@@ -18,6 +18,8 @@ public class Message {
 	//---------------------------------------------------------------------------------------
 	//SOLICITATION
 	//ALLOCATION
+	//REFUSE
+	//COLLAPSE_TEAM
 	
 	public Message(int type, Agent from, Agent to, SubTask subtask){
 		setDelay(from, to);
@@ -36,6 +38,7 @@ public class Message {
 		this.subtask = subtask;
 		this.acceptance = acceptance;
 	}
+	
 	
 	//---------------------------------------------------------------------------------------
 	//FINISH

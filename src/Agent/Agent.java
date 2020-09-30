@@ -2,6 +2,7 @@ package Agent;
 
 import static Constants.Constants.*;
 
+import java.time.chrono.MinguoChronology;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -38,7 +39,9 @@ public class Agent {
 	//リソースの平均値
 	private double capave = 0.0;
 	//信頼度
-	double de[] = new double[NUM_OF_AGENT];
+//	double de[] = new double[NUM_OF_AGENT];
+	double leaderDe[] = new double[NUM_OF_AGENT];
+	double memberDe[] = new double[NUM_OF_AGENT];
 	//送ったメッセージリスト
 	protected List<Message> allMessages = new ArrayList<Message>();
 	//フェイズ
@@ -60,16 +63,24 @@ public class Agent {
 	protected boolean reciprocityAction = false;
 	
 	//集計用------------------------------------------------------------------------------------
-	
+	//処理したタスク数
 	public static int executedTask[][] = new int[NUM_OF_AREA][EXPERIMENTAL_DURATION];
+	//処理したサブタスク数
 	public static int executedSubTask[][] = new int[NUM_OF_AREA][EXPERIMENTAL_DURATION];
+	//チームが組めなかったことによるサブタスク破棄
 	public static int wastedTask[][] = new int[NUM_OF_AREA][EXPERIMENTAL_DURATION];
+	//途中で断られてチームが解散になったことによるタスク失敗
+	public static int rejectedTask[][] = new int[NUM_OF_AREA][EXPERIMENTAL_DURATION];
 	public static double waitingTime[][] = new double[NUM_OF_AREA][EXPERIMENTAL_DURATION];
 	public static double executedTime[][] = new double[NUM_OF_AREA][EXPERIMENTAL_DURATION];
 	public static double allExecutedTime[][] = new double[NUM_OF_AREA][EXPERIMENTAL_DURATION];
 	public static int allocationMemberCount[][][] = new int[NUM_OF_AREA][NUM_OF_AREA][EXPERIMENTAL_DURATION];
-	public static int tookTask = 0;
+	public static int refusedTask[] = new int[NUM_OF_AGENT];
 	public static int finishSubTask = 0;
+	public static int allocatedSubTask[] = new int[NUM_OF_AGENT];
+	public static int leaderCount[] = new int[NUM_OF_AGENT];
+	public static int memberCount[] = new int[NUM_OF_AGENT];
+	public static int ownedSubtask[][] = new int[NUM_OF_AGENT][EXPERIMENTAL_DURATION];
 	
 	//---------------------------------------------------------------------------------------
 	
@@ -92,7 +103,8 @@ public class Agent {
 		myId = agent.getMyId();
 		capacity = agent.capacity;
 		area = agent.getArea();
-		de = agent.de;
+		leaderDe = agent.leaderDe;
+		memberDe = agent.memberDe;
 		gridX = agent.getPositionX();
 		gridY = agent.getPositionY();
 		deAgents = agent.deAgents;
@@ -111,10 +123,10 @@ public class Agent {
 		
 	//---------------------------------------------------------------------------------------
 	
-	public List<Agent> sortMemberDeAgent(List<Agent> agents){
+	public List<Agent> sortAgentByLeaderDe(List<Agent> agents){
 		for (int i = 0; i < agents.size() - 1; i++) {
             for (int j = agents.size() - 1; j > i; j--) {
-                if (de[agents.get(j - 1).getMyId()] < de[agents.get(j).getMyId()]) {
+                if (leaderDe[agents.get(j - 1).getMyId()] < leaderDe[agents.get(j).getMyId()]) {
                     Collections.swap(agents,j-1,j);
                 }
             }
@@ -124,10 +136,10 @@ public class Agent {
 	
 	//---------------------------------------------------------------------------------------
 	
-	public List<Message> sortMemberDeMessage(List<Message> messages){
+	public List<Message> sortMessageByMemberDe(List<Message> messages){
 		for (int i = 0; i < messages.size() - 1; i++) {
             for (int j = messages.size() - 1; j > i; j--) {
-                if (de[messages.get(j - 1).from().getMyId()] < de[messages.get(j).from().getMyId()]) {
+                if (memberDe[messages.get(j - 1).from().getMyId()] < memberDe[messages.get(j).from().getMyId()]) {
                     Collections.swap(messages,j-1,j);
                 }
             }
@@ -181,7 +193,8 @@ public class Agent {
 	private void initializeDependability(){
 		for(int i=0;i<NUM_OF_AGENT;i++){
 			if(i != this.getMyId()){
-				de[i] = 0.5;
+				leaderDe[i] = 0.0;
+				memberDe[i] = 0.0;
 			}
 		}
 	}
@@ -212,7 +225,9 @@ public class Agent {
 		Agent member = message.from();
 		SubTask subTask = message.getSubTask();
 		int taskId = subTask.getTaskId();
+		
 		List<Agent> executingMember = memberListMap.get(taskId);
+		if(executingMember == null) return;
 		executingMember.remove(member);
 		int startTick = executionTimeMap.get(taskId);
 		updateDependablity(message,true,tick - startTick);
@@ -223,6 +238,19 @@ public class Agent {
 			memberListMap.remove(taskId);
 			executedTask[this.getArea().getId()][tick]++;
 		}
+	}
+	
+	//---------------------------------------------------------------------------------------
+	
+	protected void notifyFailure(Message message, int tick){
+		List<Agent> members = memberListMap.get(message.getSubTask().getTaskId());
+		if(members == null) return;
+		members.remove(message.from());
+		for(int i=0;i<members.size();i++){
+			allMessages.add(new Message(COLLAPSE_TEAM, this, members.get(i), message.getSubTask()));
+		}
+		memberListMap.remove(message.getSubTask().getTaskId());
+		
 	}
 	
 	
@@ -239,11 +267,11 @@ public class Agent {
 //			System.out.println("excutiontime " + getExcutingTime(message.getSubTask()));
 //				delta = 1;
 //			System.out.println(executedTime);
-			
+			this.leaderDe[message.from().getMyId()] = 
+					(1.0 - LEARNING_RATE/**/) * this.leaderDe[message.from().getMyId()] 
+					+ LEARNING_RATE * delta;
 		}
-		this.de[message.from().getMyId()] = 
-					(1.0 - 0.01/**/) * this.de[message.from().getMyId()] 
-					+ 0.01 * delta;
+		
 		
 	}
 	
@@ -275,7 +303,8 @@ public class Agent {
 	//---------------------------------------------------------------------------------------
 	
 	public void reducede(int id){
-		de[id] = Math.max(de[id]-0.000002, 0.0);
+		leaderDe[id] = Math.max(leaderDe[id]-0.000002, 0.0);
+		memberDe[id] = Math.max(memberDe[id]-0.000002, 0.0);
 	}
 	
 	//---------------------------------------------------------------------------------------
@@ -304,16 +333,16 @@ public class Agent {
 	
 	//---------------------------------------------------------------------------------------
 	
-	public List<Agent> sortagent(List<Agent> agents){
-		for (int i = 0; i < agents.size() - 1; i++) {
-            for (int j = agents.size() - 1; j > i; j--) {
-                if (de[agents.get(j - 1).getMyId()] < de[agents.get(j).getMyId()]) {
-                    Collections.swap(agents,j-1,j);
-                }
-            }
-        }
-		return agents;
-	}
+//	public List<Agent> sortagent(List<Agent> agents){
+//		for (int i = 0; i < agents.size() - 1; i++) {
+//            for (int j = agents.size() - 1; j > i; j--) {
+//                if (de[agents.get(j - 1).getMyId()] < de[agents.get(j).getMyId()]) {
+//                    Collections.swap(agents,j-1,j);
+//                }
+//            }
+//        }
+//		return agents;
+//	}
 	
 	//---------------------------------------------------------------------------------------
 	
@@ -335,15 +364,26 @@ public class Agent {
 
 	//---------------------------------------------------------------------------------------
 	
-	public double getDependablity(int id){
-		return de[id];
+	public double getLeaderDependablity(int id){
+		return leaderDe[id];
+	}
+	
+	//---------------------------------------------------------------------------------------
+	
+	public double getMemberDependablity(int id){
+		return memberDe[id];
 	}
 	//---------------------------------------------------------------------------------------
 	
 	public boolean isReciprocity(){
 		return reciprocityAction;
 	}
-
+	
+	//---------------------------------------------------------------------------------------
+	
+	public int getCapacity(int num){
+		return capacity[num];
+	}
 	//---------------------------------------------------------------------------------------
 	
 	public int eGreedy() {

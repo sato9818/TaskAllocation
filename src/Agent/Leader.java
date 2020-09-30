@@ -50,13 +50,12 @@ public class Leader extends Agent{
 //		ld.setTick(tick);
 //		roleReject += ld.getRejectMessages().size();
 //		ld.sendRejectMessage(e);
-		
+		leaderCount[getMyId()]++;
 		switch(phase){
 		case SELECT_MEMBER:
 			if(!area.taskIsEmpty()){//タスクがあれば
 				//タスクを取得
 				Task task = area.pushTask();
-				tookTask ++;
 				//候補メンバーに送るメッセージを決める(e-greedy法)
 				int p = eGreedy();
 				List<Message> messages = null;
@@ -143,8 +142,8 @@ public class Leader extends Agent{
 			copyDeAgents.clear();
 		}else{
 			Collections.sort(subtasks, new SubUtilityComparator());
-			copyAgents = sortMemberDeAgent(copyAgents);
-			copyDeAgents = sortMemberDeAgent(copyDeAgents);
+			copyAgents = sortAgentByLeaderDe(copyAgents);
+			copyDeAgents = sortAgentByLeaderDe(copyDeAgents);
 		}
 		
 		for(int i=0;i<SOLICITATION_REDUNDANCY;i++){
@@ -186,7 +185,7 @@ public class Leader extends Agent{
 			if(team.containsKey(subtask)){
 				if(deAgents.contains(member) && !deAgents.contains(team.get(subtask))){
 					team.put(subtask, member);
-				}else if(de[member.getMyId()] > de[team.get(subtask).getMyId()] && 
+				}else if(leaderDe[member.getMyId()] > leaderDe[team.get(subtask).getMyId()] && 
 						!(!deAgents.contains(member) && 
 						deAgents.contains(team.get(subtask)))){
 					team.put(subtask, member);
@@ -214,6 +213,11 @@ public class Leader extends Agent{
 				updateDependablity(message, false, 0);
 			}
 			preMembers.remove(Integer.valueOf(message.from().getMyId()));	
+			break;
+		case REFUSE:
+			updateDependablity(message, false, 0);
+			notifyFailure(message,tick);
+//			updateRoleEvaluation(false);
 			break;
 		case FINISH:
 			finishMemberSubTask(message, tick);
@@ -281,6 +285,10 @@ public class Leader extends Agent{
         executionTimeMap.put(taskId, tick);
         updateRoleEvaluation(true);
 	}
+	
+	
+	
+	
 	
 	//---------------------------------------------------------------------------------------
 	

@@ -4,6 +4,7 @@ import java.util.List;
 
 import Random.Sfmt;
 import Environment.Environment;
+import static Constants.Constants.*;
 
 public class Task {
 	static int num = 0;
@@ -12,11 +13,13 @@ public class Task {
 	
 	private int utility = 0;
 	
+	
+	
 	//---------------------------------------------------------------------------------------
 	
 	public Task(){
 		int numOfSubtask;
-		numOfSubtask = 3 + Environment.rnd.NextInt(4);
+		numOfSubtask = BASIC_SUBTASKS + Environment.rnd.NextInt(SUBTASK_FLUCTUATION+1);
 		if(num == 1000000){
 			num = 0;
 		}

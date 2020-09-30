@@ -24,7 +24,9 @@ public class Member extends Agent{
 	
 	private int excutingTime;
 	
-	Queue<Message> taskQueue = new ArrayDeque<Message>();
+	Queue<Message> messageQueue = new ArrayDeque<Message>();
+	
+	private List<Message> preSubTasks = new ArrayList<Message>();
 	
 	SubTask excutingTask = null;
 	
@@ -48,11 +50,14 @@ public class Member extends Agent{
 	
 	//---------------------------------------------------------------------------------------
 	public void act(int tick){
-		
+		chooseSubTasks(tick);
+		memberCount[getMyId()]++;
+		ownedSubtask[getMyId()][tick] += messageQueue.size();
 		
 		switch(phase){
 		case INACTIVE:
 			if(!solicitationMessages.isEmpty()){//メッセージが来ていたら
+				replyMessages();
 				phase = ACTIVE;
 				inactiveTime = 0;
 				roleChangable = false;
@@ -63,57 +68,42 @@ public class Member extends Agent{
 					roleChangable = true;
 					inactiveTime = 0;
 				}
-				break;
 			}
+			break;
 		case ACTIVE:
-				//メッセージから受理するメッセージを選ぶ
-			if(!solicitationMessages.isEmpty() && expectedTasks + taskQueue.size() < 5){
-				int p = eGreedy();
-				
-				while(!solicitationMessages.isEmpty()){
-					boolean decide = true;
-					Message message = null;
-					if(p == 0){
-						message = decideMessage(solicitationMessages, null);
-						if(this.isReciprocity()){
-							if(!deAgents.contains(message.from())){
-								decide = false;
-							}
-						}
-					}else if(p == 1){
-						message = decideMessage(solicitationMessages, Environment.rnd);
-					}
-					if(expectedTasks + taskQueue.size() > 6){
-						decide = false;
-					}
-					if(decide){
-						expectedTasks++;
-					}
-					sendReplyMessages(message, decide);
-					solicitationMessages.remove(message);
-				}
-				//ないと思うが受理したタスクがなかったらinactiveへ
-				if(expectedTasks == 0){
-					phase = INACTIVE;
-				}
-				break;
-			}else{
+			if(!messageQueue.isEmpty()){
+				startToExecuteTask(tick);
 				phase = EXECUTING_TASK;
-			}
-		case EXECUTING_TASK:
-			if(excutingTask == null){
-				if(!taskQueue.isEmpty()){
-					Message allocationMessage = taskQueue.poll();
-					excutingTask = allocationMessage.getSubTask(); 
-					int et = getExcutingTime(excutingTask);	
-					excutingTime = et;
-					finishMessage = new Message(FINISH, this, allocationMessage.from(), allocationMessage.getSubTask(), et);
+			}else{
+				if(!solicitationMessages.isEmpty()){
+					replyMessages();
 				}else{
-					if(expectedTasks > 0 || solicitationMessages.size() > 0){
+					if(expectedTasks > 0){
 						phase = ACTIVE;
-					}else if(expectedTasks == 0){
+					}else{
 						phase = INACTIVE;
 						roleChangable = true;
+					}
+				}
+			}
+			
+			break;
+		case EXECUTING_TASK:
+			if(excutingTask == null){
+				if(!solicitationMessages.isEmpty()){
+					replyMessages();
+					phase = ACTIVE;
+				}else{
+					if(!messageQueue.isEmpty()){
+						startToExecuteTask(tick);
+						phase = EXECUTING_TASK;
+					}else{
+						if(expectedTasks > 0){
+							phase = ACTIVE;
+						}else{
+							phase = INACTIVE;
+							roleChangable = true;
+						}
 					}
 				}
 			}else{
@@ -123,22 +113,65 @@ public class Member extends Agent{
 		}
 		
 	}
+	//---------------------------------------------------------------------------------------
+	
+	public void startToExecuteTask(int tick){
+		Message allocationMessage = messageQueue.poll();
+		excutingTask = allocationMessage.getSubTask(); 
+		int et = getExcutingTime(excutingTask);	
+		excutingTime = et;
+		finishMessage = new Message(FINISH, this, allocationMessage.from(), allocationMessage.getSubTask(), et);
+		waitingTime[this.getArea().getId()][tick] += tick - allocateTimeMap.get(finishMessage.getSubTask().getTaskId());
+		executeTask(tick);
+	}
+	
+	//---------------------------------------------------------------------------------------
+	
+	public void replyMessages(){
+		int p = eGreedy();
+		
+		while(!solicitationMessages.isEmpty()){
+			boolean decide = true;
+			Message message = null;
+			if(p == 0){
+				message = decideMessage(solicitationMessages, null);
+				if(this.isReciprocity()){
+					if(!deAgents.contains(message.from())){
+						decide = false;
+					}
+					if(expectedTasks + messageQueue.size() < SUB_TASK_QUEUE_SIZE - deAgents.size()){
+						decide = true;
+					}
+				}
+			}else if(p == 1){
+				message = decideMessage(solicitationMessages, Environment.rnd);
+			}
+			
+//			if(expectedTasks + taskQueue.size() ){
+//				decide = false;
+//			}
+			if(decide){
+				expectedTasks++;
+			}
+			sendReplyMessages(message, decide);
+			solicitationMessages.remove(message);
+		}
+	}
 	
 	//---------------------------------------------------------------------------------------
 	
 	
 	public Message decideMessage(List<Message> messages, Sfmt rnd){
-		Message decide = null;
 		if(rnd != null){
 			int messageSize = messages.size();
 			int p = (int)(rnd.NextUnif() * messageSize);
-			decide = messages.get(p);
-			return decide;
+			Message message = messages.get(p);
+			return message;
 		}else{
-			messages = sortMemberDeMessage(messages);
+			messages = sortMessageByMemberDe(messages);
 			Message message = messages.get(0);
 //			for(int i=0;i<messages.size();i++){
-//				System.out.println("member: " + getMyId() + " " + de[messages.get(i).from().getMyId()]);
+//				System.out.println("member: " + getMyId() + " " + memberDe[messages.get(i).from().getMyId()]);
 //			}
 			return message;
 		}
@@ -178,15 +211,9 @@ public class Member extends Agent{
 		if(excutingTime == 0){
 			finishSubTask++;
 			allMessages.add(finishMessage);
-			waitingTime[this.getArea().getId()][tick] += tick - allocateTimeMap.get(finishMessage.getSubTask().getTaskId());
+			
 			excutingTask = null;
 			finishMessage = null;
-			if(taskQueue.size() > 0 || expectedTasks > 0 || solicitationMessages.size() > 0){
-				phase = ACTIVE;
-			}else{
-				phase = INACTIVE;
-				roleChangable = true;
-			}
 		}
 	}
 	
@@ -206,15 +233,59 @@ public class Member extends Agent{
 			}else{
 				updateRoleEvaluation(true);
 				updateDependablity(message, true);
-				taskQueue.add(message);
-				allocateTimeMap.put(message.getSubTask().getTaskId(), tick);
+				preSubTasks.add(message);
+				allocatedSubTask[getMyId()]++;
 			}
+			break;
+		case COLLAPSE_TEAM:
+			SubTask subTask = message.getSubTask();
+			if(excutingTask != null){
+				if(subTask.getTaskId() == excutingTask.getTaskId()){
+					excutingTime = 0;
+					excutingTask = null;
+					phase = ACTIVE;
+				}
+			}else{
+				for(Message m : messageQueue){
+					if(m.getSubTask().getTaskId() == subTask.getTaskId()){
+						messageQueue.remove(m);
+						break;
+					}
+				}
+			}
+			break;
+		case REFUSE:
+//			System.out.println(getMyId());
+//			System.out.println(executionTimeMap);
+			updateDependablity(message, false, 0);
+			notifyFailure(message,tick);
 			break;
 		case FINISH:
 			finishMemberSubTask(message, tick);
 			break;
 		}
 		
+	}
+	
+	//---------------------------------------------------------------------------------------
+	
+	private void chooseSubTasks(int tick){
+		preSubTasks = sortMessageByMemberDe(preSubTasks);
+//		System.out.println("ID: " + getMyId());
+		for(int i = 0;i<preSubTasks.size();i++){
+			Message message = preSubTasks.get(i);
+//			System.out.println("de: " + de[message.from().getMyId()]);
+			if(messageQueue.size() >= SUB_TASK_QUEUE_SIZE){
+				allMessages.add(new Message(REFUSE, this, message.from(), message.getSubTask()));
+				
+				refusedTask[getMyId()]++;
+				rejectedTask[this.getArea().getId()][tick]++;
+			}else{
+				messageQueue.add(message);
+				allocateTimeMap.put(message.getSubTask().getTaskId(), tick);
+			}
+		}
+		preSubTasks.clear();
 	}
 	
 	//---------------------------------------------------------------------------------------
@@ -227,12 +298,13 @@ public class Member extends Agent{
 //			delta = 1.0 / (this.getdistance(message.from().getMyId()) * 2 + getExcutingTime(message.getSubTask()));
 //			delta = 1;
 		}
-		this.de[message.from().getMyId()] = 
-					(1.0 - LEARNING_RATE/**/) * this.de[message.from().getMyId()] 
+		this.memberDe[message.from().getMyId()] = 
+					(1.0 - LEARNING_RATE/**/) * this.memberDe[message.from().getMyId()] 
 					+ LEARNING_RATE * delta;
 		//System.out.println("de[" + message.getfrom().getmyid() + "] = " + this.de[message.getfrom().getmyid()]);
 		
 	}
+	
 	
 	//---------------------------------------------------------------------------------------
 	
@@ -277,6 +349,6 @@ public class Member extends Agent{
 	
 	//---------------------------------------------------------------------------------------
 	public int getSubTaskQueueSize(){
-		return taskQueue.size();
+		return messageQueue.size();
 	}
 }

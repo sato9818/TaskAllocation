@@ -63,12 +63,12 @@ public class Environment {
 		for(int i=0;i<NUM_OF_VERTICAL_DIVISION;i++){
 			for(int j=0;j<NUM_OF_HORIZONTAL_DIVISION;j++){
 //				double p = rnd.NextUnif();
-				int workload = LOW_WORKLOAD;
-				if(count == 2 || count == 3){
-					workload = MODERATE_WORKLOAD;
-				}else if(count == 1){
-					workload = HIGH_WORKLOAD;
-				}
+				double workload = MODERATE_WORKLOAD;
+//				if(count == 2 || count == 3){
+//					workload = MODERATE_WORKLOAD;
+//				}else if(count == 1){
+//					workload = HIGH_WORKLOAD;
+//				}
 //				if(p < 1.0 / 3){
 //					workload = LOW_WORKLOAD;
 //				}else if(p < 2.0 / 3){
@@ -141,10 +141,20 @@ public class Environment {
 	
 	public void run(int tick){
 		System.out.println("tick: " + tick + "---------------------------------------------------------------------------------------------------");
-		System.out.println("Leader: " + leaders.size());
-		System.out.println("Member: " + members.size());
-		System.out.println(Agent.tookTask);
-		System.out.println(Agent.finishSubTask);
+		
+		if(tick == CHANGE_WORKLOAD_TIME){
+			changeAllAreaWorkload(HIGH_WORKLOAD);
+		}
+		if(tick == RESTORE_WORKLOAD_TIME){
+			changeAllAreaWorkload(MODERATE_WORKLOAD);
+		}
+		
+		if(tick == CHANGE_SUBTASKS_TIME){
+			BASIC_SUBTASKS = 6;
+		}
+		if(tick == RESTORE_SUBTASKS_TIME){
+			BASIC_SUBTASKS = 3;
+		}
 		
 		for(int i=0;i<areas.size();i++){
 			areas.get(i).addTask(tick);
@@ -322,7 +332,7 @@ public class Environment {
 //				System.out.println("not reciprocity");
 			}
 		}
-		avgSubTaskQueue[tick] += buf / (double)members.size();
+		avgSubTaskQueue[tick] += buf / members.size();
 	}
 	
 	//---------------------------------------------------------------------------------------
@@ -333,7 +343,7 @@ public class Environment {
 			leader.clearDependablityAgent();
 			for(int j=0;j<members.size();j++){
 				Member member = members.get(j);
-				if(LEADER_DEPENDABLITY_DEGREE_THRESHOLD < leader.getDependablity(member.getMyId())){
+				if(LEADER_DEPENDABLITY_DEGREE_THRESHOLD < leader.getLeaderDependablity(member.getMyId())){
 					leader.adddeagent(member);
 				}
 			}
@@ -344,7 +354,7 @@ public class Environment {
 			member.clearDependablityAgent();
 			for(int j=0;j<leaders.size();j++){
 				Leader leader = leaders.get(j);
-				if(MEMBER_DEPENDABLITY_DEGREE_THRESHOLD < member.getDependablity(leader.getMyId())){
+				if(MEMBER_DEPENDABLITY_DEGREE_THRESHOLD < member.getMemberDependablity(leader.getMyId())){
 					member.adddeagent(leader);
 				}
 			}
@@ -374,35 +384,160 @@ public class Environment {
 	
 	public void printDeAgent(){
 		//0:0.3以下 1:0.3~0.4 2:0.4~0.5 3:0.5~0.6 4: 0.6~0.7 5:0.7~0.8 6:0.8以上
-		int[][] range = new int[500][7];
-		for(int j=0;j<agents.size();j++){
-			int count = 0;
-
-			for(int i=0;i<agents.size();i++){
-				double de = agents.get(j).getDependablity(i);
-				if(de < 0.3){
-					range[agents.get(j).getMyId()][0] ++;
-				}else if(de < 0.4){
-					range[agents.get(j).getMyId()][1] ++;
-				}else if(de < 0.5){
-					range[agents.get(j).getMyId()][2] ++;
-				}else if(de < 0.6){
-					range[agents.get(j).getMyId()][3] ++;
-				}else if(de < 0.7){
-					range[agents.get(j).getMyId()][4] ++;
-				}else if(de < 0.8){
-					range[agents.get(j).getMyId()][5] ++;
-				}else{
-					range[agents.get(j).getMyId()][6] ++;
-				}
-					
+//		int[][] range = new int[500][7];
+//		for(int j=0;j<agents.size();j++){
+//			int count = 0;
+//
+//			for(int i=0;i<agents.size();i++){
+//				double de = agents.get(j).getDependablity(i);
+//				if(de < 0.3){
+//					range[agents.get(j).getMyId()][0] ++;
+//				}else if(de < 0.4){
+//					range[agents.get(j).getMyId()][1] ++;
+//				}else if(de < 0.5){
+//					range[agents.get(j).getMyId()][2] ++;
+//				}else if(de < 0.6){
+//					range[agents.get(j).getMyId()][3] ++;
+//				}else if(de < 0.7){
+//					range[agents.get(j).getMyId()][4] ++;
+//				}else if(de < 0.8){
+//					range[agents.get(j).getMyId()][5] ++;
+//				}else{
+//					range[agents.get(j).getMyId()][6] ++;
+//				}
+//					
+//			}
+//			
+//			for(int i=0;i<7;i++){
+//				System.out.println(agents.get(j).getMyId() + ": [" + i + "] " + range[agents.get(j).getMyId()][i]);
+//			}
+//			
+//    	}
+	}
+	
+	//---------------------------------------------------------------------------------------
+	
+	public void exportAllocatedSubTask(boolean reciprocity){
+		try{
+			FileWriter fw;
+			if(RECIPROCITY){
+				fw = new FileWriter("ReciprocityAgentInfo.csv", false);
+			}else{
+				fw = new FileWriter("NotReciprocityAgentInfo.csv", false);
 			}
-			
-			for(int i=0;i<7;i++){
-				System.out.println(agents.get(j).getMyId() + ": [" + i + "] " + range[agents.get(j).getMyId()][i]);
+			PrintWriter pw = new PrintWriter(new BufferedWriter(fw));
+            pw.print("Agent ID");
+            pw.print(",");
+        	pw.print("Area ID");
+            pw.print(",");
+        	pw.print("x");
+        	pw.print(",");
+        	pw.print("y");
+        	for(int i=0;i<TYPES_OF_RESOURCE;i++){
+        		pw.print(",");
+            	pw.print("Resource: " + (i+1));
+        	}
+        	pw.print(",");
+        	pw.print("Resouce Average");
+        	pw.print(",");
+        	pw.print("Leader Evaluation");
+        	pw.print(",");
+        	pw.print("Member Evaluation");
+        	pw.print(",");
+        	pw.print("Allocated Subtasks");
+        	pw.print(",");
+        	pw.print("Refused Subtasks");
+        	pw.print(",");
+        	pw.print("Member Count");
+        	pw.print(",");
+        	pw.print("Leader Count");
+        	pw.println();
+        	for(int i=0;i<agents.size();i++){
+    			Agent agent = agents.get(i);
+    			pw.print(agent.getMyId());
+    			pw.print(",");
+            	pw.print(agent.getArea().getId());
+                pw.print(",");
+            	pw.print(agent.getPositionX());
+            	pw.print(",");
+            	pw.print(agent.getPositionY());
+            	for(int j=0;j<TYPES_OF_RESOURCE;j++){
+            		pw.print(",");
+                	pw.print(agent.getCapacity(j));
+            	}
+            	pw.print(",");
+            	pw.print(agent.averageOfCapability());
+            	pw.print(",");
+            	pw.print(agent.getLeaderEvaluation());
+            	pw.print(",");
+            	pw.print(agent.getMemberEvaluation());
+            	pw.print(",");
+            	pw.print(Agent.allocatedSubTask[agent.getMyId()]);
+            	pw.print(",");
+            	pw.print(Agent.refusedTask[agent.getMyId()]);
+            	pw.print(",");
+            	pw.print(Agent.memberCount[agent.getMyId()]);
+            	pw.print(",");
+            	pw.print(Agent.leaderCount[agent.getMyId()]);
+            	
+            	pw.println();
+    		}
+        	pw.close();
+		}catch(IOException ex){
+			System.out.println(ex);
+		}
+		
+	}
+	
+	public void exportOwnedSubTask(boolean reciprocity){
+		try{
+			FileWriter fw;
+			if(RECIPROCITY){
+				fw = new FileWriter("ReciprocityAgentOwnedSubTask.csv", false);
+			}else{
+				fw = new FileWriter("NotReciprocityAgentOwnedSubTask.csv", false);
 			}
-			
-    	}
+			PrintWriter pw = new PrintWriter(new BufferedWriter(fw));
+            pw.print("tick");
+  
+        	for(int i=0;i<agents.size();i++){
+        		pw.print(",");
+            	pw.print(agents.get(i).getMyId());
+        	}
+        	
+        	pw.println();
+        	
+        	
+    		for(int i=0;i<EXPERIMENTAL_DURATION - 1;i++){
+    			if((i+1) % 100 == 0){
+    				pw.print(i+1);
+    			}
+    			for(int j=0;j<agents.size();j++){
+        			Agent agent = agents.get(j);
+        			Agent.ownedSubtask[agent.getMyId()][i+1] += Agent.ownedSubtask[agent.getMyId()][i];
+        			if((i+1) % 100 == 0){
+    	    			pw.print(",");
+    	            	pw.print(String.format("%.2f", (double)(Agent.ownedSubtask[agent.getMyId()][i+1] - Agent.ownedSubtask[agent.getMyId()][i-99]) / 100));
+        			}
+        		}
+    			if((i+1) % 100 == 0){
+    				pw.println();
+    			}
+    			
+    		}
+        	pw.close();
+		}catch(IOException ex){
+			System.out.println(ex);
+		}
+		
+	}
+	
+	//---------------------------------------------------------------------------------------
+	
+	public void changeAllAreaWorkload(double workload){
+		for(int i=0;i<areas.size();i++){
+			areas.get(i).changeWorkload(workload);
+		}
 	}
 	
 	

@@ -16,6 +16,7 @@ import Random.Sfmt;
 public class Main {
 	
 	public static void main(String[] args){
+		RECIPROCITY = Boolean.valueOf(args[0]);
 		for(int trial = 0;trial<TRIAL_COUNT;trial++){
 			Environment e = new Environment(Seed._seeds[trial]);
 			for(int tick=0;tick<EXPERIMENTAL_DURATION;tick++){
@@ -23,16 +24,23 @@ public class Main {
 			}
 			e.printArea();
 //			e.printDeAgent();
+			e.exportAllocatedSubTask(RECIPROCITY);
+			e.exportOwnedSubTask(RECIPROCITY);
 			
 		}
-		
 		export();
 		
 	}
 	private static void export(){
 		for(int i=0;i<NUM_OF_AREA;i++){
 			try{
-				FileWriter fw = new FileWriter("csv/Area" + i + ".csv", false); 
+				FileWriter fw;
+				if(RECIPROCITY){
+					fw = new FileWriter("csv/Reciprocity/Area" + i + ".csv", false); 
+				}else{
+					fw = new FileWriter("csv/NotReciprocity/Area" + i + ".csv", false); 
+				}
+				
 	            PrintWriter pw = new PrintWriter(new BufferedWriter(fw));
 	            pw.print("tick");
 	        	pw.print(",");
@@ -59,6 +67,8 @@ public class Main {
 	        	pw.print("message count");
 	        	pw.print(",");
 	        	pw.print("overflowed task");
+	        	pw.print(",");
+	        	pw.print("rejected task");
 	        	for(int j=0;j<NUM_OF_AREA;j++){
 	        		pw.print(",");
 		        	pw.print("allocate area "+ j +" member");
@@ -73,6 +83,7 @@ public class Main {
 	        	double allExecutedTime = 0;
 	        	int messageCount = 0;
 	        	int overflowedTask = 0;
+	        	int rejectedTask = 0;
 //	        	int leaderCount = 0;
 //	        	int memberCount = 0;
 	        	
@@ -87,6 +98,7 @@ public class Main {
 	        		allExecutedTime += divide(Agent.allExecutedTime[i][tick] , Agent.executedSubTask[i][tick]);
 	        		messageCount += Environment.countSentMessages[i][tick];
 	        		overflowedTask += Area.overflowedTask[i][tick];
+	        		rejectedTask += Agent.rejectedTask[i][tick];
 	        		for(int j=0;j<NUM_OF_AREA;j++){
 	        			allocatedMember[j] += Agent.allocationMemberCount[i][j][tick];
 		        	}
@@ -117,6 +129,8 @@ public class Main {
 			        	pw.print(messageCount / TRIAL_COUNT);
 			        	pw.print(",");
 			        	pw.print(overflowedTask / TRIAL_COUNT);
+			        	pw.print(",");
+			        	pw.print(rejectedTask / TRIAL_COUNT);
 			        	for(int j=0;j<NUM_OF_AREA;j++){
 			        		pw.print(",");
 				        	pw.print(allocatedMember[j] / TRIAL_COUNT);
@@ -131,6 +145,7 @@ public class Main {
 		        		allExecutedTime = 0;
 		        		messageCount = 0;
 		        		overflowedTask = 0;
+		        		rejectedTask = 0;
 		        		for(int j=0;j<NUM_OF_AREA;j++){
 		        			allocatedMember[j] = 0;
 			        	}
@@ -144,7 +159,13 @@ public class Main {
 			
 		}
 		try{
-			FileWriter fw = new FileWriter("csv/Environment.csv", false); 
+			FileWriter fw;
+			if(RECIPROCITY){
+				fw = new FileWriter("csv/Reciprocity/Environment.csv", false); 
+			}else{
+				fw = new FileWriter("csv/NotReciprocity/Environment.csv", false);
+			}
+			
             PrintWriter pw = new PrintWriter(new BufferedWriter(fw));
             pw.print("tick");
         	pw.print(",");
@@ -173,6 +194,8 @@ public class Main {
         	pw.print("overflowed task");
         	pw.print(",");
         	pw.print("average subtask queue size");
+        	pw.print(",");
+        	pw.print("rejected task");
         	pw.println();
         	
             int executedTask = 0;
@@ -188,6 +211,7 @@ public class Main {
         	int messageCount = 0;
         	int overflowedTask = 0;
         	double avgSubTaskQueue = 0;
+        	int rejectedTask = 0;
             for(int tick=0;tick<EXPERIMENTAL_DURATION;tick++){
             	for(int i=0;i<NUM_OF_AREA;i++){
             		executedTask += Agent.executedTask[i][tick];
@@ -198,7 +222,8 @@ public class Main {
 	        		allExecutedTime += divide(Agent.allExecutedTime[i][tick] , Agent.executedSubTask[i][tick]);
 	        		messageCount += Environment.countSentMessages[i][tick];
 	        		overflowedTask += Area.overflowedTask[i][tick];
-	        		avgSubTaskQueue += Environment.avgSubTaskQueue[tick];
+	        		rejectedTask += Agent.rejectedTask[i][tick];
+	        		
 	        		if(tick % 100 == 0){
 	        			leaderCount += Environment.countLeaders[i][tick];
 	        			memberCount += Environment.countMembers[i][tick];
@@ -206,6 +231,7 @@ public class Main {
 	        			reciprocityMembers += Environment.reciprocityMembers[i][tick];
 	        		}
 	        	}
+            	avgSubTaskQueue += Environment.avgSubTaskQueue[tick];
             	if(tick % 100 == 0){
 					pw.print(tick);
 		        	pw.print(",");
@@ -234,6 +260,8 @@ public class Main {
 		        	pw.print(overflowedTask / TRIAL_COUNT);
 		        	pw.print(",");
 		        	pw.print(avgSubTaskQueue / TRIAL_COUNT / 100);
+		        	pw.print(",");
+		        	pw.print(rejectedTask / TRIAL_COUNT);
 		        	pw.println();
 		        	
 		        	executedTask = 0;
@@ -249,6 +277,7 @@ public class Main {
 	            	messageCount = 0;
 	            	overflowedTask = 0;
 	            	avgSubTaskQueue = 0;
+	            	rejectedTask = 0;
 				}
             }
             pw.close();
