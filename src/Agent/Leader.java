@@ -70,9 +70,14 @@ public class Leader extends Agent{
 				for(int j=0;j<messages.size();j++){
 					allMessages.add(messages.get(j));
 				}
-				phase = WAIT_MEMBER;
+				phase = EXECUTING_TASK;
 			}else{
 				updateRoleEvaluation(false);
+			}
+			break;
+		case EXECUTING_TASK:
+			if(executeSubTask()){
+				phase = WAIT_MEMBER;
 			}
 			break;
 		case WAIT_MEMBER:
@@ -115,6 +120,7 @@ public class Leader extends Agent{
 	}
 
 	//---------------------------------------------------------------------------------------
+	
 	public List<Member> sortmemberDistance(List<Member> members){
 		for (int i = 0; i < members.size() - 1; i++) {
             for (int j = members.size() - 1; j > i; j--) {
@@ -130,26 +136,35 @@ public class Leader extends Agent{
 	
 	public List<Message> selectMember(List<Agent> agents, Task task, boolean random){
 		
-		List<SubTask> subtasks = task.getSubTasks();
-		List<SubTask> confsubtask = new ArrayList<SubTask>();
 		List<Message> messages = new ArrayList<Message>();
 		
+		//信頼エージェントに渡すサブタスク
+		List<SubTask> confSubTask = new ArrayList<SubTask>();
+		
+		List<SubTask> subTasks = task.getSubTasks();
 		List<Agent> copyDeAgents = new ArrayList<Agent>(deAgents);
 		List<Agent> copyAgents = new ArrayList<Agent>(agents);
+		
 		Collections.shuffle(copyAgents, Environment.r);
 		copyAgents.remove(this);
+		
+		//リーダーは自分の処理するサブタスクを取っておく。
+		mySubTask = subTasks.get(0);
+		subTasks.remove(mySubTask);
+		remainingTime = getExcutingTime(mySubTask);
+		
 		if(random){
 			copyDeAgents.clear();
 		}else{
-			Collections.sort(subtasks, new SubUtilityComparator());
+			Collections.sort(subTasks, new SubUtilityComparator());
 			copyAgents = sortAgentByLeaderDe(copyAgents);
 			copyDeAgents = sortAgentByLeaderDe(copyDeAgents);
 		}
 		
 		for(int i=0;i<SOLICITATION_REDUNDANCY;i++){
-			for(int j=0;j<subtasks.size();j++){
-				SubTask subtask = subtasks.get(j);
-				if(confsubtask.contains(subtask)){
+			for(int j=0;j<subTasks.size();j++){
+				SubTask subtask = subTasks.get(j);
+				if(confSubTask.contains(subtask)){
 					continue;
 				}
 				//ループ1週目のサブタスクの集合＝処理すべきサブタスクの集合
@@ -160,7 +175,7 @@ public class Leader extends Agent{
 				if(!copyDeAgents.isEmpty()){
 					agent = copyDeAgents.get(0);
 					copyDeAgents.remove(agent);
-					confsubtask.add(subtask);
+					confSubTask.add(subtask);
 				}else{
 					agent = copyAgents.get(0);
 				}
@@ -300,6 +315,18 @@ public class Leader extends Agent{
 		}
 	}
 	
+	//---------------------------------------------------------------------------------------
+	
+	public boolean executeSubTask(){
+		remainingTime--;
+		if(remainingTime == 0){
+			finishSubTask++;
+			mySubTask = null;
+			return true;
+		}else{
+			return false;
+		}
+	}
 	
 	//---------------------------------------------------------------------------------------
 	

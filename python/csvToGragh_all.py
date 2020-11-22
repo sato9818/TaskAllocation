@@ -10,7 +10,7 @@ import datetime as dt
 
 # plt.rcParams["font.size"] = 8
 col = ["executed task", "wasted task", "communication time", "executed time", "waiting time", "all executed time", "leader count", "member count", "reciprocity leader count", "reciprocity member count", "message count", "overflowed task", "average subtask queue size", "rejected task", "success rate"]
-ex_types= ["NotReciprocity", "Reciprocity"]
+ex_types= ["Rational", "Reciprocity"]
 
 path = []
 for ex_type in ex_types:
@@ -19,7 +19,7 @@ for ex_type in ex_types:
 dfs = []
 for p in path:
     df = pd.read_csv(p, index_col=0)
-    df["success rate"] = df["executed task"] / (df["executed task"] + df["wasted task"] + df["rejected task"])
+    df["success rate"] = df["executed task"] / (df["executed task"] + df["wasted task"] + df["rejected task"] + df["overflowed task"])
     dfs.append(df)
 
 for c in col:

@@ -9,9 +9,9 @@ import numpy as np
 import datetime as dt
 
 col = ["executed task", "wasted task", "communication time", "executed time", "waiting time", "all executed time", "leader count", "member count", "reciprocity leader count", "reciprocity member count", "message count", "overflowed task", "rejected task"]
-ex_types= ["NotReciprocity", "Reciprocity"]
+ex_types= ["Rational", "Reciprocity"]
 
-size = 4
+size = 1
 hei = int(math.sqrt(size))
 wid = int(math.sqrt(size))
 plt.rcParams["font.size"] = 8

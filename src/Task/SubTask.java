@@ -3,11 +3,13 @@ import Agent.Leader;
 import Agent.Member;
 import Random.Sfmt;
 import Environment.Environment;
+import static Constants.Constants.*;
 
 public class SubTask {
 	private int reqCapa[] = new int[3/**/];
 	private int utility = 0;
 	private int taskId;
+	private int type;
 	Leader from;
 	Member to;
 	
@@ -15,9 +17,14 @@ public class SubTask {
 	
 	SubTask(int id){
 		//int r = randomInt(rnd);
-		int r = Environment.rnd.NextInt(3);
+		int r = Environment.rnd.NextInt(TYPES_OF_RESOURCE);
 		int c = 5 + Environment.rnd.NextInt(6);
-		for(int i=0;i<3;i++){
+		if(c >= 8){
+			type = r + 1;
+		}else{
+			type = 0;
+		}
+		for(int i=0;i<TYPES_OF_RESOURCE;i++){
 			if(i == r){
 				reqCapa[i] = c;
 			}else{
@@ -32,6 +39,12 @@ public class SubTask {
 	
 	public int getTaskId(){
 		return taskId;
+	}
+	
+	//---------------------------------------------------------------------------------------
+	
+	public int getTaskType(){
+		return type;
 	}
 	
 	//---------------------------------------------------------------------------------------

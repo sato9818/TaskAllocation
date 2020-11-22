@@ -8,8 +8,8 @@ public class Constants {
 	public static boolean RECIPROCITY = true;
 	
 	//エリア分割
-	public static final int NUM_OF_VERTICAL_DIVISION = 2;
-	public static final int NUM_OF_HORIZONTAL_DIVISION = 2;
+	public static final int NUM_OF_VERTICAL_DIVISION = 1;
+	public static final int NUM_OF_HORIZONTAL_DIVISION = 1;
 	public static final int NUM_OF_AREA = NUM_OF_VERTICAL_DIVISION * NUM_OF_HORIZONTAL_DIVISION;
 	public static final int TASK_QUEUE_SIZE = 1000;
 	
@@ -21,9 +21,9 @@ public class Constants {
 	public static final int NUM_OF_AGENT = 500;
 	
 	//負荷
-	public static final double LOW_WORKLOAD = 1;
-	public static final double MODERATE_WORKLOAD = 4;
-	public static final double HIGH_WORKLOAD = 4;
+	public static final double LOW_WORKLOAD = 2;
+	public static final double MODERATE_WORKLOAD = 12;
+	public static final double HIGH_WORKLOAD = 6;
 	
 	//学習系
 	public static final double LEARNING_RATE = 0.05;
@@ -54,8 +54,10 @@ public class Constants {
 	
 	public static final int CHANGE_WORKLOAD_TIME = 150001;
 	public static final int RESTORE_WORKLOAD_TIME = 150001;
-	public static final int CHANGE_SUBTASKS_TIME = 150001;
-	public static final int RESTORE_SUBTASKS_TIME = 150001;
+	public static final int CHANGE_SUBTASKS_TIME = 70001;
+	public static final int RESTORE_SUBTASKS_TIME = 100001;
+	
+	public static final int FIRST_MEASURE_TIME = 10000;
 	
 	public static final int TRIAL_COUNT = 1;
 	

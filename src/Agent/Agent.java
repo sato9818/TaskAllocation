@@ -41,6 +41,7 @@ public class Agent {
 	//信頼度
 //	double de[] = new double[NUM_OF_AGENT];
 	double leaderDe[] = new double[NUM_OF_AGENT];
+	double specificLeaderDe[][] = new double[TYPES_OF_RESOURCE][NUM_OF_AGENT];
 	double memberDe[] = new double[NUM_OF_AGENT];
 	//送ったメッセージリスト
 	protected List<Message> allMessages = new ArrayList<Message>();
@@ -61,6 +62,11 @@ public class Agent {
 	HashMap<Integer, Integer> executionTimeMap = new HashMap<Integer, Integer>();
 	//互恵主義か合理主義か
 	protected boolean reciprocityAction = false;
+	//サブタスクの残り時間
+	protected int remainingTime = 0;
+	//自分の処理しているサブタスク
+	protected SubTask mySubTask = null;
+	
 	
 	//集計用------------------------------------------------------------------------------------
 	//処理したタスク数
@@ -211,6 +217,7 @@ public class Agent {
 			int p = 0;
 			for(int i=0;i<3;i++){
 				capacity[i] = 1 + Environment.rnd.NextInt(5);
+//				capacity[i] = 3;
 				capave += (double)capacity[i];
 				if(capacity[i] != 0){
 					p++;
@@ -267,10 +274,15 @@ public class Agent {
 //			System.out.println("excutiontime " + getExcutingTime(message.getSubTask()));
 //				delta = 1;
 //			System.out.println(executedTime);
-			this.leaderDe[message.from().getMyId()] = 
-					(1.0 - LEARNING_RATE/**/) * this.leaderDe[message.from().getMyId()] 
-					+ LEARNING_RATE * delta;
+			
+		}else{
+			if(message.getType() == REFUSE){
+				delta = - (double)message.getSubTask().getutility();
+			}
 		}
+		this.leaderDe[message.from().getMyId()] = 
+				(1.0 - LEARNING_RATE/**/) * this.leaderDe[message.from().getMyId()] 
+				+ LEARNING_RATE * delta;
 		
 		
 	}
@@ -383,6 +395,12 @@ public class Agent {
 	
 	public int getCapacity(int num){
 		return capacity[num];
+	}
+	
+	//---------------------------------------------------------------------------------------
+	
+	public List<Agent> getDeAgents(){
+		return deAgents;
 	}
 	//---------------------------------------------------------------------------------------
 	

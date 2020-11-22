@@ -64,11 +64,11 @@ public class Environment {
 			for(int j=0;j<NUM_OF_HORIZONTAL_DIVISION;j++){
 //				double p = rnd.NextUnif();
 				double workload = MODERATE_WORKLOAD;
-//				if(count == 2 || count == 3){
-//					workload = MODERATE_WORKLOAD;
-//				}else if(count == 1){
-//					workload = HIGH_WORKLOAD;
-//				}
+				if(count == 2){
+					workload = LOW_WORKLOAD;
+				}else if(count == 3){
+					workload = HIGH_WORKLOAD;
+				}
 //				if(p < 1.0 / 3){
 //					workload = LOW_WORKLOAD;
 //				}else if(p < 2.0 / 3){
@@ -143,10 +143,10 @@ public class Environment {
 		System.out.println("tick: " + tick + "---------------------------------------------------------------------------------------------------");
 		
 		if(tick == CHANGE_WORKLOAD_TIME){
-			changeAllAreaWorkload(HIGH_WORKLOAD);
+			changeAreaWorkload(HIGH_WORKLOAD, areas.get(0));
 		}
 		if(tick == RESTORE_WORKLOAD_TIME){
-			changeAllAreaWorkload(MODERATE_WORKLOAD);
+			changeAreaWorkload(MODERATE_WORKLOAD, areas.get(0));
 		}
 		
 		if(tick == CHANGE_SUBTASKS_TIME){
@@ -421,9 +421,9 @@ public class Environment {
 		try{
 			FileWriter fw;
 			if(RECIPROCITY){
-				fw = new FileWriter("ReciprocityAgentInfo.csv", false);
+				fw = new FileWriter("csv/ReciprocityAgentInfo.csv", false);
 			}else{
-				fw = new FileWriter("NotReciprocityAgentInfo.csv", false);
+				fw = new FileWriter("csv/RationalAgentInfo.csv", false);
 			}
 			PrintWriter pw = new PrintWriter(new BufferedWriter(fw));
             pw.print("Agent ID");
@@ -489,13 +489,15 @@ public class Environment {
 		
 	}
 	
+	//---------------------------------------------------------------------------------------
+	
 	public void exportOwnedSubTask(boolean reciprocity){
 		try{
 			FileWriter fw;
 			if(RECIPROCITY){
-				fw = new FileWriter("ReciprocityAgentOwnedSubTask.csv", false);
+				fw = new FileWriter("csv/ReciprocityAgentOwnedSubTask.csv", false);
 			}else{
-				fw = new FileWriter("NotReciprocityAgentOwnedSubTask.csv", false);
+				fw = new FileWriter("csv/RationalAgentOwnedSubTask.csv", false);
 			}
 			PrintWriter pw = new PrintWriter(new BufferedWriter(fw));
             pw.print("tick");
@@ -531,6 +533,97 @@ public class Environment {
 		}
 		
 	}
+	//---------------------------------------------------------------------------------------
+	
+	public void exportAgentConnection(int tick){
+		try{
+			FileWriter fw;
+			fw = new FileWriter("csv/ReciprocityAgentConnection"+ tick +".csv", false);
+			PrintWriter pw = new PrintWriter(new BufferedWriter(fw));
+            pw.print("AgentID");
+            pw.print(",");
+            pw.print("Cap");
+            pw.print(",");
+            pw.print("Role");
+            pw.print(",");
+            pw.print("Count");
+            pw.print(",");
+            pw.print("TO");
+            pw.print(",");
+            pw.print("Cap");
+            pw.print(",");
+            pw.print("Distance");
+            
+        	pw.println();
+    		for(int i=0;i<agents.size();i++){
+    			Agent agent = agents.get(i);
+				pw.print(agent.getMyId());
+				pw.print(",");
+				pw.print(String.format("%.2f",agent.averageOfCapability()));
+				pw.print(",");
+				pw.print(agent.getClass());
+				List<Agent> deAgents = agent.getDeAgents();
+				pw.print(",");
+				pw.print(deAgents.size());
+    			for(int j=0;j<deAgents.size();j++){
+        			Agent deAgent = deAgents.get(j);
+        			pw.print(",");
+	            	pw.print(deAgent.getMyId());
+	            	pw.print(",");
+	            	pw.print(String.format("%.2f", deAgent.averageOfCapability()));
+	            	pw.print(",");
+	            	pw.print(agent.getdistance(deAgent.getMyId()));
+        		}
+    			pw.println();
+    		}
+        	pw.close();
+		}catch(IOException ex){
+			System.out.println(ex);
+		}
+		
+	}	
+	
+	//---------------------------------------------------------------------------------------
+	
+	public void exportForCytoscape(int tick){
+		try{
+			FileWriter fw;
+			fw = new FileWriter("csv/ReciprocityAgentForCytoscape"+ tick +".csv", false);
+			PrintWriter pw = new PrintWriter(new BufferedWriter(fw));
+            pw.print("FROM");
+            pw.print(",");
+            pw.print("Cap");
+            pw.print(",");
+            pw.print("Role");
+            pw.print(",");
+            pw.print("TO");
+            pw.print(",");
+            pw.print("Distance");
+            
+        	pw.println();
+    		for(int i=0;i<agents.size();i++){
+    			Agent agent = agents.get(i);
+    			List<Agent> deAgents = agent.getDeAgents();
+    			for(int j=0;j<deAgents.size();j++){
+    				Agent deAgent = deAgents.get(j);
+					pw.print(agent.getMyId());
+					pw.print(",");
+					pw.print(String.format("%.2f",agent.averageOfCapability()));
+					pw.print(",");
+					pw.print(agent.getClass());
+        			pw.print(",");
+	            	pw.print(deAgent.getMyId());
+	            	pw.print(",");
+	            	pw.print(agent.getdistance(deAgent.getMyId()));
+	            	pw.println();
+        		}
+    		}
+        	pw.close();
+		}catch(IOException ex){
+			System.out.println(ex);
+		}
+		
+	}
 	
 	//---------------------------------------------------------------------------------------
 	
@@ -538,6 +631,12 @@ public class Environment {
 		for(int i=0;i<areas.size();i++){
 			areas.get(i).changeWorkload(workload);
 		}
+	}
+	
+	//---------------------------------------------------------------------------------------
+	
+	public void changeAreaWorkload(double workload, Area area){
+		area.changeWorkload(workload);
 	}
 	
 	

@@ -21,11 +21,16 @@ public class Main {
 			Environment e = new Environment(Seed._seeds[trial]);
 			for(int tick=0;tick<EXPERIMENTAL_DURATION;tick++){
 				e.run(tick);
-			}
+				if(RECIPROCITY == true && (tick == CHANGE_SUBTASKS_TIME || tick == RESTORE_SUBTASKS_TIME || tick == FIRST_MEASURE_TIME)){
+					e.exportAgentConnection(tick);
+					e.exportForCytoscape(tick);
+				}
+			} 
 			e.printArea();
 //			e.printDeAgent();
 			e.exportAllocatedSubTask(RECIPROCITY);
 			e.exportOwnedSubTask(RECIPROCITY);
+			
 			
 		}
 		export();
@@ -38,7 +43,7 @@ public class Main {
 				if(RECIPROCITY){
 					fw = new FileWriter("csv/Reciprocity/Area" + i + ".csv", false); 
 				}else{
-					fw = new FileWriter("csv/NotReciprocity/Area" + i + ".csv", false); 
+					fw = new FileWriter("csv/Rational/Area" + i + ".csv", false); 
 				}
 				
 	            PrintWriter pw = new PrintWriter(new BufferedWriter(fw));
@@ -163,7 +168,7 @@ public class Main {
 			if(RECIPROCITY){
 				fw = new FileWriter("csv/Reciprocity/Environment.csv", false); 
 			}else{
-				fw = new FileWriter("csv/NotReciprocity/Environment.csv", false);
+				fw = new FileWriter("csv/Rational/Environment.csv", false);
 			}
 			
             PrintWriter pw = new PrintWriter(new BufferedWriter(fw));

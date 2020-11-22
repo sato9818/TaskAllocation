@@ -22,13 +22,9 @@ public class Member extends Agent{
 	
 	HashMap<Integer, Integer> allocateTimeMap = new HashMap<Integer, Integer>();
 	
-	private int excutingTime;
-	
 	Queue<Message> messageQueue = new ArrayDeque<Message>();
 	
 	private List<Message> preSubTasks = new ArrayList<Message>();
-	
-	SubTask excutingTask = null;
 	
 	private int expectedTasks = 0;
 	private int inactiveTime = 0;
@@ -89,7 +85,7 @@ public class Member extends Agent{
 			
 			break;
 		case EXECUTING_TASK:
-			if(excutingTask == null){
+			if(mySubTask == null){
 				if(!solicitationMessages.isEmpty()){
 					replyMessages();
 					phase = ACTIVE;
@@ -117,9 +113,9 @@ public class Member extends Agent{
 	
 	public void startToExecuteTask(int tick){
 		Message allocationMessage = messageQueue.poll();
-		excutingTask = allocationMessage.getSubTask(); 
-		int et = getExcutingTime(excutingTask);	
-		excutingTime = et;
+		mySubTask = allocationMessage.getSubTask(); 
+		int et = getExcutingTime(mySubTask);	
+		remainingTime = et;
 		finishMessage = new Message(FINISH, this, allocationMessage.from(), allocationMessage.getSubTask(), et);
 		waitingTime[this.getArea().getId()][tick] += tick - allocateTimeMap.get(finishMessage.getSubTask().getTaskId());
 		executeTask(tick);
@@ -207,12 +203,11 @@ public class Member extends Agent{
 	//---------------------------------------------------------------------------------------
 	
 	public void executeTask(int tick){
-		excutingTime--;
-		if(excutingTime == 0){
+		remainingTime--;
+		if(remainingTime == 0){
 			finishSubTask++;
 			allMessages.add(finishMessage);
-			
-			excutingTask = null;
+			mySubTask = null;
 			finishMessage = null;
 		}
 	}
@@ -239,10 +234,10 @@ public class Member extends Agent{
 			break;
 		case COLLAPSE_TEAM:
 			SubTask subTask = message.getSubTask();
-			if(excutingTask != null){
-				if(subTask.getTaskId() == excutingTask.getTaskId()){
-					excutingTime = 0;
-					excutingTask = null;
+			if(mySubTask != null){
+				if(subTask.getTaskId() == mySubTask.getTaskId()){
+					remainingTime = 0;
+					mySubTask = null;
 					phase = ACTIVE;
 				}
 			}else{
@@ -295,7 +290,7 @@ public class Member extends Agent{
 		if(success){
 			delta = (double)message.getSubTask().getutility() / (double)(this.getdistance(message.from().getMyId()) * 2 + getExcutingTime(message.getSubTask()));
 //			System.out.println("excutiontime " + this.getdistance(message.from().getMyId()));
-//			delta = 1.0 / (this.getdistance(message.from().getMyId()) * 2 + getExcutingTime(message.getSubTask()));
+//			delta = 1.0 / (double)(this.getdistance(message.from().getMyId()) * 2 + getExcutingTime(message.getSubTask()));
 //			delta = 1;
 		}
 		this.memberDe[message.from().getMyId()] = 
@@ -315,7 +310,7 @@ public class Member extends Agent{
 	//---------------------------------------------------------------------------------------
 	
 	public int getExcutiontime(){
-		return excutingTime;
+		return remainingTime;
 	}
 	
 	//---------------------------------------------------------------------------------------
