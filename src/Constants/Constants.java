@@ -22,7 +22,7 @@ public class Constants {
 	
 	//負荷
 	public static final double LOW_WORKLOAD = 2;
-	public static final double MODERATE_WORKLOAD = 12;
+	public static final double MODERATE_WORKLOAD = 20;
 	public static final double HIGH_WORKLOAD = 6;
 	
 	//学習系
@@ -54,14 +54,20 @@ public class Constants {
 	
 	public static final int CHANGE_WORKLOAD_TIME = 150001;
 	public static final int RESTORE_WORKLOAD_TIME = 150001;
-	public static final int CHANGE_SUBTASKS_TIME = 70001;
-	public static final int RESTORE_SUBTASKS_TIME = 100001;
+	public static final int CHANGE_SUBTASKS_TIME = 150001;
+	public static final int RESTORE_SUBTASKS_TIME = 150001;
 	
 	public static final int FIRST_MEASURE_TIME = 10000;
 	
 	public static final int TRIAL_COUNT = 1;
 	
 //	-------------------------------------------------------------------------------------------------
+	
+	//サブタスクの種類
+	public static final int NORMAL_TASK= 0;
+	public static final int REQUIRE_FIRST = 1;
+	public static final int REQUIRE_SECOUND = 2;
+	public static final int REQUIRE_THIRD = 3;
 	
 	//メッセージの種類
 	public static final int SOLICITATION = 0;

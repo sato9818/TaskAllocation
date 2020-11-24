@@ -6,7 +6,7 @@ import Environment.Environment;
 import static Constants.Constants.*;
 
 public class SubTask {
-	private int reqCapa[] = new int[3/**/];
+	private int reqCapa[] = new int[TYPES_OF_RESOURCE/**/];
 	private int utility = 0;
 	private int taskId;
 	private int type;
@@ -43,7 +43,7 @@ public class SubTask {
 	
 	//---------------------------------------------------------------------------------------
 	
-	public int getTaskType(){
+	public int getType(){
 		return type;
 	}
 	

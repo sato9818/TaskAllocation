@@ -338,13 +338,20 @@ public class Environment {
 	//---------------------------------------------------------------------------------------
 	
 	private void updateDependablityAgent(){
+		
 		for(int i=0;i<leaders.size();i++){
 			Leader leader = leaders.get(i);
 			leader.clearDependablityAgent();
-			for(int j=0;j<members.size();j++){
-				Member member = members.get(j);
-				if(LEADER_DEPENDABLITY_DEGREE_THRESHOLD < leader.getLeaderDependablity(member.getMyId())){
-					leader.adddeagent(member);
+			leader.clearSpecificDependablityAgent();
+			for(int j=0;j<agents.size();j++){
+				Agent agent = agents.get(j);
+				if(LEADER_DEPENDABLITY_DEGREE_THRESHOLD < leader.getLeaderDependablity(agent.getMyId())){
+					leader.adddeagent(agent);
+				}
+				for(int k=0;k<3;k++){
+					if(LEADER_DEPENDABLITY_DEGREE_THRESHOLD < leader.getLeaderSpecificDependablity(k, agent.getMyId())){
+						leader.addSpecificDeAgents(k, agent);
+					}
 				}
 			}
 			leader.selectAction();
@@ -353,9 +360,9 @@ public class Environment {
 			Member member = members.get(i);
 			member.clearDependablityAgent();
 			for(int j=0;j<leaders.size();j++){
-				Leader leader = leaders.get(j);
-				if(MEMBER_DEPENDABLITY_DEGREE_THRESHOLD < member.getMemberDependablity(leader.getMyId())){
-					member.adddeagent(leader);
+				Agent agent = agents.get(j);
+				if(MEMBER_DEPENDABLITY_DEGREE_THRESHOLD < member.getMemberDependablity(agent.getMyId())){
+					member.adddeagent(agent);
 				}
 			}
 			member.selectAction();

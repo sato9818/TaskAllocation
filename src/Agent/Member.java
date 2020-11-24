@@ -250,8 +250,6 @@ public class Member extends Agent{
 			}
 			break;
 		case REFUSE:
-//			System.out.println(getMyId());
-//			System.out.println(executionTimeMap);
 			updateDependablity(message, false, 0);
 			notifyFailure(message,tick);
 			break;

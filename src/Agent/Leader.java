@@ -60,10 +60,10 @@ public class Leader extends Agent{
 				int p = eGreedy();
 				List<Message> messages = null;
 				if(p == 0){
-					messages = selectMember(agents, task, false);
+					messages = selectMember(agents, task);
 				}else if(p == 1){
 					//System.out.println("Epsilon");
-					messages = selectMember(agents, task, true);
+					messages = selectMemberRandomly(agents, task);
 				}
 				
 				//メッセージを送る
@@ -134,51 +134,21 @@ public class Leader extends Agent{
 	
 	//---------------------------------------------------------------------------------------
 	
-	public List<Message> selectMember(List<Agent> agents, Task task, boolean random){
-		
+	public List<Message> selectMemberRandomly(List<Agent> agents, Task task){
 		List<Message> messages = new ArrayList<Message>();
-		
-		//信頼エージェントに渡すサブタスク
-		List<SubTask> confSubTask = new ArrayList<SubTask>();
-		
 		List<SubTask> subTasks = task.getSubTasks();
-		List<Agent> copyDeAgents = new ArrayList<Agent>(deAgents);
 		List<Agent> copyAgents = new ArrayList<Agent>(agents);
-		
-		Collections.shuffle(copyAgents, Environment.r);
 		copyAgents.remove(this);
+		Collections.shuffle(copyAgents, Environment.r);
 		
-		//リーダーは自分の処理するサブタスクを取っておく。
 		mySubTask = subTasks.get(0);
 		subTasks.remove(mySubTask);
 		remainingTime = getExcutingTime(mySubTask);
 		
-		if(random){
-			copyDeAgents.clear();
-		}else{
-			Collections.sort(subTasks, new SubUtilityComparator());
-			copyAgents = sortAgentByLeaderDe(copyAgents);
-			copyDeAgents = sortAgentByLeaderDe(copyDeAgents);
-		}
-		
 		for(int i=0;i<SOLICITATION_REDUNDANCY;i++){
 			for(int j=0;j<subTasks.size();j++){
 				SubTask subtask = subTasks.get(j);
-				if(confSubTask.contains(subtask)){
-					continue;
-				}
-				//ループ1週目のサブタスクの集合＝処理すべきサブタスクの集合
-				if(i == 0){
-					subTasksList.add(subtask);
-				}
-				Agent agent = null;
-				if(!copyDeAgents.isEmpty()){
-					agent = copyDeAgents.get(0);
-					copyDeAgents.remove(agent);
-					confSubTask.add(subtask);
-				}else{
-					agent = copyAgents.get(0);
-				}
+				Agent agent = copyAgents.get(0);
 				Message message = new Message(SOLICITATION, this, agent, subtask);
 				copyAgents.remove(agent);
 				messages.add(message);
@@ -186,9 +156,131 @@ public class Leader extends Agent{
 			}
 		}
 		return messages;
-		//System.out.println("preteamsize:" + presubtasks.size());
 	}
 	
+	//---------------------------------------------------------------------------------------
+	
+	public List<Message> selectMember(List<Agent> agents, Task task){
+		
+		List<Message> messages = new ArrayList<Message>();
+		List<SubTask> subTasks = task.getSubTasks();
+		Collections.sort(subTasks, new SubUtilityComparator());
+		//信頼エージェントに渡すサブタスク
+		List<SubTask> confSubTask = new ArrayList<SubTask>();
+		List<Agent> copyAgents = new ArrayList<Agent>(agents);
+		copyAgents.remove(this);
+		Collections.shuffle(copyAgents, Environment.r);
+		copyAgents = sortAgentByLeaderDe(copyAgents);
+		
+		HashMap<Integer, List<Agent>> specificSortingAgentsMap = new HashMap<Integer, List<Agent>>();
+		for(int i=0;i<3;i++){
+			List<Agent> copySpecificAgents = sortAgentByLeaderDe(new ArrayList<Agent>(agents));
+			copySpecificAgents.remove(this);
+			specificSortingAgentsMap.put(i, copySpecificAgents);
+		}
+		
+		//リーダーは自分の処理するサブタスクを取っておく。
+		mySubTask = subTasks.get(0);
+		subTasks.remove(mySubTask);
+		remainingTime = getExcutingTime(mySubTask);
+		
+		if(this.isReciprocity()){
+			List<Agent> copyDeAgents = new ArrayList<Agent>(deAgents);
+			copyDeAgents = sortAgentByLeaderDe(copyDeAgents);
+			
+			HashMap<Integer, List<Agent>> specificSortingDeAgentsMap = new HashMap<Integer, List<Agent>>();
+			for(int i=0;i<3;i++){
+				List<Agent> copySpecificDeAgents = sortAgentByLeaderDe(new ArrayList<Agent>(specificDeAgentsMap.get(i)));
+				specificSortingDeAgentsMap.put(i, copySpecificDeAgents);
+			}
+			for(int i=0;i<SOLICITATION_REDUNDANCY;i++){
+				for(int j=0;j<subTasks.size();j++){
+					SubTask subtask = subTasks.get(j);
+					if(confSubTask.contains(subtask)){
+						continue;
+					}
+					//ループ1週目のサブタスクの集合＝処理すべきサブタスクの集合
+					if(i == 0){
+						subTasksList.add(subtask);
+					}
+					Agent agent = null;
+					int type;
+					if((type = subtask.getType()) == 0){
+						if(!copyDeAgents.isEmpty()){
+							agent = copyDeAgents.get(0);
+							copyDeAgents.remove(agent);
+							confSubTask.add(subtask);
+						}else{
+							agent = copyAgents.get(0);
+						}
+					}else{
+						if(!specificSortingDeAgentsMap.get(type - 1).isEmpty()){
+							agent = specificSortingDeAgentsMap.get(type - 1).get(0);
+							confSubTask.add(subtask);
+						}else{
+							if(!copyDeAgents.isEmpty()){
+								agent = copyDeAgents.get(0);
+								confSubTask.add(subtask);
+							}else{
+								agent = specificSortingAgentsMap.get(type - 1).get(0);
+								if(this.getLeaderSpecificDependablity(type - 1, agent.getMyId()) == 0){
+									agent = copyAgents.get(0);
+								}
+							}
+						}
+					}
+					if(copyDeAgents.contains(agent)){
+						copyDeAgents.remove(agent);
+					}
+					for(int k=0;k<3;k++){
+						specificSortingAgentsMap.get(k).remove(agent);
+						if(specificSortingDeAgentsMap.get(k).contains(agent)){
+							specificSortingDeAgentsMap.get(k).remove(agent);
+						}
+					}
+					Message message = new Message(SOLICITATION, this, agent, subtask);
+					copyAgents.remove(agent);
+					messages.add(message);
+					preMembers.add(agent.getMyId());
+				}
+			}
+			
+		}else{
+			for(int i=0;i<SOLICITATION_REDUNDANCY;i++){
+				for(int j=0;j<subTasks.size();j++){
+					SubTask subtask = subTasks.get(j);
+					Agent agent = null;
+					int type;
+					
+					if((type = subtask.getType()) == 0){
+						agent = copyAgents.get(0);
+					}else{
+						agent = specificSortingAgentsMap.get(type - 1).get(0);
+						if(this.getLeaderSpecificDependablity(type - 1, agent.getMyId()) == 0){
+							agent = copyAgents.get(0);
+						}
+					}
+					
+					copyAgents.remove(agent);
+					for(int k=0;k<3;k++){
+						specificSortingAgentsMap.get(k).remove(agent);
+					}
+					Message message = new Message(SOLICITATION, this, agent, subtask);
+					messages.add(message);
+					preMembers.add(agent.getMyId());
+				}
+			}
+		}
+		
+		
+		
+		
+		
+		
+
+		return messages;
+		//System.out.println("preteamsize:" + presubtasks.size());
+	}
 	
 	//---------------------------------------------------------------------------------------
 	
@@ -327,6 +419,7 @@ public class Leader extends Agent{
 			return false;
 		}
 	}
+	
 	
 	//---------------------------------------------------------------------------------------
 	

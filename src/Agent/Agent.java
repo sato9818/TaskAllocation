@@ -2,7 +2,6 @@ package Agent;
 
 import static Constants.Constants.*;
 
-import java.time.chrono.MinguoChronology;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -41,6 +40,7 @@ public class Agent {
 	//信頼度
 //	double de[] = new double[NUM_OF_AGENT];
 	double leaderDe[] = new double[NUM_OF_AGENT];
+	//各サブタスクtypeに応じた信頼度
 	double specificLeaderDe[][] = new double[TYPES_OF_RESOURCE][NUM_OF_AGENT];
 	double memberDe[] = new double[NUM_OF_AGENT];
 	//送ったメッセージリスト
@@ -49,6 +49,8 @@ public class Agent {
 	protected int phase = 0;
 	//信頼エージェントのリスト
 	protected List<Agent> deAgents = new ArrayList<Agent>();
+	//各サブタスクtypeに応じた信頼エージェント
+	protected HashMap<Integer, List<Agent>> specificDeAgentsMap = new HashMap<Integer, List<Agent>>();
 	//各エージェントとの距離
 	private int distance[] = new int[NUM_OF_AGENT];
 	//届いたメッセージの置き場
@@ -114,6 +116,7 @@ public class Agent {
 		gridX = agent.getPositionX();
 		gridY = agent.getPositionY();
 		deAgents = agent.deAgents;
+		specificDeAgentsMap = agent.specificDeAgentsMap;
 		capave = agent.capave;
 		distance = agent.distance;
 		leaderEvaluation = agent.leaderEvaluation;
@@ -133,6 +136,18 @@ public class Agent {
 		for (int i = 0; i < agents.size() - 1; i++) {
             for (int j = agents.size() - 1; j > i; j--) {
                 if (leaderDe[agents.get(j - 1).getMyId()] < leaderDe[agents.get(j).getMyId()]) {
+                    Collections.swap(agents,j-1,j);
+                }
+            }
+        }
+		return agents;
+	}
+	//---------------------------------------------------------------------------------------
+	
+	public List<Agent> sortAgentBySpecificLeaderDe(List<Agent> agents, int num){
+		for (int i = 0; i < agents.size() - 1; i++) {
+            for (int j = agents.size() - 1; j > i; j--) {
+                if (specificLeaderDe[num][agents.get(j - 1).getMyId()] < specificLeaderDe[num][agents.get(j).getMyId()]) {
                     Collections.swap(agents,j-1,j);
                 }
             }
@@ -201,7 +216,13 @@ public class Agent {
 			if(i != this.getMyId()){
 				leaderDe[i] = 0.0;
 				memberDe[i] = 0.0;
+				for(int j=0;j<3;j++){
+					specificLeaderDe[j][i] = 0.0;
+				}
 			}
+		}
+		for(int i=0;i<3;i++){
+			specificDeAgentsMap.put(i, new ArrayList<Agent>());
 		}
 	}
 	//---------------------------------------------------------------------------------------
@@ -265,8 +286,9 @@ public class Agent {
 	
 	public void updateDependablity(Message message, boolean success, int executedTime){
 		double delta = 0.0;
+		SubTask subTask = message.getSubTask();
 		if(success){
-			delta = (double)message.getSubTask().getutility() 
+			delta = (double)subTask.getutility() 
 			/  //---------------------------------------------------------------
 					(double)(executedTime) ;
 			
@@ -283,7 +305,9 @@ public class Agent {
 		this.leaderDe[message.from().getMyId()] = 
 				(1.0 - LEARNING_RATE/**/) * this.leaderDe[message.from().getMyId()] 
 				+ LEARNING_RATE * delta;
-		
+		if(subTask.getType() > 0) this.specificLeaderDe[subTask.getType()-1][message.from().getMyId()] 
+				= (1.0 - LEARNING_RATE/**/) * this.specificLeaderDe[subTask.getType()-1][message.from().getMyId()] 
+				+ LEARNING_RATE * delta;
 		
 	}
 	
@@ -382,6 +406,12 @@ public class Agent {
 	
 	//---------------------------------------------------------------------------------------
 	
+	public double getLeaderSpecificDependablity(int num, int id){
+		return specificLeaderDe[num][id];
+	}
+	
+	//---------------------------------------------------------------------------------------
+	
 	public double getMemberDependablity(int id){
 		return memberDe[id];
 	}
@@ -402,6 +432,21 @@ public class Agent {
 	public List<Agent> getDeAgents(){
 		return deAgents;
 	}
+	
+	//---------------------------------------------------------------------------------------
+	
+	public void addSpecificDeAgents(int num, Agent agent){
+		specificDeAgentsMap.get(num).add(agent);
+	}
+	
+	//---------------------------------------------------------------------------------------
+	
+	public void clearSpecificDependablityAgent(){
+		for(int i=0;i<3;i++){
+			specificDeAgentsMap.get(i).clear();
+		}
+	}
+	
 	//---------------------------------------------------------------------------------------
 	
 	public int eGreedy() {
