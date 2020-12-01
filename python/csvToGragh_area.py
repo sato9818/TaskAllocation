@@ -57,6 +57,7 @@ for c in col:
             
     plt.tight_layout()
     plt.savefig("pdf/area/"+ c +".pdf")
+    plt.savefig("png/area/"+ c +".png")
 
 fig, axes = plt.subplots(nrows=hei, ncols=wid, figsize=(9, 6))
 count=0
@@ -75,6 +76,7 @@ for i in range(hei):
         count = count + 1
 plt.tight_layout()
 plt.savefig("pdf/area/allocated member.pdf")
+plt.savefig("png/area/allocated member.png")
 
 plt.close('all')
 

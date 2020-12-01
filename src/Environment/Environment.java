@@ -373,8 +373,10 @@ public class Environment {
 	
 	private void decreaseDependability(){
 		for(int j=0;j<agents.size();j++){
+			Agent agent1 = agents.get(j);
 			for(int i=0;i<agents.size();i++){
-				agents.get(j).reducede(agents.get(i).getMyId());
+				Agent agent2 = agents.get(i);
+				agent1.reducede(agent2.getMyId());
 			}
     	}
 	}

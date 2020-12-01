@@ -124,34 +124,50 @@ public class Member extends Agent{
 	//---------------------------------------------------------------------------------------
 	
 	public void replyMessages(){
-		int p = eGreedy();
-		
-		while(!solicitationMessages.isEmpty()){
-			boolean decide = true;
-			Message message = null;
-			if(p == 0){
-				message = decideMessage(solicitationMessages, null);
-				if(this.isReciprocity()){
-					if(!deAgents.contains(message.from())){
-						decide = false;
+		if(CNP_MODE == true){
+			for(int i=0;i<solicitationMessages.size();i++){
+				Message message = solicitationMessages.get(i);
+				SubTask subTask = decideSubTask(message);
+				Message acceptedMessage = new Message(ACCEPTANCE, this, message.from(), subTask, true);
+				allMessages.add(acceptedMessage);
+			}
+			solicitationMessages.clear();
+		}else{
+			int p = eGreedy();
+			while(!solicitationMessages.isEmpty()){
+				boolean decide = true;
+				Message message = null;
+				if(p == 0){
+					message = decideMessage(solicitationMessages, null);
+					if(this.isReciprocity()){
+						if(!deAgents.contains(message.from())){
+							decide = false;
+						}
+						if(expectedTasks + messageQueue.size() < SUB_TASK_QUEUE_SIZE - deAgents.size()){
+							decide = true;
+						}
 					}
-					if(expectedTasks + messageQueue.size() < SUB_TASK_QUEUE_SIZE - deAgents.size()){
-						decide = true;
-					}
+				}else if(p == 1){
+					message = decideMessage(solicitationMessages, Environment.rnd);
 				}
-			}else if(p == 1){
-				message = decideMessage(solicitationMessages, Environment.rnd);
+				
+//				if(expectedTasks + taskQueue.size() ){
+//					decide = false;
+//				}
+				if(decide){
+					expectedTasks++;
+				}
+				sendReplyMessages(message, decide);
+				solicitationMessages.remove(message);
 			}
-			
-//			if(expectedTasks + taskQueue.size() ){
-//				decide = false;
-//			}
-			if(decide){
-				expectedTasks++;
-			}
-			sendReplyMessages(message, decide);
-			solicitationMessages.remove(message);
 		}
+	}
+	
+	//---------------------------------------------------------------------------------------
+	
+	public void replyCnpMessages(){
+		
+		
 	}
 	
 	//---------------------------------------------------------------------------------------
@@ -171,6 +187,23 @@ public class Member extends Agent{
 //			}
 			return message;
 		}
+	}
+	
+	//---------------------------------------------------------------------------------------
+	
+	public SubTask decideSubTask(Message message){
+		List<SubTask> subTasks = message.getSubTasks();
+		int time = 100;
+		SubTask confSubTask = null; 
+		for(int i=0;i<subTasks.size();i++){
+			SubTask subTask = subTasks.get(i);
+			int et;
+			if(time > (et = getExcutingTime(subTask))){
+				time = et;
+				confSubTask = subTask;
+			}
+		}
+		return confSubTask;
 	}
 	
 	//---------------------------------------------------------------------------------------
@@ -218,6 +251,9 @@ public class Member extends Agent{
 		//System.out.println(message);
 		switch(message.getType()){
 		case SOLICITATION:
+			solicitationMessages.add(message);
+			break;
+		case CNP_SOLICITATION:
 			solicitationMessages.add(message);
 			break;
 		case ALLOCATION:

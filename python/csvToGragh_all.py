@@ -36,6 +36,7 @@ for c in col:
     plt.title("Environment")
     plt.tight_layout()
     plt.savefig("pdf/all/"+ c +".pdf")
+    plt.savefig("png/all/"+ c +".png")
 
 plt.close('all')
 

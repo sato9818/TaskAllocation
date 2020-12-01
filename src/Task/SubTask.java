@@ -19,11 +19,12 @@ public class SubTask {
 		//int r = randomInt(rnd);
 		int r = Environment.rnd.NextInt(TYPES_OF_RESOURCE);
 		int c = 5 + Environment.rnd.NextInt(6);
-		if(c >= 8){
-			type = r + 1;
-		}else{
-			type = 0;
-		}
+//		if(c >= 8){
+//			type = r + 1;
+//		}else{
+//			type = 0;
+//		}
+		type = r + 1;
 		for(int i=0;i<TYPES_OF_RESOURCE;i++){
 			if(i == r){
 				reqCapa[i] = c;

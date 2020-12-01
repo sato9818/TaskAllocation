@@ -21,15 +21,15 @@ public class Main {
 			Environment e = new Environment(Seed._seeds[trial]);
 			for(int tick=0;tick<EXPERIMENTAL_DURATION;tick++){
 				e.run(tick);
-				if(RECIPROCITY == true && (tick == CHANGE_SUBTASKS_TIME || tick == RESTORE_SUBTASKS_TIME || tick == FIRST_MEASURE_TIME)){
-					e.exportAgentConnection(tick);
-					e.exportForCytoscape(tick);
-				}
+//				if(RECIPROCITY == true && (tick == CHANGE_SUBTASKS_TIME || tick == RESTORE_SUBTASKS_TIME || tick == FIRST_MEASURE_TIME)){
+//					e.exportAgentConnection(tick);
+//					e.exportForCytoscape(tick);
+//				}
 			} 
-			e.printArea();
+//			e.printArea();
 //			e.printDeAgent();
-			e.exportAllocatedSubTask(RECIPROCITY);
-			e.exportOwnedSubTask(RECIPROCITY);
+//			e.exportAllocatedSubTask(RECIPROCITY);
+//			e.exportOwnedSubTask(RECIPROCITY);
 			
 			
 		}

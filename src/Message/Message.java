@@ -3,11 +3,14 @@ import static Constants.Constants.ACCEPTANCE;
 import static Constants.Constants.FINISH;
 import static Constants.Constants.SOLICITATION;
 
+import java.util.List;
+
 import Agent.Agent;
 import Task.SubTask;
 
 public class Message {
 	private SubTask subtask;
+	private List<SubTask> subtasks;
 	private int delay;
 	private int type;
 	private Agent from;
@@ -52,6 +55,16 @@ public class Message {
 	}
 	
 	//---------------------------------------------------------------------------------------
+	//CNP_SOLICITATION
+	public Message(int type, Agent from, Agent to, List<SubTask> subtasks){
+		setDelay(from, to);
+		this.type = type;
+		this.from = from;
+		this.to = to;
+		this.subtasks = subtasks;
+	}
+	
+	//---------------------------------------------------------------------------------------
 	@Override
 	public String toString(){
 		switch(type){
@@ -75,6 +88,12 @@ public class Message {
 	
 	public SubTask getSubTask(){
 		return subtask;
+	}
+	
+	//---------------------------------------------------------------------------------------
+	
+	public List<SubTask> getSubTasks(){
+		return subtasks;
 	}
 	
 	//---------------------------------------------------------------------------------------

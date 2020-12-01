@@ -59,13 +59,16 @@ public class Leader extends Agent{
 				//候補メンバーに送るメッセージを決める(e-greedy法)
 				int p = eGreedy();
 				List<Message> messages = null;
-				if(p == 0){
-					messages = selectMember(agents, task);
-				}else if(p == 1){
-					//System.out.println("Epsilon");
-					messages = selectMemberRandomly(agents, task);
+				if(CNP_MODE == true){
+					messages = selectCnpMember(agents, task);
+				}else{
+					if(p == 0){
+						messages = selectMember(agents, task);
+					}else if(p == 1){
+						//System.out.println("Epsilon");
+						messages = selectMemberRandomly(agents, task);
+					}
 				}
-				
 				//メッセージを送る
 				for(int j=0;j<messages.size();j++){
 					allMessages.add(messages.get(j));
@@ -87,13 +90,14 @@ public class Leader extends Agent{
 				System.exit(1);
 			}
 			//メッセージの返信を見て
-			if(waitReply() == 0){
+			int judge = waitReply();
+			if(judge == 0){
 				//全部返信がきててアロケーションできるなら
 				taskAllocate(tick);
 				phase = SELECT_MEMBER;
 				clearall();
 				time = 0;
-			}else if(waitReply() == 1){
+			}else if(judge == 1){
 				//全部返信がきててアロケーションできないなら
 				failAllocate();
 				wastedTask[this.getArea().getId()][tick]++;
@@ -130,6 +134,31 @@ public class Leader extends Agent{
             }
         }
 		return members;
+	}
+	
+	//---------------------------------------------------------------------------------------
+	
+	public List<Message> selectCnpMember(List<Agent> agents, Task task){
+		List<Message> messages = new ArrayList<Message>();
+		List<SubTask> subTasks = task.getSubTasks();
+		List<Agent> copyAgents = new ArrayList<Agent>(agents);
+		copyAgents.remove(this);
+		
+		mySubTask = subTasks.get(0);
+		subTasks.remove(mySubTask);
+		remainingTime = getExcutingTime(mySubTask);
+		
+		subTasksList = new ArrayList<SubTask>(subTasks);
+		
+		for(int i=0;i<copyAgents.size();i++){
+			Agent agent = copyAgents.get(i);
+			if(this.getdistance(agent.getMyId()) <= 2){
+				Message message = new Message(CNP_SOLICITATION, this, agent, subTasks);
+				messages.add(message);
+				preMembers.add(agent.getMyId());
+			}
+		}
+		return messages;
 	}
 	
 	//---------------------------------------------------------------------------------------
@@ -271,37 +300,87 @@ public class Leader extends Agent{
 				}
 			}
 		}
-		
-		
-		
-		
-		
-		
-
 		return messages;
-		//System.out.println("preteamsize:" + presubtasks.size());
 	}
 	
+	//---------------------------------------------------------------------------------------
+	
+	public List<Message> selectMemberPreviously(List<Agent> agents, Task task){
+		
+		List<Message> messages = new ArrayList<Message>();
+		List<SubTask> subTasks = task.getSubTasks();
+		Collections.sort(subTasks, new SubUtilityComparator());
+		//信頼エージェントに渡すサブタスク
+		List<SubTask> confSubTask = new ArrayList<SubTask>();
+		List<Agent> copyAgents = new ArrayList<Agent>(agents);
+		copyAgents.remove(this);
+		Collections.shuffle(copyAgents, Environment.r);
+		copyAgents = sortAgentByLeaderDe(copyAgents);
+		
+		//リーダーは自分の処理するサブタスクを取っておく。
+		mySubTask = subTasks.get(0);
+		subTasks.remove(mySubTask);
+		remainingTime = getExcutingTime(mySubTask);
+		
+		List<Agent> copyDeAgents = new ArrayList<Agent>(deAgents);
+		copyDeAgents = sortAgentByLeaderDe(copyDeAgents);
+
+		for(int i=0;i<SOLICITATION_REDUNDANCY;i++){
+			for(int j=0;j<subTasks.size();j++){
+				SubTask subtask = subTasks.get(j);
+				if(confSubTask.contains(subtask)){
+					continue;
+				}
+				//ループ1週目のサブタスクの集合＝処理すべきサブタスクの集合
+				if(i == 0){
+					subTasksList.add(subtask);
+				}
+				Agent agent = null;
+				if(!copyDeAgents.isEmpty()){
+					agent = copyDeAgents.get(0);
+					copyDeAgents.remove(agent);
+					confSubTask.add(subtask);
+				}else{
+					agent = copyAgents.get(0);
+				}
+				Message message = new Message(SOLICITATION, this, agent, subtask);
+				copyAgents.remove(agent);
+				messages.add(message);
+				preMembers.add(agent.getMyId());
+			}
+		}
+			
+		
+		return messages;
+	}
 	//---------------------------------------------------------------------------------------
 	
 	private void makeTeam(Message message){
 		SubTask subtask = message.getSubTask();
 		Agent member = message.from();
 		//サブタスクとそれを処理するメンバの組み合わせを作っている
-		
+		if(CNP_MODE == true){
 			if(team.containsKey(subtask)){
-				if(deAgents.contains(member) && !deAgents.contains(team.get(subtask))){
-					team.put(subtask, member);
-				}else if(leaderDe[member.getMyId()] > leaderDe[team.get(subtask).getMyId()] && 
-						!(!deAgents.contains(member) && 
-						deAgents.contains(team.get(subtask)))){
+				if(team.get(subtask).getExcutingTime(subtask) > member.getExcutingTime(subtask)){
 					team.put(subtask, member);
 				}
 			}else{
 				team.put(subtask, member);
 				subTasksList.remove(subtask);
 			}
-			
+		}else{
+			if(team.containsKey(subtask)){
+				if(deAgents.contains(member) && !deAgents.contains(team.get(subtask))){
+					team.put(subtask, member);
+				}else if(leaderDe[member.getMyId()] > leaderDe[team.get(subtask).getMyId()] && 
+						!(!deAgents.contains(member) && deAgents.contains(team.get(subtask)))){
+					team.put(subtask, member);
+				}
+			}else{
+				team.put(subtask, member);
+				subTasksList.remove(subtask);
+			}
+		}
 	}
 	
 	//---------------------------------------------------------------------------------------
@@ -309,8 +388,10 @@ public class Leader extends Agent{
 	public void readMessage(Message message, int tick){
 		switch(message.getType()){
 		case SOLICITATION:
-			Message m = new Message(ACCEPTANCE, this, message.from(), message.getSubTask(), false);
-			allMessages.add(m);
+			allMessages.add(new Message(ACCEPTANCE, this, message.from(), message.getSubTask(), false));
+			break;
+		case CNP_SOLICITATION:
+			allMessages.add(new Message(ACCEPTANCE, this, message.from(), null, false));
 			break;
 		case ACCEPTANCE:
 			if(message.isAccepted()){
@@ -358,7 +439,7 @@ public class Leader extends Agent{
 	
 	public void failAllocate(){
 		for(int i=0;i<acceptMembers.size();i++){
-			Message message = new Message(ALLOCATION, this, acceptMembers.get(i), null);
+			Message message = new Message(ALLOCATION, this, acceptMembers.get(i), (SubTask)null);
 			allMessages.add(message);
 		}
 		updateRoleEvaluation(false);
@@ -384,7 +465,7 @@ public class Leader extends Agent{
             acceptMembers.remove(team.get(subtask));
         }
         for(int i=0;i<acceptMembers.size();i++){
-			Message message = new Message(ALLOCATION, this, acceptMembers.get(i), null);
+			Message message = new Message(ALLOCATION, this, acceptMembers.get(i), (SubTask)null);
 			allMessages.add(message);
 		}
   

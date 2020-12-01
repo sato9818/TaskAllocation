@@ -68,6 +68,8 @@ public class Agent {
 	protected int remainingTime = 0;
 	//自分の処理しているサブタスク
 	protected SubTask mySubTask = null;
+	//距離2位内にいるエージェントのID
+	protected List<Agent> nearAgents = new ArrayList<Agent>();
 	
 	
 	//集計用------------------------------------------------------------------------------------
@@ -305,6 +307,7 @@ public class Agent {
 		this.leaderDe[message.from().getMyId()] = 
 				(1.0 - LEARNING_RATE/**/) * this.leaderDe[message.from().getMyId()] 
 				+ LEARNING_RATE * delta;
+		if(subTask != null)
 		if(subTask.getType() > 0) this.specificLeaderDe[subTask.getType()-1][message.from().getMyId()] 
 				= (1.0 - LEARNING_RATE/**/) * this.specificLeaderDe[subTask.getType()-1][message.from().getMyId()] 
 				+ LEARNING_RATE * delta;
@@ -340,6 +343,9 @@ public class Agent {
 	
 	public void reducede(int id){
 		leaderDe[id] = Math.max(leaderDe[id]-0.000002, 0.0);
+		for(int j=0;j<3;j++){
+			Math.max(specificLeaderDe[j][id]-0.000002, 0.0);
+		}
 		memberDe[id] = Math.max(memberDe[id]-0.000002, 0.0);
 	}
 	
