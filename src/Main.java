@@ -14,9 +14,19 @@ import Random.Seed;
 import Random.Sfmt;
 
 public class Main {
-	
+	static String csv_base_path;
 	public static void main(String[] args){
-		RECIPROCITY = Boolean.valueOf(args[0]);
+		String mode = args[0];
+		if(mode.equals("RECIPROCITY")){
+			RECIPROCITY = true;
+			csv_base_path = "csv/Reciprocity";
+		}else if(mode.equals("RATIONAL")){
+			RECIPROCITY = false;
+			csv_base_path = "csv/Rational";
+		}else if(mode.equals("CNP")){
+			CNP_MODE = true;
+			csv_base_path = "csv/CNP";
+		}
 		for(int trial = 0;trial<TRIAL_COUNT;trial++){
 			Environment e = new Environment(Seed._seeds[trial]);
 			for(int tick=0;tick<EXPERIMENTAL_DURATION;tick++){
@@ -39,13 +49,7 @@ public class Main {
 	private static void export(){
 		for(int i=0;i<NUM_OF_AREA;i++){
 			try{
-				FileWriter fw;
-				if(RECIPROCITY){
-					fw = new FileWriter("csv/Reciprocity/Area" + i + ".csv", false); 
-				}else{
-					fw = new FileWriter("csv/Rational/Area" + i + ".csv", false); 
-				}
-				
+				FileWriter fw = new FileWriter(csv_base_path + "/Area" + i + ".csv", false);
 	            PrintWriter pw = new PrintWriter(new BufferedWriter(fw));
 	            pw.print("tick");
 	        	pw.print(",");
@@ -164,13 +168,7 @@ public class Main {
 			
 		}
 		try{
-			FileWriter fw;
-			if(RECIPROCITY){
-				fw = new FileWriter("csv/Reciprocity/Environment.csv", false); 
-			}else{
-				fw = new FileWriter("csv/Rational/Environment.csv", false);
-			}
-			
+			FileWriter fw = new FileWriter(csv_base_path + "/Environment.csv", false);
             PrintWriter pw = new PrintWriter(new BufferedWriter(fw));
             pw.print("tick");
         	pw.print(",");

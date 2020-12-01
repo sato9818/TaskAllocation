@@ -10,7 +10,7 @@ import datetime as dt
 
 # plt.rcParams["font.size"] = 8
 col = ["executed task", "wasted task", "communication time", "executed time", "waiting time", "all executed time", "leader count", "member count", "reciprocity leader count", "reciprocity member count", "message count", "overflowed task", "average subtask queue size", "rejected task", "success rate"]
-ex_types= ["Rational", "Reciprocity"]
+ex_types= ["Rational", "Reciprocity", "CNP"]
 
 path = []
 for ex_type in ex_types:

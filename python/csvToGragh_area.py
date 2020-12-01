@@ -9,7 +9,7 @@ import numpy as np
 import datetime as dt
 
 col = ["executed task", "wasted task", "communication time", "executed time", "waiting time", "all executed time", "leader count", "member count", "reciprocity leader count", "reciprocity member count", "message count", "overflowed task", "rejected task"]
-ex_types= ["Rational", "Reciprocity"]
+ex_types= ["Rational", "Reciprocity", "CNP"]
 
 size = 1
 hei = int(math.sqrt(size))

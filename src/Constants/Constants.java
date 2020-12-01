@@ -5,7 +5,7 @@ public class Constants {
 	//設定系
 	//Option
 	public static final boolean ROLE_CHNAGEABLE = true;
-	public static boolean CNP_MODE = true;
+	public static boolean CNP_MODE = false;
 	public static boolean RECIPROCITY = true;
 	
 	//エリア分割
