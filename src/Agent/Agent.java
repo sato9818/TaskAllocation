@@ -146,6 +146,18 @@ public class Agent {
 	}
 	//---------------------------------------------------------------------------------------
 	
+	public List<Agent> sortAgentByDistance(List<Agent> agents){
+		for (int i = 0; i < agents.size() - 1; i++) {
+	       for (int j = agents.size() - 1; j > i; j--) {
+	            if (distance[agents.get(j - 1).getMyId()] > distance[agents.get(j).getMyId()]) {
+	                Collections.swap(agents,j-1,j);
+	            }
+	        }
+        }
+		return agents;
+	}
+	//---------------------------------------------------------------------------------------
+	
 	public List<Agent> sortAgentBySpecificLeaderDe(List<Agent> agents, int num){
 		for (int i = 0; i < agents.size() - 1; i++) {
             for (int j = agents.size() - 1; j > i; j--) {
@@ -216,10 +228,10 @@ public class Agent {
 	private void initializeDependability(){
 		for(int i=0;i<NUM_OF_AGENT;i++){
 			if(i != this.getMyId()){
-				leaderDe[i] = 0.0;
-				memberDe[i] = 0.0;
+				leaderDe[i] = 0.5;
+				memberDe[i] = 0.5;
 				for(int j=0;j<3;j++){
-					specificLeaderDe[j][i] = 0.0;
+					specificLeaderDe[j][i] = 0.5;
 				}
 			}
 		}
@@ -289,8 +301,10 @@ public class Agent {
 	public void updateDependablity(Message message, boolean success, int executedTime){
 		double delta = 0.0;
 		SubTask subTask = message.getSubTask();
+		int fromId = message.from().getMyId();
+		int utility = subTask.getutility();
 		if(success){
-			delta = (double)subTask.getutility() 
+			delta = (double)utility
 			/  //---------------------------------------------------------------
 					(double)(executedTime) ;
 			
@@ -300,18 +314,19 @@ public class Agent {
 //			System.out.println(executedTime);
 			
 		}else{
-			if(message.getType() == REFUSE){
-				delta = - (double)message.getSubTask().getutility();
-			}
+//			if(message.getType() == REFUSE){
+//				delta = - (double)utility;
+//			}
 		}
-		this.leaderDe[message.from().getMyId()] = 
-				(1.0 - LEARNING_RATE/**/) * this.leaderDe[message.from().getMyId()] 
+		this.leaderDe[fromId] = 
+				(1.0 - LEARNING_RATE/**/) * this.leaderDe[fromId] 
 				+ LEARNING_RATE * delta;
-		if(subTask != null)
-		if(subTask.getType() > 0) this.specificLeaderDe[subTask.getType()-1][message.from().getMyId()] 
-				= (1.0 - LEARNING_RATE/**/) * this.specificLeaderDe[subTask.getType()-1][message.from().getMyId()] 
-				+ LEARNING_RATE * delta;
-		
+		if(subTask != null){
+			int subTaskType = subTask.getType();
+			if(subTaskType > 0) this.specificLeaderDe[subTaskType - 1][fromId] 
+					= (1.0 - LEARNING_RATE/**/) * this.specificLeaderDe[subTaskType - 1][fromId] 
+					+ LEARNING_RATE * delta;
+		}
 	}
 	
 	//---------------------------------------------------------------------------------------
@@ -326,6 +341,19 @@ public class Agent {
 		}
 		return et;
 	}
+	
+	//---------------------------------------------------------------------------------------
+	
+	public double getUtility(SubTask s){
+		double et = 0;
+		for(int i=0;i<TYPES_OF_RESOURCE;i++){
+			double utility = (double)s.getcapacity(i) / ((int)Math.ceil((double)s.getcapacity(i) / capacity[i]));
+			if(et < utility ){
+				et = utility;
+			}
+		}
+		return et;
+	}		
 	
 	//---------------------------------------------------------------------------------------
 	
@@ -344,7 +372,7 @@ public class Agent {
 	public void reducede(int id){
 		leaderDe[id] = Math.max(leaderDe[id]-0.000002, 0.0);
 		for(int j=0;j<3;j++){
-			Math.max(specificLeaderDe[j][id]-0.000002, 0.0);
+			specificLeaderDe[j][id] = Math.max(specificLeaderDe[j][id]-0.000002, 0.0);
 		}
 		memberDe[id] = Math.max(memberDe[id]-0.000002, 0.0);
 	}
@@ -450,6 +478,15 @@ public class Agent {
 	public void clearSpecificDependablityAgent(){
 		for(int i=0;i<3;i++){
 			specificDeAgentsMap.get(i).clear();
+		}
+	}
+	
+	//---------------------------------------------------------------------------------------
+	
+	protected void decreaseDependability(List<Agent> agents){
+		for(int i=0;i<agents.size();i++){
+			Agent agent = agents.get(i);
+			this.reducede(agent.getMyId());
 		}
 	}
 	

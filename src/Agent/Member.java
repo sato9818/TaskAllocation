@@ -3,6 +3,7 @@ import static Constants.Constants.*;
 
 import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Queue;
@@ -45,8 +46,11 @@ public class Member extends Agent{
 	}
 	
 	//---------------------------------------------------------------------------------------
-	public void act(int tick){
+	public void act(int tick, List<Agent> agents){
 		chooseSubTasks(tick);
+//		if(RECIPROCITY){
+//			updateDependablityAgents(agents);
+//		}
 		memberCount[getMyId()]++;
 		ownedSubtask[getMyId()][tick] += messageQueue.size();
 		
@@ -107,7 +111,7 @@ public class Member extends Agent{
 			}
 			break;
 		}
-		
+		decreaseDependability(agents);
 	}
 	//---------------------------------------------------------------------------------------
 	
@@ -151,9 +155,6 @@ public class Member extends Agent{
 					message = decideMessage(solicitationMessages, Environment.rnd);
 				}
 				
-//				if(expectedTasks + taskQueue.size() ){
-//					decide = false;
-//				}
 				if(decide){
 					expectedTasks++;
 				}
@@ -193,11 +194,12 @@ public class Member extends Agent{
 	
 	public SubTask decideSubTask(Message message){
 		List<SubTask> subTasks = message.getSubTasks();
-		int time = 100;
+		Collections.shuffle(subTasks, Environment.r);
+		double time = 100;
 		SubTask confSubTask = null; 
 		for(int i=0;i<subTasks.size();i++){
 			SubTask subTask = subTasks.get(i);
-			int et;
+			double et;
 			if(time > (et = getExcutingTime(subTask))){
 				time = et;
 				confSubTask = subTask;
@@ -229,9 +231,6 @@ public class Member extends Agent{
 			allMessages.add(rejectedMessage);
 		}
 	}
-	
-	
-	
 	
 	//---------------------------------------------------------------------------------------
 	
@@ -332,6 +331,19 @@ public class Member extends Agent{
 					+ LEARNING_RATE * delta;
 		//System.out.println("de[" + message.getfrom().getmyid() + "] = " + this.de[message.getfrom().getmyid()]);
 		
+	}
+	
+	//---------------------------------------------------------------------------------------
+	
+	private void updateDependablityAgents(List<Agent> agents){
+		this.clearDependablityAgent();
+		for(int j=0;j<agents.size();j++){
+			Agent agent = agents.get(j);
+			if(MEMBER_DEPENDABLITY_DEGREE_THRESHOLD < this.getMemberDependablity(agent.getMyId())){
+				this.adddeagent(agent);
+			}
+		}
+		this.selectAction();
 	}
 	
 	

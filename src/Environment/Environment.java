@@ -174,7 +174,6 @@ public class Environment {
 		collectMessages();
 		changeRole();
 		countAgents(tick);
-		decreaseDependability();
 	}
 	
 	//---------------------------------------------------------------------------------------
@@ -200,20 +199,18 @@ public class Environment {
 	//---------------------------------------------------------------------------------------
 
 	private void leadersAct(int tick){
-		
 		for(int i=0;i<leaders.size();i++){
 			Leader leader = leaders.get(i);
-			leader.act(agents, tick);
+			leader.act(tick, agents);
 		}
 	}
 	
 	//---------------------------------------------------------------------------------------
 
 	private void membersAct(int tick){
-		
 		for(int i=0;i<members.size();i++){
 			Member member = members.get(i);
-			member.act(tick);
+			member.act(tick, agents);
 		}
 	}
 	
@@ -343,18 +340,23 @@ public class Environment {
 			Leader leader = leaders.get(i);
 			leader.clearDependablityAgent();
 			leader.clearSpecificDependablityAgent();
+			List<Agent> dependableAgents = new ArrayList<Agent>();
 			for(int j=0;j<agents.size();j++){
 				Agent agent = agents.get(j);
-				if(LEADER_DEPENDABLITY_DEGREE_THRESHOLD < leader.getLeaderDependablity(agent.getMyId())){
-					leader.adddeagent(agent);
-				}
+//				if(LEADER_DEPENDABLITY_DEGREE_THRESHOLD < this.getLeaderDependablity(agent.getMyId())){
+//					this.adddeagent(agent);
+//				}
 				for(int k=0;k<3;k++){
 					if(LEADER_DEPENDABLITY_DEGREE_THRESHOLD < leader.getLeaderSpecificDependablity(k, agent.getMyId())){
 						leader.addSpecificDeAgents(k, agent);
+						if(!dependableAgents.contains(agent)){//値を重複させない
+							dependableAgents.add(agent);
+						}
+						
 					}
 				}
 			}
-			leader.selectAction();
+			leader.selectAction(dependableAgents.size());
 		}
 		for(int i=0;i<members.size();i++){
 			Member member = members.get(i);
@@ -367,18 +369,6 @@ public class Environment {
 			}
 			member.selectAction();
 		}
-	}
-	
-	//---------------------------------------------------------------------------------------
-	
-	private void decreaseDependability(){
-		for(int j=0;j<agents.size();j++){
-			Agent agent1 = agents.get(j);
-			for(int i=0;i<agents.size();i++){
-				Agent agent2 = agents.get(i);
-				agent1.reducede(agent2.getMyId());
-			}
-    	}
 	}
 	
 	//---------------------------------------------------------------------------------------
@@ -542,6 +532,19 @@ public class Environment {
 		}
 		
 	}
+	//---------------------------------------------------------------------------------------
+	
+	public void printLeaderDe(){
+		Leader leader = leaders.get(0);
+		for(int i=0;i<3;i++){
+			leader.sortAgentBySpecificLeaderDe(agents, i);
+			for(int j=0;j<agents.size();j++){
+				System.out.println(leader.getLeaderSpecificDependablity(i, agents.get(j).getMyId()));
+			}
+		}
+		
+	}
+	
 	//---------------------------------------------------------------------------------------
 	
 	public void exportAgentConnection(int tick){
