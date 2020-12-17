@@ -51,7 +51,7 @@ public class Constants {
 	public static final int SUBTASK_FLUCTUATION = 3;
 	
 	//tick
-	public static final int EXPERIMENTAL_DURATION = 1001;
+	public static final int EXPERIMENTAL_DURATION = 10001;
 	
 	public static final int CHANGE_WORKLOAD_TIME = 150001;
 	public static final int RESTORE_WORKLOAD_TIME = 150001;

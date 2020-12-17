@@ -27,6 +27,7 @@ public class Main {
 			CNP_MODE = true;
 			csv_base_path = "csv/CNP";
 		}
+		long start = System.currentTimeMillis();
 		for(int trial = 0;trial<TRIAL_COUNT;trial++){
 			Environment e = new Environment(Seed._seeds[trial]);
 			for(int tick=0;tick<EXPERIMENTAL_DURATION;tick++){
@@ -43,6 +44,8 @@ public class Main {
 			
 			
 		}
+		long end = System.currentTimeMillis();
+		System.out.println((end - start)  + "ms");
 		export();
 		
 	}
