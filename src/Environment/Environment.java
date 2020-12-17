@@ -359,7 +359,7 @@ public class Environment {
 		for(int i=0;i<members.size();i++){
 			Member member = members.get(i);
 			member.clearDependablityAgent();
-			for(int j=0;j<leaders.size();j++){
+			for(int j=0;j<agents.size();j++){
 				Agent agent = agents.get(j);
 				if(MEMBER_DEPENDABLITY_DEGREE_THRESHOLD < member.getMemberDependablity(agent.getMyId())){
 					member.adddeagent(agent);

@@ -23,7 +23,7 @@ public class Constants {
 	
 	//負荷
 	public static final double LOW_WORKLOAD = 2;
-	public static final double MODERATE_WORKLOAD = 16;
+	public static final double MODERATE_WORKLOAD = 20;
 	public static final double HIGH_WORKLOAD = 6;
 	
 	//学習系
