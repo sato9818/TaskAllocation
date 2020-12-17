@@ -6,7 +6,7 @@ public class Constants {
 	//Option
 	public static final boolean ROLE_CHNAGEABLE = true;
 	public static boolean CNP_MODE = false;
-	public static boolean RECIPROCITY = true;
+	public static boolean RECIPROCITY = false;
 	
 	//エリア分割
 	public static final int NUM_OF_VERTICAL_DIVISION = 1;
@@ -23,7 +23,7 @@ public class Constants {
 	
 	//負荷
 	public static final double LOW_WORKLOAD = 2;
-	public static final double MODERATE_WORKLOAD = 16;
+	public static final double MODERATE_WORKLOAD = 23;
 	public static final double HIGH_WORKLOAD = 6;
 	
 	//学習系
@@ -51,7 +51,7 @@ public class Constants {
 	public static final int SUBTASK_FLUCTUATION = 3;
 	
 	//tick
-	public static final int EXPERIMENTAL_DURATION = 1001;
+	public static final int EXPERIMENTAL_DURATION = 10001;
 	
 	public static final int CHANGE_WORKLOAD_TIME = 150001;
 	public static final int RESTORE_WORKLOAD_TIME = 150001;
