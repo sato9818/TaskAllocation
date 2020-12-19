@@ -281,6 +281,11 @@ public class Leader extends Agent{
 					Agent agent = null;
 					int type;
 					
+					//ループ1週目のサブタスクの集合＝処理すべきサブタスクの集合
+					if(i == 0){
+						subTasksList.add(subtask);
+					}
+					
 					if((type = subtask.getType()) == 0){
 						agent = copyAgents.get(0);
 					}else{

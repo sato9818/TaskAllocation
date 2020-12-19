@@ -343,6 +343,7 @@ public class Environment {
 			Leader leader = leaders.get(i);
 			leader.clearDependablityAgent();
 			leader.clearSpecificDependablityAgent();
+			List<Agent> dependableAgents = new ArrayList<Agent>();
 			for(int j=0;j<agents.size();j++){
 				Agent agent = agents.get(j);
 				if(LEADER_DEPENDABLITY_DEGREE_THRESHOLD < leader.getLeaderDependablity(agent.getMyId())){
@@ -351,6 +352,9 @@ public class Environment {
 				for(int k=0;k<3;k++){
 					if(LEADER_DEPENDABLITY_DEGREE_THRESHOLD < leader.getLeaderSpecificDependablity(k, agent.getMyId())){
 						leader.addSpecificDeAgents(k, agent);
+//						if(!dependableAgents.contains(agent)){//値を重複させない
+//							dependableAgents.add(agent);
+//						}
 					}
 				}
 			}
