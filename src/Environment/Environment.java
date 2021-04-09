@@ -343,6 +343,7 @@ public class Environment {
 			Leader leader = leaders.get(i);
 			leader.clearDependablityAgent();
 			leader.clearSpecificDependablityAgent();
+			leader.selectAction(false);
 			List<Agent> dependableAgents = new ArrayList<Agent>();
 			for(int j=0;j<agents.size();j++){
 				Agent agent = agents.get(j);
@@ -355,10 +356,11 @@ public class Environment {
 //						if(!dependableAgents.contains(agent)){//値を重複させない
 //							dependableAgents.add(agent);
 //						}
+						leader.selectAction(true);
 					}
 				}
 			}
-			leader.selectAction();
+//			leader.selectAction();
 		}
 		for(int i=0;i<members.size();i++){
 			Member member = members.get(i);

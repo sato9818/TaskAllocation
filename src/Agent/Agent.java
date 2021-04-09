@@ -131,6 +131,93 @@ public class Agent {
 	
 	public void readMessage(Message message, int tick){
 	}
+	
+	public void mergeSortAgentByLeaderDe(List<Agent> agents, int left, int right) {
+		if (left <= right) {
+			//軸を決める
+			Agent p = agents.get((left + right) / 2);
+
+			int l = left;
+			int r = right;
+
+			while(l <= r) {
+				while(leaderDe[agents.get(l).getMyId()] > leaderDe[p.getMyId()]){
+					l++;
+				}
+				while(leaderDe[agents.get(r).getMyId()] < leaderDe[p.getMyId()]){
+					r--;
+				}
+
+				if (l <= r) {
+					Agent tmp = agents.get(l);
+					agents.set(l, agents.get(r));
+					agents.set(r, tmp);
+					l++;
+					r--;
+				}
+			}
+			mergeSortAgentByLeaderDe(agents, left, r);
+			mergeSortAgentByLeaderDe(agents, l, right);
+		}
+	}
+	
+	public void mergeSortAgentBySpecificLeaderDe(List<Agent> agents, int left, int right, int num) {
+		if (left <= right) {
+			//軸を決める
+			Agent p = agents.get((left + right) / 2);
+
+			int l = left;
+			int r = right;
+
+			while(l <= r) {
+				while(specificLeaderDe[num][agents.get(l).getMyId()] > specificLeaderDe[num][p.getMyId()]){
+					l++;
+				}
+				while(specificLeaderDe[num][agents.get(r).getMyId()] < specificLeaderDe[num][p.getMyId()]){
+					r--;
+				}
+
+				if (l <= r) {
+					Agent tmp = agents.get(l);
+					agents.set(l, agents.get(r));
+					agents.set(r, tmp);
+					l++;
+					r--;
+				}
+			}
+			mergeSortAgentBySpecificLeaderDe(agents, left, r, num);
+			mergeSortAgentBySpecificLeaderDe(agents, l, right, num);
+		}
+	}
+	
+	public void mergeSortMessageByMemberDe(List<Message> messages, int left, int right) {
+		if (left <= right) {
+			//軸を決める
+			Message p = messages.get((left + right) / 2);
+
+			int l = left;
+			int r = right;
+
+			while(l <= r) {
+				while(memberDe[messages.get(l).from().getMyId()] > memberDe[p.from().getMyId()]){
+					l++;
+				}
+				while(memberDe[messages.get(r).from().getMyId()] < memberDe[p.from().getMyId()]){
+					r--;
+				}
+
+				if (l <= r) {
+					Message tmp = messages.get(l);
+					messages.set(l, messages.get(r));
+					messages.set(r, tmp);
+					l++;
+					r--;
+				}
+			}
+			mergeSortMessageByMemberDe(messages, left, r);
+			mergeSortMessageByMemberDe(messages, l, right);
+		}
+	}
 		
 	//---------------------------------------------------------------------------------------
 	

@@ -8,11 +8,17 @@ public class Constants {
 	public static boolean CNP_MODE = false;
 	public static boolean RECIPROCITY = false;
 	
+	//負荷
+	public static final double LOW_WORKLOAD = 2;
+	public static final double MODERATE_WORKLOAD = 12;
+	public static final double HIGH_WORKLOAD = 6;
+	
 	//エリア分割
-	public static final int NUM_OF_VERTICAL_DIVISION = 1;
-	public static final int NUM_OF_HORIZONTAL_DIVISION = 1;
+	public static final int NUM_OF_VERTICAL_DIVISION = 2;
+	public static final int NUM_OF_HORIZONTAL_DIVISION = 2;
 	public static final int NUM_OF_AREA = NUM_OF_VERTICAL_DIVISION * NUM_OF_HORIZONTAL_DIVISION;
 	public static final int TASK_QUEUE_SIZE = 1000;
+	public static final double[] WORKLOADS = { MODERATE_WORKLOAD, LOW_WORKLOAD, LOW_WORKLOAD, HIGH_WORKLOAD };
 	
 	//グリッドの範囲
 	public static final int GRID_X = 50;
@@ -20,11 +26,6 @@ public class Constants {
 	
 	//エージェントの数
 	public static final int NUM_OF_AGENT = 500;
-	
-	//負荷
-	public static final double LOW_WORKLOAD = 2;
-	public static final double MODERATE_WORKLOAD = 23;
-	public static final double HIGH_WORKLOAD = 6;
 	
 	//学習系
 	public static final double LEARNING_RATE = 0.05;
@@ -60,7 +61,7 @@ public class Constants {
 	
 	public static final int FIRST_MEASURE_TIME = 10000;
 	
-	public static final int TRIAL_COUNT = 1;
+	public static final int TRIAL_COUNT = 100;
 	
 //	-------------------------------------------------------------------------------------------------
 	

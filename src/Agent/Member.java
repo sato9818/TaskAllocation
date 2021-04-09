@@ -180,7 +180,7 @@ public class Member extends Agent{
 			Message message = messages.get(p);
 			return message;
 		}else{
-			messages = sortMessageByMemberDe(messages);
+			mergeSortMessageByMemberDe(messages, 0, messages.size() - 1);
 			Message message = messages.get(0);
 //			for(int i=0;i<messages.size();i++){
 //				System.out.println("member: " + getMyId() + " " + memberDe[messages.get(i).from().getMyId()]);
@@ -193,13 +193,13 @@ public class Member extends Agent{
 	
 	public SubTask decideSubTask(Message message){
 		List<SubTask> subTasks = message.getSubTasks();
-		int time = 100;
+		double max = 0;
 		SubTask confSubTask = null; 
 		for(int i=0;i<subTasks.size();i++){
 			SubTask subTask = subTasks.get(i);
-			int et;
-			if(time > (et = getExcutingTime(subTask))){
-				time = et;
+			double utility;
+			if(max < (utility = (double)subTask.getutility() / getExcutingTime(subTask))){
+				max = utility;
 				confSubTask = subTask;
 			}
 		}
@@ -299,7 +299,7 @@ public class Member extends Agent{
 	//---------------------------------------------------------------------------------------
 	
 	private void chooseSubTasks(int tick){
-		preSubTasks = sortMessageByMemberDe(preSubTasks);
+		mergeSortMessageByMemberDe(preSubTasks, 0, preSubTasks.size() - 1);
 //		System.out.println("ID: " + getMyId());
 		for(int i = 0;i<preSubTasks.size();i++){
 			Message message = preSubTasks.get(i);
