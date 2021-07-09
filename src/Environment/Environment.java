@@ -62,21 +62,7 @@ public class Environment {
 		int count = 0;
 		for(int i=0;i<NUM_OF_VERTICAL_DIVISION;i++){
 			for(int j=0;j<NUM_OF_HORIZONTAL_DIVISION;j++){
-//				double p = rnd.NextUnif();
-				double workload = MODERATE_WORKLOAD;
-				if(count == 2){
-					workload = LOW_WORKLOAD;
-				}else if(count == 3){
-					workload = HIGH_WORKLOAD;
-				}
-//				if(p < 1.0 / 3){
-//					workload = LOW_WORKLOAD;
-//				}else if(p < 2.0 / 3){
-//					workload = MODERATE_WORKLOAD;
-//				}else{
-//					workload = HIGH_WORKLOAD;
-//				}
-				Area area = new Area(workload, i*divX, j*divY, (i+1) * divX - 1, (j+1) * divY - 1);
+				Area area = new Area(WORKLOADS[count], i*divX, j*divY, (i+1) * divX - 1, (j+1) * divY - 1);
 				areas.add(area);
 				count++;
 			}
@@ -148,12 +134,8 @@ public class Environment {
 		if(tick == RESTORE_WORKLOAD_TIME){
 			changeAreaWorkload(MODERATE_WORKLOAD, areas.get(0));
 		}
-		
-		if(tick == CHANGE_SUBTASKS_TIME){
-			BASIC_SUBTASKS = 6;
-		}
-		if(tick == RESTORE_SUBTASKS_TIME){
-			BASIC_SUBTASKS = 3;
+		if(tick >= TIME_TO_RESET_DE && tick % 100 == 0){
+			resetDeAndSetBetterAgents();
 		}
 		
 		for(int i=0;i<areas.size();i++){
@@ -203,7 +185,18 @@ public class Environment {
 		
 		for(int i=0;i<leaders.size();i++){
 			Leader leader = leaders.get(i);
-			leader.act(agents, tick);
+			if(tick >= TIME_TO_RESET_DE){
+				List<Agent> mainAgents = new ArrayList<Agent>();
+				for(int j = 0;j<agents.size();j++){
+					if(leader.getMainMemberIds().contains(agents.get(j).getMyId())){
+						mainAgents.add(agents.get(j));
+					}
+				}
+				leader.act(mainAgents, tick);
+			}else{
+				leader.act(agents, tick);
+			}
+				
 		}
 	}
 	
@@ -384,6 +377,14 @@ public class Environment {
 				Agent agent2 = agents.get(i);
 				agent1.reducede(agent2.getMyId());
 			}
+    	}
+	}
+	
+	public void resetDeAndSetBetterAgents(){
+		for(int j=0;j<agents.size();j++){
+			Agent agent = agents.get(j);
+			agent.setMainAgents(new ArrayList<Agent>(agents));
+//			agent.resetDe();
     	}
 	}
 	

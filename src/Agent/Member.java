@@ -116,7 +116,7 @@ public class Member extends Agent{
 		mySubTask = allocationMessage.getSubTask(); 
 		int et = getExcutingTime(mySubTask);	
 		remainingTime = et;
-		finishMessage = new Message(FINISH, this, allocationMessage.from(), allocationMessage.getSubTask(), et);
+		finishMessage = new Message(FINISH, this, allocationMessage.from(), allocationMessage.getSubTask(), et, messageQueue.size());
 		waitingTime[this.getArea().getId()][tick] += tick - allocateTimeMap.get(finishMessage.getSubTask().getTaskId());
 		executeTask(tick);
 	}

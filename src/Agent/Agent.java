@@ -71,6 +71,17 @@ public class Agent {
 	//距離2位内にいるエージェントのID
 	protected List<Agent> nearAgents = new ArrayList<Agent>();
 	
+	protected List<Integer> mainMemberIds = new ArrayList<Integer>();
+	
+	protected List<Integer> subMemberIds = new ArrayList<Integer>();
+	
+	//タスクを渡してまだ終了報告が返ってきていないメンバ
+	protected List<Agent> executingMembers = new ArrayList<Agent>();
+	
+	protected int sumQueueSize = 0;
+	protected int failureOrFinishedmessage = 0;
+	
+	
 	
 	//集計用------------------------------------------------------------------------------------
 	//処理したタスク数
@@ -125,9 +136,12 @@ public class Agent {
 		memberEvaluation = agent.memberEvaluation;
 		memberListMap = agent.memberListMap;
 		executionTimeMap = agent.executionTimeMap;
+		mainMemberIds = agent.mainMemberIds;
+		subMemberIds = agent.subMemberIds;
+		sumQueueSize = agent.sumQueueSize;
+		failureOrFinishedmessage = agent.failureOrFinishedmessage;
 	}
 	
-	//---------------------------------------------------------------------------------------
 	
 	public void readMessage(Message message, int tick){
 	}
@@ -218,43 +232,55 @@ public class Agent {
 			mergeSortMessageByMemberDe(messages, l, right);
 		}
 	}
+	
+	public void resetDe(){
+		for(int i=0;i<NUM_OF_AGENT;i++){
+			leaderDe[i] = 0.0;
+			memberDe[i] = 0.0;
+		}
+	}
+	
+	public void setMainAgents(List<Agent> agents){
+		int mainMemberSize;
+		if(failureOrFinishedmessage == 0){
+			mainMemberSize = NUM_OF_AGENT - 1;
+		}else{
+			double averageQueue = (double)sumQueueSize / failureOrFinishedmessage;
+			mainMemberSize = 50 + (int)(NUM_OF_AGENT * (averageQueue / MEMBER_DEPENDABLITY_AGENT_THRESHOLD));
+			if(mainMemberSize >= NUM_OF_AGENT){
+				mainMemberSize = NUM_OF_AGENT - 1;
+			}
+		}
+
+		System.out.println(mainMemberSize);
 		
-	//---------------------------------------------------------------------------------------
-	
-	public List<Agent> sortAgentByLeaderDe(List<Agent> agents){
-		for (int i = 0; i < agents.size() - 1; i++) {
-            for (int j = agents.size() - 1; j > i; j--) {
-                if (leaderDe[agents.get(j - 1).getMyId()] < leaderDe[agents.get(j).getMyId()]) {
-                    Collections.swap(agents,j-1,j);
-                }
-            }
-        }
-		return agents;
-	}
-	//---------------------------------------------------------------------------------------
-	
-	public List<Agent> sortAgentBySpecificLeaderDe(List<Agent> agents, int num){
-		for (int i = 0; i < agents.size() - 1; i++) {
-            for (int j = agents.size() - 1; j > i; j--) {
-                if (specificLeaderDe[num][agents.get(j - 1).getMyId()] < specificLeaderDe[num][agents.get(j).getMyId()]) {
-                    Collections.swap(agents,j-1,j);
-                }
-            }
-        }
-		return agents;
-	}
-	
-	//---------------------------------------------------------------------------------------
-	
-	public List<Message> sortMessageByMemberDe(List<Message> messages){
-		for (int i = 0; i < messages.size() - 1; i++) {
-            for (int j = messages.size() - 1; j > i; j--) {
-                if (memberDe[messages.get(j - 1).from().getMyId()] < memberDe[messages.get(j).from().getMyId()]) {
-                    Collections.swap(messages,j-1,j);
-                }
-            }
-        }
-		return messages;
+		if(mainMemberIds.size() < mainMemberSize){
+			List<Agent> allAgents = new ArrayList<Agent>(agents);
+			for(int i = 0;i<agents.size();i++){
+				Agent agent = agents.get(i);
+				if(mainMemberIds.contains(agent.getMyId())){
+					allAgents.remove(agent);
+				}
+			}
+			mergeSortAgentByLeaderDe(allAgents, 0, allAgents.size()-1);
+			for(int i = 0;i < mainMemberSize-mainMemberIds.size();i++){
+				Agent agent = allAgents.get(i);
+				mainMemberIds.add(agent.getMyId());
+			}
+		}else if(mainMemberIds.size() > mainMemberSize){
+			List<Agent> allAgents = new ArrayList<Agent>();
+			for(int i = 0;i<agents.size();i++){
+				Agent agent = agents.get(i);
+				if(mainMemberIds.contains(agent.getMyId())){
+					allAgents.add(agent);
+				}
+			}
+			mergeSortAgentByLeaderDe(allAgents, 0, allAgents.size()-1);
+			for(int i = 0;i < mainMemberIds.size()-mainMemberSize;i++){
+				Agent agent = allAgents.get(allAgents.size() - i - 1);
+				mainMemberIds.remove(Integer.valueOf(agent.getMyId()));
+			}
+		}
 	}
 	
 	//---------------------------------------------------------------------------------------
@@ -342,6 +368,8 @@ public class Agent {
 		Agent member = message.from();
 		SubTask subTask = message.getSubTask();
 		int taskId = subTask.getTaskId();
+		sumQueueSize += message.getQueueSize();
+		failureOrFinishedmessage++;
 		
 		List<Agent> executingMember = memberListMap.get(taskId);
 		if(executingMember == null) return;
@@ -362,7 +390,11 @@ public class Agent {
 	protected void notifyFailure(Message message, int tick){
 		List<Agent> members = memberListMap.get(message.getSubTask().getTaskId());
 		if(members == null) return;
-		members.remove(message.from());
+		Agent betrayal = message.from();
+		sumQueueSize += SUB_TASK_QUEUE_SIZE;
+		failureOrFinishedmessage++;
+		members.remove(betrayal);
+		executingMembers.remove(betrayal);
 		for(int i=0;i<members.size();i++){
 			allMessages.add(new Message(COLLAPSE_TEAM, this, members.get(i), message.getSubTask()));
 		}
@@ -407,7 +439,7 @@ public class Agent {
 		int et = 0;
 		for(int i=0;i<TYPES_OF_RESOURCE;i++){
 			int a = (int)Math.ceil((double)s.getcapacity(i) / capacity[i]);
-			if(et < a ){
+			if(et < a){
 				et = a;
 			}
 		}
@@ -462,19 +494,6 @@ public class Agent {
 	
 	//---------------------------------------------------------------------------------------
 	
-//	public List<Agent> sortagent(List<Agent> agents){
-//		for (int i = 0; i < agents.size() - 1; i++) {
-//            for (int j = agents.size() - 1; j > i; j--) {
-//                if (de[agents.get(j - 1).getMyId()] < de[agents.get(j).getMyId()]) {
-//                    Collections.swap(agents,j-1,j);
-//                }
-//            }
-//        }
-//		return agents;
-//	}
-	
-	//---------------------------------------------------------------------------------------
-	
 	public double getLeaderEvaluation(){
 		return leaderEvaluation;
 	}
@@ -524,6 +543,10 @@ public class Agent {
 	
 	public List<Agent> getDeAgents(){
 		return deAgents;
+	}
+	
+	public List<Integer> getMainMemberIds(){
+		return mainMemberIds;
 	}
 	
 	//---------------------------------------------------------------------------------------

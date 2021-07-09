@@ -17,6 +17,7 @@ public class Message {
 	private Agent to;
 	private boolean acceptance;
 	private int executedTime;
+	private int queueSize;
 	
 	//---------------------------------------------------------------------------------------
 	//SOLICITATION
@@ -45,13 +46,14 @@ public class Message {
 	
 	//---------------------------------------------------------------------------------------
 	//FINISH
-	public Message(int type, Agent from, Agent to, SubTask subtask, int executedTime){
+	public Message(int type, Agent from, Agent to, SubTask subtask, int executedTime, int queueSize){
 		setDelay(from, to);
 		this.type = type;
 		this.from = from;
 		this.to = to;
 		this.subtask = subtask;
 		this.executedTime = executedTime;
+		this.queueSize = queueSize;
 	}
 	
 	//---------------------------------------------------------------------------------------
@@ -141,5 +143,11 @@ public class Message {
 	
 	public int getExecutedTime(){
 		return executedTime;
+	}
+	
+	//---------------------------------------------------------------------------------------
+	
+	public int getQueueSize(){
+		return queueSize;
 	}
 }

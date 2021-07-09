@@ -32,6 +32,7 @@ public class Leader extends Agent{
 	//サブタスクとそれを処理するメンバのリスト
 	private HashMap<SubTask, Agent> team = new HashMap<SubTask, Agent>();
 	
+	
 	int time = 0;
 	
 	
@@ -47,9 +48,6 @@ public class Leader extends Agent{
 	//---------------------------------------------------------------------------------------
 	
 	public void act(List<Agent> agents, int tick){
-//		ld.setTick(tick);
-//		roleReject += ld.getRejectMessages().size();
-//		ld.sendRejectMessage(e);
 		leaderCount[getMyId()]++;
 		switch(phase){
 		case SELECT_MEMBER:
@@ -196,20 +194,20 @@ public class Leader extends Agent{
 	//---------------------------------------------------------------------------------------
 	
 	public List<Message> selectMember(List<Agent> agents, Task task){
-		
 		List<Message> messages = new ArrayList<Message>();
 		List<SubTask> subTasks = task.getSubTasks();
 		Collections.sort(subTasks, new SubUtilityComparator());
 		//信頼エージェントに渡すサブタスク
 		List<SubTask> confSubTask = new ArrayList<SubTask>();
 		List<Agent> copyAgents = new ArrayList<Agent>(agents);
+//		copyAgents.removeAll(executingMembers);
 		copyAgents.remove(this);
 		Collections.shuffle(copyAgents, Environment.r);
 		mergeSortAgentByLeaderDe(copyAgents, 0, copyAgents.size()-1);
 		
 		HashMap<Integer, List<Agent>> specificSortingAgentsMap = new HashMap<Integer, List<Agent>>();
 		for(int i=0;i<3;i++){
-			List<Agent> copySpecificAgents = new ArrayList<Agent>(agents);
+			List<Agent> copySpecificAgents = new ArrayList<Agent>(copyAgents);
 			mergeSortAgentBySpecificLeaderDe(copySpecificAgents, 0, copySpecificAgents.size()-1, i);
 			copySpecificAgents.remove(this);
 			specificSortingAgentsMap.put(i, copySpecificAgents);
@@ -222,14 +220,15 @@ public class Leader extends Agent{
 		
 		if(this.isReciprocity()){
 			List<Agent> copyDeAgents = new ArrayList<Agent>(deAgents);
+//			copyDeAgents.removeAll(executingMembers);
 			mergeSortAgentByLeaderDe(copyDeAgents, 0, copyDeAgents.size() - 1);
-			
 			HashMap<Integer, List<Agent>> specificSortingDeAgentsMap = new HashMap<Integer, List<Agent>>();
 			for(int i=0;i<3;i++){
 				List<Agent> copySpecificDeAgents = new ArrayList<Agent>(specificDeAgentsMap.get(i));
 				mergeSortAgentBySpecificLeaderDe(copySpecificDeAgents, 0, copySpecificDeAgents.size() - 1, i);
 				specificSortingDeAgentsMap.put(i, copySpecificDeAgents);
 			}
+
 			for(int i=0;i<SOLICITATION_REDUNDANCY;i++){
 				for(int j=0;j<subTasks.size();j++){
 					SubTask subtask = subTasks.get(j);
@@ -241,8 +240,9 @@ public class Leader extends Agent{
 						subTasksList.add(subtask);
 					}
 					Agent agent = null;
-					int type;
-					if((type = subtask.getType()) == 0){
+					int type = subtask.getType();
+
+					if(type == 0){
 						if(!copyDeAgents.isEmpty()){
 							agent = copyDeAgents.get(0);
 							copyDeAgents.remove(agent);
@@ -495,6 +495,7 @@ public class Leader extends Agent{
             allMessages.add(message);
             //this.updatede(new MessagetoLeader(message.getto(),message.getfrom(),message.getsubtask(),0,message.getto().setexcutiontime(message.getsubtask())), true);
             membersExcuting.add(member);
+            executingMembers.add(member);
             acceptMembers.remove(team.get(subtask));
         }
         for(int i=0;i<acceptMembers.size();i++){

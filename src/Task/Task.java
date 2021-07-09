@@ -28,7 +28,7 @@ public class Task {
 		for(int i=0;i<numOfSubtask;i++){
 			SubTask subtask = new SubTask(id);
 			subtasks.add(subtask);
-			utility +=subtask.getutility();
+			utility += subtask.getutility();
 		}
 		 
 	}

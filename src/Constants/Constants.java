@@ -10,15 +10,16 @@ public class Constants {
 	
 	//負荷
 	public static final double LOW_WORKLOAD = 2;
-	public static final double MODERATE_WORKLOAD = 12;
+	public static final double MODERATE_WORKLOAD = 10;
 	public static final double HIGH_WORKLOAD = 6;
 	
 	//エリア分割
-	public static final int NUM_OF_VERTICAL_DIVISION = 2;
-	public static final int NUM_OF_HORIZONTAL_DIVISION = 2;
+	public static final int NUM_OF_VERTICAL_DIVISION = 1;
+	public static final int NUM_OF_HORIZONTAL_DIVISION = 1;
 	public static final int NUM_OF_AREA = NUM_OF_VERTICAL_DIVISION * NUM_OF_HORIZONTAL_DIVISION;
 	public static final int TASK_QUEUE_SIZE = 1000;
-	public static final double[] WORKLOADS = { MODERATE_WORKLOAD, LOW_WORKLOAD, LOW_WORKLOAD, HIGH_WORKLOAD };
+//	public static final double[] WORKLOADS = { LOW_WORKLOAD, MODERATE_WORKLOAD, HIGH_WORKLOAD, LOW_WORKLOAD };
+	public static final double[] WORKLOADS = { MODERATE_WORKLOAD };
 	
 	//グリッドの範囲
 	public static final int GRID_X = 50;
@@ -48,20 +49,26 @@ public class Constants {
 	public static final int TYPES_OF_RESOURCE = 3;
 	
 	//タスク数
-	public static int BASIC_SUBTASKS = 3;
+	public static final int BASIC_SUBTASKS = 3;
 	public static final int SUBTASK_FLUCTUATION = 3;
+	
+	//サブタスクリソース
+	public static final int BASIC_RESOURCE = 5;
+	public static final int RESOURCE_FLUCTUATION = 0;
+	public static final int ADDITIONAL_RESOURCE = 5;
 	
 	//tick
 	public static final int EXPERIMENTAL_DURATION = 150001;
 	
-	public static final int CHANGE_WORKLOAD_TIME = 150001;
-	public static final int RESTORE_WORKLOAD_TIME = 150001;
-	public static final int CHANGE_SUBTASKS_TIME = 150001;
-	public static final int RESTORE_SUBTASKS_TIME = 150001;
+	public static final int CHANGE_WORKLOAD_TIME = EXPERIMENTAL_DURATION;
+	public static final int RESTORE_WORKLOAD_TIME = EXPERIMENTAL_DURATION;
+	public static final int CHANGE_SUBTASKS_TIME = EXPERIMENTAL_DURATION;
+	public static final int RESTORE_SUBTASKS_TIME = EXPERIMENTAL_DURATION;
+	public static final int TIME_TO_RESET_DE = 40000;
 	
 	public static final int FIRST_MEASURE_TIME = 10000;
 	
-	public static final int TRIAL_COUNT = 100;
+	public static final int TRIAL_COUNT = 5;
 	
 //	-------------------------------------------------------------------------------------------------
 	

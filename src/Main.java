@@ -15,6 +15,7 @@ import Random.Sfmt;
 
 public class Main {
 	static String csv_base_path;
+	static int tick = 0;
 	public static void main(String[] args){
 		String mode = args[0];
 		if(mode.equals("RECIPROCITY")){
@@ -28,9 +29,10 @@ public class Main {
 			csv_base_path = "csv/CNP";
 		}
 		long start = System.currentTimeMillis();
+		
 		for(int trial = 0;trial<TRIAL_COUNT;trial++){
 			Environment e = new Environment(Seed._seeds[trial]);
-			for(int tick=0;tick<EXPERIMENTAL_DURATION;tick++){
+			for(tick=0;tick<EXPERIMENTAL_DURATION;tick++){
 				e.run(tick);
 //				if(RECIPROCITY == true && (tick == CHANGE_SUBTASKS_TIME || tick == RESTORE_SUBTASKS_TIME || tick == FIRST_MEASURE_TIME)){
 //					e.exportAgentConnection(tick);
@@ -202,6 +204,8 @@ public class Main {
         	pw.print("average subtask queue size");
         	pw.print(",");
         	pw.print("rejected task");
+        	pw.print(",");
+        	pw.print("success rate");
         	pw.println();
         	
             int executedTask = 0;
@@ -268,6 +272,8 @@ public class Main {
 		        	pw.print(avgSubTaskQueue / TRIAL_COUNT / 100);
 		        	pw.print(",");
 		        	pw.print(rejectedTask / TRIAL_COUNT);
+		        	pw.print(",");
+		        	pw.print((double)executedTask / (executedTask + wastedTask + overflowedTask + rejectedTask));
 		        	pw.println();
 		        	
 		        	executedTask = 0;
