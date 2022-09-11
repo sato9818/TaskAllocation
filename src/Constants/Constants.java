@@ -58,7 +58,7 @@ public class Constants {
 	public static final int ADDITIONAL_RESOURCE = 5;
 	
 	//tick
-	public static final int EXPERIMENTAL_DURATION = 150001;
+	public static final int EXPERIMENTAL_DURATION = 1501;
 	
 	public static final int CHANGE_WORKLOAD_TIME = EXPERIMENTAL_DURATION;
 	public static final int RESTORE_WORKLOAD_TIME = EXPERIMENTAL_DURATION;
@@ -68,7 +68,7 @@ public class Constants {
 	
 	public static final int FIRST_MEASURE_TIME = 10000;
 	
-	public static final int TRIAL_COUNT = 5;
+	public static final int TRIAL_COUNT = 1;
 	
 //	-------------------------------------------------------------------------------------------------
 	

@@ -1,6 +1,7 @@
 csv/
 pdf/
 png/
+bin/
 .classpath
 .project
 .DS_Store
