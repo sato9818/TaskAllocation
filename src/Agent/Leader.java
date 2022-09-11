@@ -203,7 +203,7 @@ public class Leader extends Agent{
 //		copyAgents.removeAll(executingMembers);
 		copyAgents.remove(this);
 		Collections.shuffle(copyAgents, Environment.r);
-		mergeSortAgentByLeaderDe(copyAgents, 0, copyAgents.size()-1);
+		sortAgentsByLeaderDe(copyAgents, 0, copyAgents.size()-1);
 		
 		HashMap<Integer, List<Agent>> specificSortingAgentsMap = new HashMap<Integer, List<Agent>>();
 		for(int i=0;i<3;i++){
@@ -221,7 +221,7 @@ public class Leader extends Agent{
 		if(this.isReciprocity()){
 			List<Agent> copyDeAgents = new ArrayList<Agent>(deAgents);
 //			copyDeAgents.removeAll(executingMembers);
-			mergeSortAgentByLeaderDe(copyDeAgents, 0, copyDeAgents.size() - 1);
+			sortAgentsByLeaderDe(copyDeAgents, 0, copyDeAgents.size() - 1);
 			HashMap<Integer, List<Agent>> specificSortingDeAgentsMap = new HashMap<Integer, List<Agent>>();
 			for(int i=0;i<3;i++){
 				List<Agent> copySpecificDeAgents = new ArrayList<Agent>(specificDeAgentsMap.get(i));
@@ -348,7 +348,7 @@ public class Leader extends Agent{
 		List<Agent> copyAgents = new ArrayList<Agent>(agents);
 		copyAgents.remove(this);
 		Collections.shuffle(copyAgents, Environment.r);
-		mergeSortAgentByLeaderDe(copyAgents, 0, copyAgents.size()-1);
+		sortAgentsByLeaderDe(copyAgents, 0, copyAgents.size()-1);
 		
 		//リーダーは自分の処理するサブタスクを取っておく。
 		mySubTask = getMySubTask(subTasks);
@@ -356,7 +356,7 @@ public class Leader extends Agent{
 		remainingTime = getExcutingTime(mySubTask);
 		
 		List<Agent> copyDeAgents = new ArrayList<Agent>(deAgents);
-		mergeSortAgentByLeaderDe(copyDeAgents, 0, copyAgents.size() - 1);
+		sortAgentsByLeaderDe(copyDeAgents, 0, copyAgents.size() - 1);
 
 		for(int i=0;i<SOLICITATION_REDUNDANCY;i++){
 			for(int j=0;j<subTasks.size();j++){

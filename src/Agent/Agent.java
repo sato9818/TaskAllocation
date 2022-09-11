@@ -146,33 +146,29 @@ public class Agent {
 	public void readMessage(Message message, int tick){
 	}
 	
-	public void mergeSortAgentByLeaderDe(List<Agent> agents, int left, int right) {
-		if (left <= right) {
-			//軸を決める
-			Agent p = agents.get((left + right) / 2);
+	private int partition(List<Agent> agents, int left, int right) {
+	    int i = left;
+	    int mid = (right+left) / 2;
+	    Agent pivotAgent = agents.get(mid);
+	    Collections.swap(agents, mid, right);
+	    for (int j = left; j < right ; j++) {
+	        if (leaderDe[agents.get(j).getMyId()] >= leaderDe[pivotAgent.getMyId()]) {
+	        	Collections.swap(agents, i, j);
+	            i++;
+	        }
+	    }
+	    Collections.swap(agents, i, right);
 
-			int l = left;
-			int r = right;
-
-			while(l <= r) {
-				while(leaderDe[agents.get(l).getMyId()] > leaderDe[p.getMyId()]){
-					l++;
-				}
-				while(leaderDe[agents.get(r).getMyId()] < leaderDe[p.getMyId()]){
-					r--;
-				}
-
-				if (l <= r) {
-					Agent tmp = agents.get(l);
-					agents.set(l, agents.get(r));
-					agents.set(r, tmp);
-					l++;
-					r--;
-				}
-			}
-			mergeSortAgentByLeaderDe(agents, left, r);
-			mergeSortAgentByLeaderDe(agents, l, right);
-		}
+	    return i;
+	}
+	
+	// 'right' is the most right index in agents 
+	public void sortAgentsByLeaderDe(List<Agent> agents, int left, int right) {
+		if (left < right) {    
+	        int q = partition(agents, left, right);
+	        sortAgentsByLeaderDe(agents, left, q-1);
+	        sortAgentsByLeaderDe(agents, q+1, right);
+	    }
 	}
 	
 	public void mergeSortAgentBySpecificLeaderDe(List<Agent> agents, int left, int right, int num) {
@@ -262,7 +258,7 @@ public class Agent {
 					allAgents.remove(agent);
 				}
 			}
-			mergeSortAgentByLeaderDe(allAgents, 0, allAgents.size()-1);
+			sortAgentsByLeaderDe(allAgents, 0, allAgents.size()-1);
 			for(int i = 0;i < mainMemberSize-mainMemberIds.size();i++){
 				Agent agent = allAgents.get(i);
 				mainMemberIds.add(agent.getMyId());
@@ -275,7 +271,7 @@ public class Agent {
 					allAgents.add(agent);
 				}
 			}
-			mergeSortAgentByLeaderDe(allAgents, 0, allAgents.size()-1);
+			sortAgentsByLeaderDe(allAgents, 0, allAgents.size()-1);
 			for(int i = 0;i < mainMemberIds.size()-mainMemberSize;i++){
 				Agent agent = allAgents.get(allAgents.size() - i - 1);
 				mainMemberIds.remove(Integer.valueOf(agent.getMyId()));
