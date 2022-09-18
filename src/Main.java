@@ -17,7 +17,6 @@ public class Main {
 	static String csv_base_path;
 	static int tick = 0;
 	public static void main(String[] args){
-		System.out.println("update");
 		String mode = args[0];
 		if(mode.equals("RECIPROCITY")){
 			RECIPROCITY = true;
@@ -29,6 +28,7 @@ public class Main {
 			CNP_MODE = true;
 			csv_base_path = "csv/CNP";
 		}
+		System.out.println(CNP_MODE);
 		long start = System.currentTimeMillis();
 		
 		for(int trial = 0;trial<TRIAL_COUNT;trial++){

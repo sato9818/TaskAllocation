@@ -1,7 +1,5 @@
 package Task;
 import Agent.Agent;
-import Agent.Leader;
-import Agent.Member;
 import Random.Sfmt;
 import Environment.Environment;
 import static Constants.Constants.*;
@@ -14,8 +12,8 @@ public class SubTask {
 	private int utility = 0;
 	private int taskId;
 	private int type = 0;
-	Leader from;
-	Member to;
+	Agent from;
+	Agent to;
 	
 	//---------------------------------------------------------------------------------------
 	
@@ -79,25 +77,25 @@ public class SubTask {
 	
 	//---------------------------------------------------------------------------------------
 	
-	public void setfrom(Leader l){
+	public void setfrom(Agent l){
 		from = l;
 	}
 	
 	//---------------------------------------------------------------------------------------
 	
-	public Leader getfrom(){
+	public Agent getfrom(){
 		return from;
 	}
 	
 	//---------------------------------------------------------------------------------------
 	
-	public void setto(Member m){
+	public void setto(Agent m){
 		to = m;
 	}
 	
 	//---------------------------------------------------------------------------------------
 	
-	public Member getto(){
+	public Agent getto(){
 		return to;
 	}
 	

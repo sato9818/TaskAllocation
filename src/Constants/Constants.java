@@ -58,7 +58,7 @@ public class Constants {
 	public static final int ADDITIONAL_RESOURCE = 5;
 	
 	//tick
-	public static final int EXPERIMENTAL_DURATION = 1501;
+	public static final int EXPERIMENTAL_DURATION = 10001;
 	
 	public static final int CHANGE_WORKLOAD_TIME = EXPERIMENTAL_DURATION;
 	public static final int RESTORE_WORKLOAD_TIME = EXPERIMENTAL_DURATION;
@@ -69,33 +69,4 @@ public class Constants {
 	public static final int FIRST_MEASURE_TIME = 10000;
 	
 	public static final int TRIAL_COUNT = 1;
-	
-//	-------------------------------------------------------------------------------------------------
-	
-	//サブタスクの種類
-	public static final int NORMAL_TASK= 0;
-	public static final int REQUIRE_FIRST = 1;
-	public static final int REQUIRE_SECOUND = 2;
-	public static final int REQUIRE_THIRD = 3;
-	
-	//メッセージの種類
-	public static final int SOLICITATION = 0;
-	public static final int ACCEPTANCE = 1;
-	public static final int ALLOCATION = 2;
-	public static final int FINISH = 3;
-	public static final int REFUSE = 4;
-	public static final int COLLAPSE_TEAM = 5;
-	public static final int CNP_SOLICITATION = 6;
-
-	
-	//リーダーの状態
-	public static final int SELECT_MEMBER = 0;
-	public static final int WAIT_MEMBER = 1;
-	
-	//メンバの状態
-	public static final int INACTIVE = 0;
-	public static final int ACTIVE = 1;
-	public static final int EXECUTING_TASK = 2;
-	
-	
 }

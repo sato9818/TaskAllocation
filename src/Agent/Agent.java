@@ -2,24 +2,29 @@ package Agent;
 
 import static Constants.Constants.*;
 
+import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Queue;
 
+import Comparator.SubUtilityComparator;
 import Environment.Area;
 import Environment.Environment;
 import Message.Message;
+import Message.MessageType;
 import Random.Sfmt;
 import Task.SubTask;
+import Task.Task;
 
 public class Agent {
 	//固有番号をつけるためのもの
 	static int num = 0;
-	
 	
 	//定数------------------------------------------------------------------------------------
 	
@@ -46,7 +51,8 @@ public class Agent {
 	//送ったメッセージリスト
 	protected List<Message> allMessages = new ArrayList<Message>();
 	//フェイズ
-	protected int phase = 0;
+	protected MemberState memberState = MemberState.INACTIVE;
+	protected LeaderState leaderState = LeaderState.SELECT_MEMBER;
 	//信頼エージェントのリスト
 	protected List<Agent> deAgents = new ArrayList<Agent>();
 	//各サブタスクtypeに応じた信頼エージェント
@@ -81,6 +87,40 @@ public class Agent {
 	protected int sumQueueSize = 0;
 	protected int failureOrFinishedmessage = 0;
 	
+	public Role role = Role.LEADER;
+	
+	
+	//-----------------------------------リーダー用インスタンス変数-------------------------------------------
+	//処理すべきサブタスクのリスト
+	private List<SubTask> subTasksList = new ArrayList<SubTask>();
+	//メッセージを送ったメンバのIDリスト
+	private List<Integer> preMembers = new ArrayList<Integer>();
+	//受理してくれたメンバーのリスト
+	private List<Agent> acceptMembers = new ArrayList<Agent>();
+	//タスクを処理しているメンバのリスト
+	private List<Agent> membersExcuting = new ArrayList<Agent>();
+	//サブタスクとそれを処理するメンバのリスト
+	private HashMap<SubTask, Agent> team = new HashMap<SubTask, Agent>();
+	
+	int time = 0;
+	
+	//-----------------------------------メンバ用インスタンス変数-------------------------------------------
+	//このメンバにきたメッセージの集合
+	private List<Message> solicitationMessages = new ArrayList<Message>();
+	//処理が終了したメッセージ
+	private Message finishMessage = null; 
+	
+	HashMap<Integer, Integer> allocateTimeMap = new HashMap<Integer, Integer>();
+	
+	Queue<Message> messageQueue = new ArrayDeque<Message>();
+	
+	private List<Message> preSubTasks = new ArrayList<Message>();
+	
+	private int expectedTasks = 0;
+	private int inactiveTime = 0;
+	private boolean roleChangable = false;
+	
+	
 	
 	
 	//集計用------------------------------------------------------------------------------------
@@ -105,7 +145,7 @@ public class Agent {
 	
 	//---------------------------------------------------------------------------------------
 	
-	Agent(Area area, int x, int y){
+	public Agent(Area area, int x, int y){
 		setCapacity();
 		initializeDependability();
 		gridX = x;
@@ -118,32 +158,8 @@ public class Agent {
 		}
 	}
 	
-	//---------------------------------------------------------------------------------------
-	
-	Agent(Agent agent){
-		myId = agent.getMyId();
-		capacity = agent.capacity;
-		area = agent.getArea();
-		leaderDe = agent.leaderDe;
-		memberDe = agent.memberDe;
-		gridX = agent.getPositionX();
-		gridY = agent.getPositionY();
-		deAgents = agent.deAgents;
-		specificDeAgentsMap = agent.specificDeAgentsMap;
-		capave = agent.capave;
-		distance = agent.distance;
-		leaderEvaluation = agent.leaderEvaluation;
-		memberEvaluation = agent.memberEvaluation;
-		memberListMap = agent.memberListMap;
-		executionTimeMap = agent.executionTimeMap;
-		mainMemberIds = agent.mainMemberIds;
-		subMemberIds = agent.subMemberIds;
-		sumQueueSize = agent.sumQueueSize;
-		failureOrFinishedmessage = agent.failureOrFinishedmessage;
-	}
-	
-	
-	public void readMessage(Message message, int tick){
+	public void setRole(Role role){
+		this.role = role;
 	}
 	
 	private int partition(List<Agent> agents, int left, int right) {
@@ -291,7 +307,6 @@ public class Agent {
 		allMessages.clear();
 	}
 	
-	
 	//---------------------------------------------------------------------------------------
 	
 	public void setdistance(Agent agent){
@@ -336,6 +351,7 @@ public class Agent {
 			specificDeAgentsMap.put(i, new ArrayList<Agent>());
 		}
 	}
+
 	//---------------------------------------------------------------------------------------
 	
 	public Area getArea(){
@@ -358,12 +374,14 @@ public class Agent {
 			capave /= (double)p;
 		}
 	}
+
 	//---------------------------------------------------------------------------------------
 	
-	public void finishMemberSubTask(Message message, int tick){
+	public void finishMemberSubTask(Message message){
 		Agent member = message.from();
 		SubTask subTask = message.getSubTask();
 		int taskId = subTask.getTaskId();
+		int tick = Environment.tick;
 		sumQueueSize += message.getQueueSize();
 		failureOrFinishedmessage++;
 		
@@ -371,7 +389,7 @@ public class Agent {
 		if(executingMember == null) return;
 		executingMember.remove(member);
 		int startTick = executionTimeMap.get(taskId);
-		updateDependablity(message,true,tick - startTick);
+		updateDependablity(message,true, tick - startTick);
 		executedSubTask[this.getArea().getId()][tick]++;
 		allExecutedTime[this.getArea().getId()][tick] += tick - startTick;
 		executedTime[this.getArea().getId()][tick] += message.getExecutedTime();
@@ -383,7 +401,7 @@ public class Agent {
 	
 	//---------------------------------------------------------------------------------------
 	
-	protected void notifyFailure(Message message, int tick){
+	protected void notifyFailure(Message message){
 		List<Agent> members = memberListMap.get(message.getSubTask().getTaskId());
 		if(members == null) return;
 		Agent betrayal = message.from();
@@ -392,12 +410,10 @@ public class Agent {
 		members.remove(betrayal);
 		executingMembers.remove(betrayal);
 		for(int i=0;i<members.size();i++){
-			allMessages.add(new Message(COLLAPSE_TEAM, this, members.get(i), message.getSubTask()));
+			allMessages.add(new Message(MessageType.COLLAPSE_TEAM, this, members.get(i), message.getSubTask()));
 		}
 		memberListMap.remove(message.getSubTask().getTaskId());
-		
 	}
-	
 	
 	//---------------------------------------------------------------------------------------
 	
@@ -415,7 +431,7 @@ public class Agent {
 //			System.out.println(executedTime);
 			
 		}else{
-			if(message.getType() == REFUSE){
+			if(message.getType() == MessageType.REFUSE){
 				delta = - (double)message.getSubTask().getutility();
 			}
 		}
@@ -472,8 +488,8 @@ public class Agent {
 	
 	//---------------------------------------------------------------------------------------
 	
-	public int getPhase(){
-		return phase;
+	public LeaderState getLeaderState(){
+		return leaderState;
 	}
 	
 	//---------------------------------------------------------------------------------------
@@ -573,4 +589,826 @@ public class Agent {
         }
         return A;
 	}
+	
+	//---------------------------------------------------------------------------------------
+	public void act(){
+		int tick = Environment.tick;
+		chooseSubTasks();
+		memberCount[getMyId()]++;
+		ownedSubtask[getMyId()][tick] += messageQueue.size();
+		
+		switch(memberState){
+		case INACTIVE:
+			if(!solicitationMessages.isEmpty()){//メッセージが来ていたら
+				replyMessages();
+				memberState = MemberState.ACTIVE;
+				inactiveTime = 0;
+				roleChangable = false;
+			}else{
+				inactiveTime++;
+				if(inactiveTime > INACTIVE_THRESHOLD){
+					updateMemberEvaluation(false);
+					roleChangable = true;
+					inactiveTime = 0;
+				}
+			}
+			break;
+		case ACTIVE:
+			if(!messageQueue.isEmpty()){
+				startToExecuteTask();
+				memberState = MemberState.EXECUTING_TASK;
+			}else{
+				if(!solicitationMessages.isEmpty()){
+					replyMessages();
+				}else{
+					if(expectedTasks > 0){
+						memberState = MemberState.ACTIVE;
+					}else{
+						memberState = MemberState.INACTIVE;
+						roleChangable = true;
+					}
+				}
+			}
+			
+			break;
+		case EXECUTING_TASK:
+			if(mySubTask == null){
+				if(!solicitationMessages.isEmpty()){
+					replyMessages();
+					memberState = MemberState.ACTIVE;
+				}else{
+					if(!messageQueue.isEmpty()){
+						startToExecuteTask();
+						memberState = MemberState.EXECUTING_TASK;
+					}else{
+						if(expectedTasks > 0){
+							memberState = MemberState.ACTIVE;
+						}else{
+							memberState = MemberState.INACTIVE;
+							roleChangable = true;
+						}
+					}
+				}
+			}else{
+				executeTask();
+			}
+			break;
+		}
+		
+	}
+	//---------------------------------------------------------------------------------------
+	
+	public void startToExecuteTask(){
+		int tick = Environment.tick;
+		Message allocationMessage = messageQueue.poll();
+		mySubTask = allocationMessage.getSubTask(); 
+		int et = getExcutingTime(mySubTask);	
+		remainingTime = et;
+		finishMessage = new Message(MessageType.FINISH, this, allocationMessage.from(), allocationMessage.getSubTask(), et, messageQueue.size());
+		waitingTime[this.getArea().getId()][tick] += tick - allocateTimeMap.get(finishMessage.getSubTask().getTaskId());
+		executeTask();
+	}
+	
+	//---------------------------------------------------------------------------------------
+	
+	public void replyMessages(){
+		if(CNP_MODE == true){
+			for(int i=0;i<solicitationMessages.size();i++){
+				Message message = solicitationMessages.get(i);
+				SubTask subTask = decideSubTask(message);
+				Message acceptedMessage = new Message(MessageType.ACCEPTANCE, this, message.from(), subTask, true);
+				allMessages.add(acceptedMessage);
+			}
+			solicitationMessages.clear();
+		}else{
+			int p = eGreedy();
+			while(!solicitationMessages.isEmpty()){
+				boolean decide = true;
+				Message message = null;
+				if(p == 0){
+					message = decideMessage(solicitationMessages, null);
+					if(this.isReciprocity()){
+						if(!deAgents.contains(message.from())){
+							decide = false;
+						}
+						if(expectedTasks + messageQueue.size() < SUB_TASK_QUEUE_SIZE - deAgents.size()){
+							decide = true;
+						}
+					}
+				}else if(p == 1){
+					message = decideMessage(solicitationMessages, Environment.rnd);
+				}
+				
+//					if(expectedTasks + taskQueue.size() ){
+//						decide = false;
+//					}
+				if(decide){
+					expectedTasks++;
+				}
+
+				sendReplyMessages(message, decide);
+				solicitationMessages.remove(message);
+			}
+		}
+	}
+	
+	//---------------------------------------------------------------------------------------
+	
+	
+	public Message decideMessage(List<Message> messages, Sfmt rnd){
+		Message message = null;
+		if(rnd != null){
+			int messageSize = messages.size();
+			int p = (int)(rnd.NextUnif() * messageSize);
+			message = messages.get(p);
+		}else{
+			mergeSortMessageByMemberDe(messages, 0, messages.size() - 1);
+			message = messages.get(0);
+//				for(int i=0;i<messages.size();i++){
+//					System.out.println("member: " + getMyId() + " " + memberDe[messages.get(i).from().getMyId()]);
+//				}
+		}
+		
+		return message;
+	}
+	
+	//---------------------------------------------------------------------------------------
+	
+	public SubTask decideSubTask(Message message){
+		List<SubTask> subTasks = message.getSubTasks();
+		double max = 0;
+		SubTask confSubTask = null; 
+		for(int i=0;i<subTasks.size();i++){
+			SubTask subTask = subTasks.get(i);
+			double utility;
+			if(max < (utility = (double)subTask.getutility() / getExcutingTime(subTask))){
+				max = utility;
+				confSubTask = subTask;
+			}
+		}
+		return confSubTask;
+	}
+	
+	//---------------------------------------------------------------------------------------
+	
+	public void updateMemberEvaluation(boolean success){
+		double delta;
+		if(success){
+			delta = 1.0;
+		}else{
+			delta = 0.0;
+		}
+		memberEvaluation = (1.0 - LEARNING_RATE) * memberEvaluation + LEARNING_RATE * delta; 
+	}
+		
+	//---------------------------------------------------------------------------------------
+	
+	public void sendReplyMessages(Message solicitationMessage, boolean decide){
+		if(decide){
+			Message acceptedMessage = new Message(MessageType.ACCEPTANCE, this, solicitationMessage.from(), solicitationMessage.getSubTask(), true); 
+			allMessages.add(acceptedMessage);
+		}else{
+			Message rejectedMessage = new Message(MessageType.ACCEPTANCE, this, solicitationMessage.from(), solicitationMessage.getSubTask(), false); 
+			allMessages.add(rejectedMessage);
+		}
+	}
+	
+	//---------------------------------------------------------------------------------------
+	
+	public void executeTask(){
+		remainingTime--;
+		if(remainingTime == 0){
+			finishSubTask++;
+			allMessages.add(finishMessage);
+			mySubTask = null;
+			finishMessage = null;
+		}
+	}
+	
+	//---------------------------------------------------------------------------------------
+	public void readMessageAsMember(Message message){
+		switch(message.getType()){
+		case SOLICITATION:
+			solicitationMessages.add(message);
+			break;
+		case CNP_SOLICITATION:
+			solicitationMessages.add(message);
+			break;
+		case ALLOCATION:
+			expectedTasks--;
+			if(message.getSubTask() == null){
+				updateLeaderEvaluation(false);
+				updateDependablity(message, false);
+			}else{
+				updateLeaderEvaluation(true);
+				updateDependablity(message, true);
+				preSubTasks.add(message);
+				allocatedSubTask[getMyId()]++;
+			}
+			break;
+		case COLLAPSE_TEAM:
+			SubTask subTask = message.getSubTask();
+			if(mySubTask != null){
+				if(subTask.getTaskId() == mySubTask.getTaskId()){
+					remainingTime = 0;
+					mySubTask = null;
+					memberState = MemberState.ACTIVE;
+				}
+			}else{
+				for(Message m : messageQueue){
+					if(m.getSubTask().getTaskId() == subTask.getTaskId()){
+						messageQueue.remove(m);
+						break;
+					}
+				}
+			}
+			break;
+		case REFUSE:
+			updateDependablity(message, false, 0);
+			notifyFailure(message);
+			break;
+		case FINISH:
+			finishMemberSubTask(message);
+			break;
+		}
+		
+	}
+	
+	//---------------------------------------------------------------------------------------
+	
+	private void chooseSubTasks(){
+		int tick = Environment.tick;
+		mergeSortMessageByMemberDe(preSubTasks, 0, preSubTasks.size() - 1);
+		for(int i = 0;i<preSubTasks.size();i++){
+			Message message = preSubTasks.get(i);
+//				System.out.println("de: " + de[message.from().getMyId()]);
+			if(messageQueue.size() >= SUB_TASK_QUEUE_SIZE){
+				allMessages.add(new Message(MessageType.REFUSE, this, message.from(), message.getSubTask()));
+				
+				refusedTask[getMyId()]++;
+				rejectedTask[this.getArea().getId()][tick]++;
+			}else{
+				messageQueue.add(message);
+				allocateTimeMap.put(message.getSubTask().getTaskId(), tick);
+			}
+		}
+		preSubTasks.clear();
+	}
+	
+	//---------------------------------------------------------------------------------------
+	
+	public void updateDependablity(Message message, boolean success){
+		double delta = 0.0;
+		if(success){
+			delta = (double)message.getSubTask().getutility() / (double)(this.getdistance(message.from().getMyId()) * 2 + getExcutingTime(message.getSubTask()));
+//				System.out.println("excutiontime " + this.getdistance(message.from().getMyId()));
+//				delta = 1.0 / (double)(this.getdistance(message.from().getMyId()) * 2 + getExcutingTime(message.getSubTask()));
+//				delta = 1;
+		}
+		this.memberDe[message.from().getMyId()] = 
+					(1.0 - LEARNING_RATE/**/) * this.memberDe[message.from().getMyId()] 
+					+ LEARNING_RATE * delta;
+		//System.out.println("de[" + message.getfrom().getmyid() + "] = " + this.de[message.getfrom().getmyid()]);
+		
+	}
+	
+	
+	//---------------------------------------------------------------------------------------
+	
+	public boolean roleChangable(){
+		return roleChangable;
+	}
+	
+	//---------------------------------------------------------------------------------------
+	
+	public int getExcutiontime(){
+		return remainingTime;
+	}
+	
+	//---------------------------------------------------------------------------------------
+	
+	public void selectMemberAttitude(){
+		if(MEMBER_DEPENDABLITY_AGENT_THRESHOLD <= deAgents.size()){
+			reciprocityAction = true;
+		}else{
+			reciprocityAction = false;
+		}
+	}
+	
+	
+	//---------------------------------------------------------------------------------------
+
+	public boolean haveMessages(){
+		return !solicitationMessages.isEmpty();
+	}
+	
+	//---------------------------------------------------------------------------------------
+	
+	public void clearMemberInstance(){
+		finishMessage = null;
+	}
+	
+	//---------------------------------------------------------------------------------------
+	
+	public void clearmessages(){
+		solicitationMessages.clear();
+	}
+	
+	//---------------------------------------------------------------------------------------
+	public int getSubTaskQueueSize(){
+		return messageQueue.size();
+	}
+	
+	//For leaders
+
+	public void act(List<Agent> agents){
+		int tick = Environment.tick;
+		leaderCount[getMyId()]++;
+		switch(leaderState){
+		case SELECT_MEMBER:
+			if(!area.taskIsEmpty()){//タスクがあれば
+				//タスクを取得
+				Task task = area.pushTask();
+				//候補メンバーに送るメッセージを決める(e-greedy法)
+				int p = eGreedy();
+				List<Message> messages = null;
+				if(CNP_MODE == true){
+					messages = selectCnpMember(agents, task);
+				}else{
+					if(p == 0){
+						messages = selectMember(agents, task);
+					}else if(p == 1){
+						//System.out.println("Epsilon");
+						messages = selectMemberRandomly(agents, task);
+					}
+				}
+				//メッセージを送る
+				for(int j=0;j<messages.size();j++){
+					allMessages.add(messages.get(j));
+				}
+				leaderState = LeaderState.WAIT_MEMBER;
+			}else{
+				updateLeaderEvaluation(false);
+			}
+			break;
+		case WAIT_MEMBER:
+			time++;
+			if(time == 100){
+				System.out.println("leader " + getMyId() + " not active.");
+				System.exit(1);
+			}
+			
+			//メッセージの返信を見て
+			int judge = waitReply();
+			if(judge == 0){
+				//全部返信がきててアロケーションできるなら
+				taskAllocate();
+				leaderState = LeaderState.EXECUTING_TASK;
+				clearLeaderInstance();
+				time = 0;
+			}else if(judge == 1){
+				//全部返信がきててアロケーションできないなら
+				failAllocate();
+				wastedTask[this.getArea().getId()][tick]++;
+				leaderState = LeaderState.EXECUTING_TASK;
+				clearLeaderInstance();
+				time = 0;
+			}else{
+				if(mySubTask != null){
+					executeSubTask();
+				}
+			}
+			break;
+		case EXECUTING_TASK: 
+			if(mySubTask == null){
+				leaderState = LeaderState.SELECT_MEMBER;
+			}else{
+				executeSubTask();
+			}
+			break;
+		}
+		
+	}
+	
+	//---------------------------------------------------------------------------------------
+	
+	public void updateLeaderEvaluation(boolean success){
+		double delta;
+		if(success){
+			delta = 1.0;
+		}else{
+			delta = 0.0;
+		}
+		leaderEvaluation = (1.0 - LEARNING_RATE) * leaderEvaluation + LEARNING_RATE * delta; 
+	}
+	
+	//---------------------------------------------------------------------------------------
+	
+	public List<Message> selectCnpMember(List<Agent> agents, Task task){
+		List<Message> messages = new ArrayList<Message>();
+		List<SubTask> subTasks = task.getSubTasks();
+		List<Agent> copyAgents = new ArrayList<Agent>(agents);
+		copyAgents.remove(this);
+		
+		mySubTask = subTasks.get(0);
+		subTasks.remove(mySubTask);
+		remainingTime = getExcutingTime(mySubTask);
+		
+		subTasksList = new ArrayList<SubTask>(subTasks);
+		
+		for(int i=0;i<copyAgents.size();i++){
+			Agent agent = copyAgents.get(i);
+			if(this.getdistance(agent.getMyId()) <= 2){
+				Message message = new Message(MessageType.CNP_SOLICITATION, this, agent, subTasks);
+				messages.add(message);
+				preMembers.add(agent.getMyId());
+			}
+		}
+		return messages;
+	}
+	
+	//---------------------------------------------------------------------------------------
+	
+	public List<Message> selectMemberRandomly(List<Agent> agents, Task task){
+		List<Message> messages = new ArrayList<Message>();
+		List<SubTask> subTasks = task.getSubTasks();
+		List<Agent> copyAgents = new ArrayList<Agent>(agents);
+		copyAgents.remove(this);
+		Collections.shuffle(copyAgents, Environment.r);
+		
+		mySubTask = subTasks.get(0);
+		subTasks.remove(mySubTask);
+		remainingTime = getExcutingTime(mySubTask);
+		
+		for(int i=0;i<SOLICITATION_REDUNDANCY;i++){
+			for(int j=0;j<subTasks.size();j++){
+				SubTask subtask = subTasks.get(j);
+				Agent agent = copyAgents.get(0);
+				Message message = new Message(MessageType.SOLICITATION, this, agent, subtask);
+				copyAgents.remove(agent);
+				messages.add(message);
+				preMembers.add(agent.getMyId());
+			}
+		}
+		return messages;
+	}
+	
+	//---------------------------------------------------------------------------------------
+	
+	public List<Message> selectMember(List<Agent> agents, Task task){
+		List<Message> messages = new ArrayList<Message>();
+		List<SubTask> subTasks = task.getSubTasks();
+		Collections.sort(subTasks, new SubUtilityComparator());
+		//信頼エージェントに渡すサブタスク
+		List<SubTask> confSubTask = new ArrayList<SubTask>();
+		List<Agent> copyAgents = new ArrayList<Agent>(agents);
+//		copyAgents.removeAll(executingMembers);
+		copyAgents.remove(this);
+		Collections.shuffle(copyAgents, Environment.r);
+		sortAgentsByLeaderDe(copyAgents, 0, copyAgents.size()-1);
+		
+//		for(Agent agent : copyAgents) {
+//			System.out.println(leaderDe[agent.getMyId()]);
+//		}
+		
+		HashMap<Integer, List<Agent>> specificSortingAgentsMap = new HashMap<Integer, List<Agent>>();
+		for(int i=0;i<3;i++){
+			List<Agent> copySpecificAgents = new ArrayList<Agent>(copyAgents);
+			mergeSortAgentBySpecificLeaderDe(copySpecificAgents, 0, copySpecificAgents.size()-1, i);
+			copySpecificAgents.remove(this);
+			specificSortingAgentsMap.put(i, copySpecificAgents);
+		}
+		
+		//リーダーは自分の処理するサブタスクを取っておく。
+		mySubTask = subTasks.get(0);
+		subTasks.remove(mySubTask);
+		remainingTime = getExcutingTime(mySubTask);
+		
+		if(this.isReciprocity()){
+			List<Agent> copyDeAgents = new ArrayList<Agent>(deAgents);
+//			copyDeAgents.removeAll(executingMembers);
+			sortAgentsByLeaderDe(copyDeAgents, 0, copyDeAgents.size() - 1);
+			for(Agent agent : copyDeAgents) {
+				System.out.println(leaderDe[agent.getMyId()]);
+			}
+			HashMap<Integer, List<Agent>> specificSortingDeAgentsMap = new HashMap<Integer, List<Agent>>();
+			for(int i=0;i<3;i++){
+				List<Agent> copySpecificDeAgents = new ArrayList<Agent>(specificDeAgentsMap.get(i));
+				mergeSortAgentBySpecificLeaderDe(copySpecificDeAgents, 0, copySpecificDeAgents.size() - 1, i);
+				specificSortingDeAgentsMap.put(i, copySpecificDeAgents);
+			}
+
+			for(int i=0;i<SOLICITATION_REDUNDANCY;i++){
+				for(int j=0;j<subTasks.size();j++){
+					SubTask subtask = subTasks.get(j);
+					if(confSubTask.contains(subtask)){
+						continue;
+					}
+					//ループ1週目のサブタスクの集合＝処理すべきサブタスクの集合
+					if(i == 0){
+						subTasksList.add(subtask);
+					}
+					Agent agent = null;
+					int type = subtask.getType();
+
+					if(type == 0){
+						if(!copyDeAgents.isEmpty()){
+							agent = copyDeAgents.get(0);
+							copyDeAgents.remove(agent);
+							confSubTask.add(subtask);
+						}else{
+							agent = copyAgents.get(0);
+						}
+					}else{
+						if(!specificSortingDeAgentsMap.get(type - 1).isEmpty()){
+							agent = specificSortingDeAgentsMap.get(type - 1).get(0);
+							confSubTask.add(subtask);
+						}else{
+//							if(!copyDeAgents.isEmpty()){
+//								agent = copyDeAgents.get(0);
+//								confSubTask.add(subtask);
+//							}else{
+//								agent = specificSortingAgentsMap.get(type - 1).get(0);
+//								if(this.getLeaderSpecificDependablity(type - 1, agent.getMyId()) == 0){
+//									agent = copyAgents.get(0);
+//								}
+//							}
+							agent = specificSortingAgentsMap.get(type - 1).get(0);
+							if(this.getLeaderSpecificDependablity(type - 1, agent.getMyId()) == 0){
+								agent = copyAgents.get(0);
+							}
+						}
+					}
+					if(copyDeAgents.contains(agent)){
+						copyDeAgents.remove(agent);
+					}
+					for(int k=0;k<3;k++){
+						specificSortingAgentsMap.get(k).remove(agent);
+						if(specificSortingDeAgentsMap.get(k).contains(agent)){
+							specificSortingDeAgentsMap.get(k).remove(agent);
+						}
+					}
+					Message message = new Message(MessageType.SOLICITATION, this, agent, subtask);
+					copyAgents.remove(agent);
+					messages.add(message);
+					preMembers.add(agent.getMyId());
+				}
+			}
+			
+		}else{
+			for(int i=0;i<SOLICITATION_REDUNDANCY;i++){
+				for(int j=0;j<subTasks.size();j++){
+					SubTask subtask = subTasks.get(j);
+					Agent agent = null;
+					int type;
+					
+					//ループ1週目のサブタスクの集合＝処理すべきサブタスクの集合
+					if(i == 0){
+						subTasksList.add(subtask);
+					}
+					
+					if((type = subtask.getType()) == 0){
+						agent = copyAgents.get(0);
+					}else{
+						agent = specificSortingAgentsMap.get(type - 1).get(0);
+						if(this.getLeaderSpecificDependablity(type - 1, agent.getMyId()) == 0){
+							agent = copyAgents.get(0);
+						}
+					}
+					
+					copyAgents.remove(agent);
+					for(int k=0;k<3;k++){
+						specificSortingAgentsMap.get(k).remove(agent);
+					}
+					Message message = new Message(MessageType.SOLICITATION, this, agent, subtask);
+					messages.add(message);
+					preMembers.add(agent.getMyId());
+				}
+			}
+		}
+		return messages;
+	}
+	
+	//---------------------------------------------------------------------------------------
+	
+	private SubTask getMySubTask(List<SubTask> subTasks){
+		double max = 0;
+		SubTask confSubTask = null; 
+		for(int i=0;i<subTasks.size();i++){
+			SubTask subTask = subTasks.get(i);
+			double utility;
+			if(max < (utility = (double)subTask.getutility() / this.getExcutingTime(subTask))){
+				max = utility;
+				confSubTask = subTask;
+			}
+		}
+		return confSubTask;
+	}
+	
+	//---------------------------------------------------------------------------------------
+	
+	public List<Message> selectMemberPreviously(List<Agent> agents, Task task){
+		List<Message> messages = new ArrayList<Message>();
+		List<SubTask> subTasks = task.getSubTasks();
+		Collections.sort(subTasks, new SubUtilityComparator());
+		//信頼エージェントに渡すサブタスク
+		List<SubTask> confSubTask = new ArrayList<SubTask>();
+		List<Agent> copyAgents = new ArrayList<Agent>(agents);
+		copyAgents.remove(this);
+		Collections.shuffle(copyAgents, Environment.r);
+		sortAgentsByLeaderDe(copyAgents, 0, copyAgents.size()-1);
+		
+		//リーダーは自分の処理するサブタスクを取っておく。
+		mySubTask = getMySubTask(subTasks);
+		subTasks.remove(mySubTask);
+		remainingTime = getExcutingTime(mySubTask);
+		
+		List<Agent> copyDeAgents = new ArrayList<Agent>(deAgents);
+		sortAgentsByLeaderDe(copyDeAgents, 0, copyAgents.size() - 1);
+
+		for(int i=0;i<SOLICITATION_REDUNDANCY;i++){
+			for(int j=0;j<subTasks.size();j++){
+				SubTask subtask = subTasks.get(j);
+				if(confSubTask.contains(subtask)){
+					continue;
+				}
+				//ループ1週目のサブタスクの集合＝処理すべきサブタスクの集合
+				if(i == 0){
+					subTasksList.add(subtask);
+				}
+				Agent agent = null;
+				if(!copyDeAgents.isEmpty()){
+					agent = copyDeAgents.get(0);
+					copyDeAgents.remove(agent);
+					confSubTask.add(subtask);
+				}else{
+					agent = copyAgents.get(0);
+				}
+				Message message = new Message(MessageType.SOLICITATION, this, agent, subtask);
+				copyAgents.remove(agent);
+				messages.add(message);
+				preMembers.add(agent.getMyId());
+			}
+		}
+			
+		
+		return messages;
+	}
+	//---------------------------------------------------------------------------------------
+	
+	private void makeTeam(Message message){
+		SubTask subtask = message.getSubTask();
+		Agent member = message.from();
+		//サブタスクとそれを処理するメンバの組み合わせを作っている
+		if(CNP_MODE == true){
+			if(team.containsKey(subtask)){
+				if(team.get(subtask).getExcutingTime(subtask) > member.getExcutingTime(subtask)){
+					team.put(subtask, member);
+				}
+			}else{
+				team.put(subtask, member);
+				subTasksList.remove(subtask);
+			}
+		}else{
+			if(team.containsKey(subtask)){
+				if(deAgents.contains(member) && !deAgents.contains(team.get(subtask))){
+					team.put(subtask, member);
+				}else if(leaderDe[member.getMyId()] > leaderDe[team.get(subtask).getMyId()] && 
+						!(!deAgents.contains(member) && deAgents.contains(team.get(subtask)))){
+					team.put(subtask, member);
+				}
+			}else{
+				team.put(subtask, member);
+				subTasksList.remove(subtask);
+			}
+		}
+	}
+	
+	//---------------------------------------------------------------------------------------
+	public void readMessageAsLeader(Message message){
+		switch(message.getType()){
+		case SOLICITATION:
+			allMessages.add(new Message(MessageType.ACCEPTANCE, this, message.from(), message.getSubTask(), false));
+			break;
+		case CNP_SOLICITATION:
+			allMessages.add(new Message(MessageType.ACCEPTANCE, this, message.from(), null, false));
+			break;
+		case ACCEPTANCE:
+			if(message.isAccepted()){
+				makeTeam(message);
+				acceptMembers.add(message.from());
+			}else{
+				updateDependablity(message, false, 0);
+			}
+			preMembers.remove(Integer.valueOf(message.from().getMyId()));	
+			break;
+		case REFUSE:
+			updateDependablity(message, false, 0);
+			notifyFailure(message);
+//			updateRoleEvaluation(false);
+			break;
+		case FINISH:
+			finishMemberSubTask(message);
+			break;
+		}
+	}
+	
+	
+	//---------------------------------------------------------------------------------------
+
+
+	public int waitReply(){
+		if(preMembers.isEmpty()){
+			//メッセージを送ったメンバー全員から返信がきていたら
+			if(subTasksList.isEmpty()){
+				//処理すべきサブタスクが全て処理できるなら
+				//0がallocation成功
+				return 0;
+			}else{
+				//1が失敗
+				return 1;
+			}
+		}else{
+			//2は継続中
+			return 2;
+		}
+	}
+	
+	//---------------------------------------------------------------------------------------
+	
+	public void failAllocate(){
+		for(int i=0;i<acceptMembers.size();i++){
+			Message message = new Message(MessageType.ALLOCATION, this, acceptMembers.get(i), (SubTask)null);
+			allMessages.add(message);
+		}
+		updateLeaderEvaluation(false);
+	}
+	
+	//---------------------------------------------------------------------------------------
+	
+	public void taskAllocate(){
+		int tick = Environment.tick;
+        Iterator<SubTask> subtask_itr = team.keySet().iterator();
+        int taskId = -1;
+        // hasNextを使用して値がある場合はループを継続する
+        // keyの取得
+        while(subtask_itr.hasNext()) {
+            // nextを使用して値を取得す
+            SubTask subtask = (SubTask)subtask_itr.next();
+            taskId = subtask.getTaskId();
+            Agent member = team.get(subtask);
+            Message message = new Message(MessageType.ALLOCATION, this, member, subtask);
+            allocationMemberCount[this.getArea().getId()][member.getArea().getId()][tick]++; 
+            allMessages.add(message);
+            //this.updatede(new MessagetoLeader(message.getto(),message.getfrom(),message.getsubtask(),0,message.getto().setexcutiontime(message.getsubtask())), true);
+            membersExcuting.add(member);
+            executingMembers.add(member);
+            acceptMembers.remove(team.get(subtask));
+        }
+        for(int i=0;i<acceptMembers.size();i++){
+			Message message = new Message(MessageType.ALLOCATION, this, acceptMembers.get(i), (SubTask)null);
+			allMessages.add(message);
+		}
+  
+        memberListMap.put(taskId, new ArrayList<Agent>(membersExcuting));
+        executionTimeMap.put(taskId, tick);
+        updateLeaderEvaluation(true);
+	}
+	
+	//---------------------------------------------------------------------------------------
+	
+	public void selectLeaderAttitude(boolean reciprocity){
+		reciprocityAction = reciprocity;
+	}
+	
+	//---------------------------------------------------------------------------------------
+	
+	public void selectAction(){
+		if(LEADER_DEPENDABLITY_AGENT_THRESHOLD <= deAgents.size()){
+			reciprocityAction = true;
+		}else{
+			reciprocityAction = false;
+		}
+	}
+	
+	//---------------------------------------------------------------------------------------
+	
+	public void executeSubTask(){
+		remainingTime--;
+		if(remainingTime == 0){
+			finishSubTask++;
+			mySubTask = null;
+		}
+	}
+	
+	//---------------------------------------------------------------------------------------
+	
+	public void clearLeaderInstance(){
+		subTasksList.clear();
+		preMembers.clear();
+		membersExcuting.clear();
+		acceptMembers.clear();
+		team.clear();
+	}
+
 }
