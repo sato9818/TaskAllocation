@@ -1067,10 +1067,6 @@ public class Agent {
 		Collections.shuffle(copyAgents, Environment.r);
 		sortAgentsByLeaderDe(copyAgents, 0, copyAgents.size()-1);
 		
-//		for(Agent agent : copyAgents) {
-//			System.out.println(leaderDe[agent.getMyId()]);
-//		}
-		
 		HashMap<Integer, List<Agent>> specificSortingAgentsMap = new HashMap<Integer, List<Agent>>();
 		for(int i=0;i<3;i++){
 			List<Agent> copySpecificAgents = new ArrayList<Agent>(copyAgents);
@@ -1088,9 +1084,6 @@ public class Agent {
 			List<Agent> copyDeAgents = new ArrayList<Agent>(deAgents);
 //			copyDeAgents.removeAll(executingMembers);
 			sortAgentsByLeaderDe(copyDeAgents, 0, copyDeAgents.size() - 1);
-			for(Agent agent : copyDeAgents) {
-				System.out.println(leaderDe[agent.getMyId()]);
-			}
 			HashMap<Integer, List<Agent>> specificSortingDeAgentsMap = new HashMap<Integer, List<Agent>>();
 			for(int i=0;i<3;i++){
 				List<Agent> copySpecificDeAgents = new ArrayList<Agent>(specificDeAgentsMap.get(i));
@@ -1383,7 +1376,7 @@ public class Agent {
 	
 	//---------------------------------------------------------------------------------------
 	
-	public void selectAction(){
+	public void selectLeaderAttitude(){
 		if(LEADER_DEPENDABLITY_AGENT_THRESHOLD <= deAgents.size()){
 			reciprocityAction = true;
 		}else{

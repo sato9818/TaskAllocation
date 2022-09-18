@@ -359,7 +359,7 @@ public class Environment {
 					}
 				}
 			}
-//			leader.selectAction();
+			leader.selectLeaderAttitude();
 		}
 		for(int i=0;i<members.size();i++){
 			Agent member = members.get(i);
@@ -370,7 +370,7 @@ public class Environment {
 					member.adddeagent(agent);
 				}
 			}
-			member.selectAction();
+			member.selectMemberAttitude();
 		}
 	}
 	
