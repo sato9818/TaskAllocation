@@ -162,87 +162,31 @@ public class Agent {
 		this.role = role;
 	}
 	
-	private int partition(List<Agent> agents, int left, int right) {
-	    int i = left;
-	    int mid = (right+left) / 2;
-	    Agent pivotAgent = agents.get(mid);
-	    Collections.swap(agents, mid, right);
-	    for (int j = left; j < right ; j++) {
-	        if (leaderDe[agents.get(j).getMyId()] >= leaderDe[pivotAgent.getMyId()]) {
-	        	Collections.swap(agents, i, j);
-	            i++;
-	        }
-	    }
-	    Collections.swap(agents, i, right);
-
-	    return i;
+	public void sortAgentsByLeaderDE(List<Agent> agents) {
+		Collections.sort(agents, new Comparator<Agent>() {
+		    @Override
+		    public int compare(Agent a1, Agent a2) {
+		        return Double.compare(leaderDe[a2.getMyId()], leaderDe[a1.getMyId()]);
+		    }
+		});
 	}
 	
-	// 'right' is the most right index in agents 
-	public void sortAgentsByLeaderDe(List<Agent> agents, int left, int right) {
-		if (left < right) {    
-	        int q = partition(agents, left, right);
-	        sortAgentsByLeaderDe(agents, left, q-1);
-	        sortAgentsByLeaderDe(agents, q+1, right);
-	    }
+	public void mergeSortAgentBySpecificLeaderDE(List<Agent> agents, int idx) {
+		Collections.sort(agents, new Comparator<Agent>() {
+		    @Override
+		    public int compare(Agent a1, Agent a2) {
+		        return Double.compare(specificLeaderDe[idx][a2.getMyId()], specificLeaderDe[idx][a1.getMyId()]);
+		    }
+		});
 	}
 	
-	public void mergeSortAgentBySpecificLeaderDe(List<Agent> agents, int left, int right, int num) {
-		if (left <= right) {
-			//軸を決める
-			Agent p = agents.get((left + right) / 2);
-
-			int l = left;
-			int r = right;
-
-			while(l <= r) {
-				while(specificLeaderDe[num][agents.get(l).getMyId()] > specificLeaderDe[num][p.getMyId()]){
-					l++;
-				}
-				while(specificLeaderDe[num][agents.get(r).getMyId()] < specificLeaderDe[num][p.getMyId()]){
-					r--;
-				}
-
-				if (l <= r) {
-					Agent tmp = agents.get(l);
-					agents.set(l, agents.get(r));
-					agents.set(r, tmp);
-					l++;
-					r--;
-				}
-			}
-			mergeSortAgentBySpecificLeaderDe(agents, left, r, num);
-			mergeSortAgentBySpecificLeaderDe(agents, l, right, num);
-		}
-	}
-	
-	public void mergeSortMessageByMemberDe(List<Message> messages, int left, int right) {
-		if (left <= right) {
-			//軸を決める
-			Message p = messages.get((left + right) / 2);
-
-			int l = left;
-			int r = right;
-
-			while(l <= r) {
-				while(memberDe[messages.get(l).from().getMyId()] > memberDe[p.from().getMyId()]){
-					l++;
-				}
-				while(memberDe[messages.get(r).from().getMyId()] < memberDe[p.from().getMyId()]){
-					r--;
-				}
-
-				if (l <= r) {
-					Message tmp = messages.get(l);
-					messages.set(l, messages.get(r));
-					messages.set(r, tmp);
-					l++;
-					r--;
-				}
-			}
-			mergeSortMessageByMemberDe(messages, left, r);
-			mergeSortMessageByMemberDe(messages, l, right);
-		}
+	public void sortMessagesByMemberDE(List<Message> messages) {
+		Collections.sort(messages, new Comparator<Message>() {
+		    @Override
+		    public int compare(Message m1, Message m2) {
+		        return Double.compare(memberDe[m2.from().getMyId()], memberDe[m1.from().getMyId()]);
+		    }
+		});
 	}
 	
 	public void resetDe(){
@@ -274,7 +218,7 @@ public class Agent {
 					allAgents.remove(agent);
 				}
 			}
-			sortAgentsByLeaderDe(allAgents, 0, allAgents.size()-1);
+			sortAgentsByLeaderDE(allAgents);
 			for(int i = 0;i < mainMemberSize-mainMemberIds.size();i++){
 				Agent agent = allAgents.get(i);
 				mainMemberIds.add(agent.getMyId());
@@ -287,7 +231,7 @@ public class Agent {
 					allAgents.add(agent);
 				}
 			}
-			sortAgentsByLeaderDe(allAgents, 0, allAgents.size()-1);
+			sortAgentsByLeaderDE(allAgents);
 			for(int i = 0;i < mainMemberIds.size()-mainMemberSize;i++){
 				Agent agent = allAgents.get(allAgents.size() - i - 1);
 				mainMemberIds.remove(Integer.valueOf(agent.getMyId()));
@@ -722,7 +666,7 @@ public class Agent {
 			int p = (int)(rnd.NextUnif() * messageSize);
 			message = messages.get(p);
 		}else{
-			mergeSortMessageByMemberDe(messages, 0, messages.size() - 1);
+			sortMessagesByMemberDE(messages);
 			message = messages.get(0);
 //				for(int i=0;i<messages.size();i++){
 //					System.out.println("member: " + getMyId() + " " + memberDe[messages.get(i).from().getMyId()]);
@@ -838,7 +782,7 @@ public class Agent {
 	
 	private void chooseSubTasks(){
 		int tick = Environment.tick;
-		mergeSortMessageByMemberDe(preSubTasks, 0, preSubTasks.size() - 1);
+		sortMessagesByMemberDE(preSubTasks);
 		for(int i = 0;i<preSubTasks.size();i++){
 			Message message = preSubTasks.get(i);
 //				System.out.println("de: " + de[message.from().getMyId()]);
@@ -903,18 +847,6 @@ public class Agent {
 	}
 	
 	//---------------------------------------------------------------------------------------
-	
-	public void clearMemberInstance(){
-		finishMessage = null;
-	}
-	
-	//---------------------------------------------------------------------------------------
-	
-	public void clearmessages(){
-		solicitationMessages.clear();
-	}
-	
-	//---------------------------------------------------------------------------------------
 	public int getSubTaskQueueSize(){
 		return messageQueue.size();
 	}
@@ -965,14 +897,12 @@ public class Agent {
 				taskAllocate();
 				leaderState = LeaderState.EXECUTING_TASK;
 				clearLeaderInstance();
-				time = 0;
 			}else if(judge == 1){
 				//全部返信がきててアロケーションできないなら
 				failAllocate();
 				wastedTask[this.getArea().getId()][tick]++;
 				leaderState = LeaderState.EXECUTING_TASK;
 				clearLeaderInstance();
-				time = 0;
 			}else{
 				if(mySubTask != null){
 					executeSubTask();
@@ -1065,12 +995,12 @@ public class Agent {
 //		copyAgents.removeAll(executingMembers);
 		copyAgents.remove(this);
 		Collections.shuffle(copyAgents, Environment.r);
-		sortAgentsByLeaderDe(copyAgents, 0, copyAgents.size()-1);
+		sortAgentsByLeaderDE(copyAgents);
 		
 		HashMap<Integer, List<Agent>> specificSortingAgentsMap = new HashMap<Integer, List<Agent>>();
 		for(int i=0;i<3;i++){
 			List<Agent> copySpecificAgents = new ArrayList<Agent>(copyAgents);
-			mergeSortAgentBySpecificLeaderDe(copySpecificAgents, 0, copySpecificAgents.size()-1, i);
+			mergeSortAgentBySpecificLeaderDE(copySpecificAgents, i);
 			copySpecificAgents.remove(this);
 			specificSortingAgentsMap.put(i, copySpecificAgents);
 		}
@@ -1083,11 +1013,11 @@ public class Agent {
 		if(this.isReciprocity()){
 			List<Agent> copyDeAgents = new ArrayList<Agent>(deAgents);
 //			copyDeAgents.removeAll(executingMembers);
-			sortAgentsByLeaderDe(copyDeAgents, 0, copyDeAgents.size() - 1);
+			sortAgentsByLeaderDE(copyDeAgents);
 			HashMap<Integer, List<Agent>> specificSortingDeAgentsMap = new HashMap<Integer, List<Agent>>();
 			for(int i=0;i<3;i++){
 				List<Agent> copySpecificDeAgents = new ArrayList<Agent>(specificDeAgentsMap.get(i));
-				mergeSortAgentBySpecificLeaderDe(copySpecificDeAgents, 0, copySpecificDeAgents.size() - 1, i);
+				mergeSortAgentBySpecificLeaderDE(copySpecificDeAgents, i);
 				specificSortingDeAgentsMap.put(i, copySpecificDeAgents);
 			}
 
@@ -1209,7 +1139,7 @@ public class Agent {
 		List<Agent> copyAgents = new ArrayList<Agent>(agents);
 		copyAgents.remove(this);
 		Collections.shuffle(copyAgents, Environment.r);
-		sortAgentsByLeaderDe(copyAgents, 0, copyAgents.size()-1);
+		sortAgentsByLeaderDE(copyAgents);
 		
 		//リーダーは自分の処理するサブタスクを取っておく。
 		mySubTask = getMySubTask(subTasks);
@@ -1217,7 +1147,7 @@ public class Agent {
 		remainingTime = getExcutingTime(mySubTask);
 		
 		List<Agent> copyDeAgents = new ArrayList<Agent>(deAgents);
-		sortAgentsByLeaderDe(copyDeAgents, 0, copyAgents.size() - 1);
+		sortAgentsByLeaderDE(copyDeAgents);
 
 		for(int i=0;i<SOLICITATION_REDUNDANCY;i++){
 			for(int j=0;j<subTasks.size();j++){
@@ -1402,6 +1332,7 @@ public class Agent {
 		membersExcuting.clear();
 		acceptMembers.clear();
 		team.clear();
+		time = 0;
 	}
 
 }
