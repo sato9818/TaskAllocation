@@ -7,10 +7,11 @@ public class Constants {
 	public static final boolean ROLE_CHNAGEABLE = true;
 	public static boolean CNP_MODE = false;
 	public static boolean RECIPROCITY = false;
+	public static final boolean FULL_RESOURCE = false;
 	
 	//負荷
 	public static final double LOW_WORKLOAD = 2;
-	public static final double MODERATE_WORKLOAD = 10;
+	public static final double MODERATE_WORKLOAD = 22;
 	public static final double HIGH_WORKLOAD = 6;
 	
 	//エリア分割
@@ -58,13 +59,13 @@ public class Constants {
 	public static final int ADDITIONAL_RESOURCE = 5;
 	
 	//tick
-	public static final int EXPERIMENTAL_DURATION = 50001;
+	public static final int EXPERIMENTAL_DURATION = 10001;
 	
 	public static final int CHANGE_WORKLOAD_TIME = EXPERIMENTAL_DURATION;
 	public static final int RESTORE_WORKLOAD_TIME = EXPERIMENTAL_DURATION;
 	public static final int CHANGE_SUBTASKS_TIME = EXPERIMENTAL_DURATION;
 	public static final int RESTORE_SUBTASKS_TIME = EXPERIMENTAL_DURATION;
-	public static final int TIME_TO_RESET_DE = 40000;
+	public static final int TIME_TO_RESET_DE = EXPERIMENTAL_DURATION;
 	
 	public static final int FIRST_MEASURE_TIME = 10000;
 	

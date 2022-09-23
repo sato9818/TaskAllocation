@@ -741,10 +741,10 @@ public class Agent {
 		case ALLOCATION:
 			expectedTasks--;
 			if(message.getSubTask() == null){
-				updateLeaderEvaluation(false);
+				updateMemberEvaluation(false);
 				updateDependablity(message, false);
 			}else{
-				updateLeaderEvaluation(true);
+				updateMemberEvaluation(true);
 				updateDependablity(message, true);
 				preSubTasks.add(message);
 				allocatedSubTask[getMyId()]++;
