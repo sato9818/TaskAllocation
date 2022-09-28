@@ -87,6 +87,9 @@ public class Agent {
 	protected int sumQueueSize = 0;
 	protected int failureOrFinishedmessage = 0;
 	
+	private int allocatedSubtasks = 0;
+	private int rejectedSubtasks = 0;
+	
 	public Role role = Role.LEADER;
 	
 	
@@ -1034,7 +1037,7 @@ public class Agent {
 					Agent agent = null;
 					int type = subtask.getType();
 
-					if(type == 0){
+					if(type == -1){
 						if(!copyDeAgents.isEmpty()){
 							agent = copyDeAgents.get(0);
 							copyDeAgents.remove(agent);
@@ -1043,8 +1046,8 @@ public class Agent {
 							agent = copyAgents.get(0);
 						}
 					}else{
-						if(!specificSortingDeAgentsMap.get(type - 1).isEmpty()){
-							agent = specificSortingDeAgentsMap.get(type - 1).get(0);
+						if(!specificSortingDeAgentsMap.get(type).isEmpty()){
+							agent = specificSortingDeAgentsMap.get(type).get(0);
 							confSubTask.add(subtask);
 						}else{
 //							if(!copyDeAgents.isEmpty()){
@@ -1056,8 +1059,8 @@ public class Agent {
 //									agent = copyAgents.get(0);
 //								}
 //							}
-							agent = specificSortingAgentsMap.get(type - 1).get(0);
-							if(this.getLeaderSpecificDependablity(type - 1, agent.getMyId()) == 0){
+							agent = specificSortingAgentsMap.get(type).get(0);
+							if(this.getLeaderSpecificDependablity(type, agent.getMyId()) == 0){
 								agent = copyAgents.get(0);
 							}
 						}
@@ -1090,11 +1093,11 @@ public class Agent {
 						subTasksList.add(subtask);
 					}
 					
-					if((type = subtask.getType()) == 0){
+					if((type = subtask.getType()) == -1){
 						agent = copyAgents.get(0);
 					}else{
-						agent = specificSortingAgentsMap.get(type - 1).get(0);
-						if(this.getLeaderSpecificDependablity(type - 1, agent.getMyId()) == 0){
+						agent = specificSortingAgentsMap.get(type).get(0);
+						if(this.getLeaderSpecificDependablity(type, agent.getMyId()) == 0){
 							agent = copyAgents.get(0);
 						}
 					}

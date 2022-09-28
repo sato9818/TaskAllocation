@@ -2,6 +2,7 @@ csv/
 pdf/
 png/
 bin/
+config/
 .classpath
 .project
 .DS_Store
