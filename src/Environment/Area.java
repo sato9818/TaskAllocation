@@ -1,15 +1,14 @@
-package Environment;
+package environment;
 import java.util.ArrayDeque;
 import java.util.Queue;
 
-import Random.Sfmt;
-import Task.Task;
+import random.Sfmt;
+import task.Task;
 
-import static Constants.Constants.*;
+import static shared.Constants.*;
 
 public class Area {
-	static int num = 0;
-	public static int overflowedTask[][] = new int[NUM_OF_AREA][EXPERIMENTAL_DURATION];
+	public int overflowedTask[] = new int[EXPERIMENTAL_DURATION];
 	
 	private Queue<Task> taskQueue = new ArrayDeque<Task>();
 	private final int minX;
@@ -18,22 +17,18 @@ public class Area {
 	private final int maxY;
 	private double workload;
 	private final int id;
-	
+	private int agentsNum = 0;
 	
 	private int taskCount = 0; 
 	
 	
-	Area(double workload, int minX, int minY, int maxX, int maxY){
+	Area(double workload, int minX, int minY, int maxX, int maxY, int areaID){
 		this.workload = workload;
 		this.minX = minX;
 		this.minY = minY;
 		this.maxX = maxX;
 		this.maxY = maxY;
-		id = num;
-		num++;
-		if(num == NUM_OF_AREA){
-			num = 0;
-		}
+		id = areaID;
 	}
 	
 	//---------------------------------------------------------------------------------------
@@ -48,18 +43,20 @@ public class Area {
 	
 	//---------------------------------------------------------------------------------------
 	
-	public void addTask(int tick){
-		int p = Environment.rnd.NextPoisson(workload);
+	public int addTask(int tick, int taskID, Sfmt rnd){
+		int p = rnd.NextPoisson(workload);
 		taskCount += p;
 		for(int i=0;i<p;i++){
-			Task task = new Task();
+			Task task = new Task(taskID, rnd);
+			taskID++;
 			if(taskQueue.size() > TASK_QUEUE_SIZE){
-				overflowedTask[getId()][tick]++;
+				overflowedTask[tick]++;
 			}else{
 				taskQueue.add(task);
 			}
 			
 		}
+		return taskID;
 	}
 	
 	//---------------------------------------------------------------------------------------
@@ -84,6 +81,18 @@ public class Area {
 	
 	public int getId(){
 		return id;
+	}
+	
+	//---------------------------------------------------------------------------------------
+	
+	public void addAgent(){
+		agentsNum++;
+	}
+	
+	//---------------------------------------------------------------------------------------
+	
+	public int agentsNum(){
+		return agentsNum;
 	}
 	
 	//---------------------------------------------------------------------------------------

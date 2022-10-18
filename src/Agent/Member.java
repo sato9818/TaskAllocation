@@ -1,3 +1,4 @@
+package agent;
 //package Agent;
 //import static Constants.Constants.*;
 //
@@ -44,7 +45,6 @@
 //	public void act(int tick){
 //		chooseSubTasks(tick);
 //		memberCount[getMyId()]++;
-//		ownedSubtask[getMyId()][tick] += messageQueue.size();
 //		
 //		switch(phase){
 //		case INACTIVE:

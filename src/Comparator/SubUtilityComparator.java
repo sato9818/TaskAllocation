@@ -1,7 +1,7 @@
-package Comparator;
+package comparator;
 import java.util.Comparator;
 
-import Task.SubTask;
+import task.SubTask;
 
 public class SubUtilityComparator implements Comparator<SubTask>{
 	@Override

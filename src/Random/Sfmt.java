@@ -1,4 +1,4 @@
-package Random;
+package random;
 public class Sfmt
 {
     int    index;

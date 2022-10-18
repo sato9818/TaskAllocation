@@ -1,11 +1,13 @@
-package Task;
-import Agent.Agent;
-import Random.Sfmt;
-import Environment.Environment;
-import static Constants.Constants.*;
+package task;
+import environment.Environment;
+import random.Sfmt;
+
+import static shared.Constants.*;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import agent.Agent;
 
 public class SubTask {
 	private int requiredResources[] = new int[TYPES_OF_RESOURCE];
@@ -17,7 +19,7 @@ public class SubTask {
 	
 	//---------------------------------------------------------------------------------------
 	
-	SubTask(int id){
+	SubTask(int id, Sfmt rnd){
 		List<Integer> maxIndexs = new ArrayList<Integer>();
 		int maxRequiredResource = 0;
 		
@@ -28,7 +30,7 @@ public class SubTask {
 //			basicResource -= RESOURCE_FLUCTUATION;
 //		}
 		for(int i=0;i<TYPES_OF_RESOURCE;i++){
-			int requiredResource = BASIC_RESOURCE + Environment.rnd.NextInt(ADDITIONAL_RESOURCE + 1);
+			int requiredResource = BASIC_RESOURCE + rnd.NextInt(ADDITIONAL_RESOURCE + 1);
 			
 			if(requiredResource > maxRequiredResource){
 				maxIndexs.clear();
@@ -40,10 +42,10 @@ public class SubTask {
 			requiredResources[i] = requiredResource;
 		}
 		
-		type = maxIndexs.get(Environment.rnd.NextInt(maxIndexs.size()));
+		type = maxIndexs.get(rnd.NextInt(maxIndexs.size()));
 		
 		if(!FULL_RESOURCE) {
-			int resourceIndex = leaveOneResouce();
+			int resourceIndex = leaveOneResouce(rnd);
 			type = resourceIndex;
 		}
 		
@@ -53,8 +55,8 @@ public class SubTask {
 	
 	//---------------------------------------------------------------------------------------
 	
-	private int leaveOneResouce() {
-		int resourceIndex = Environment.rnd.NextInt(TYPES_OF_RESOURCE);
+	private int leaveOneResouce(Sfmt rnd) {
+		int resourceIndex = rnd.NextInt(TYPES_OF_RESOURCE);
 		for(int i=0;i<TYPES_OF_RESOURCE;i++){
 			if(resourceIndex != i) requiredResources[i] = 0;
 		}

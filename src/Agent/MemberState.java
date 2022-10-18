@@ -1,4 +1,4 @@
-package Agent;
+package agent;
 
 public enum MemberState {
 	INACTIVE,

@@ -1,9 +1,9 @@
-package Message;
+package message;
 
 import java.util.List;
 
-import Agent.Agent;
-import Task.SubTask;
+import agent.Agent;
+import task.SubTask;
 
 public class Message {
 	private SubTask subtask;

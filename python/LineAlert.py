@@ -1,12 +1,15 @@
 import requests
+import os
+from dotenv import load_dotenv
 
-line_notify_token = 'TISkAnHL2gvjYg9AXxa1zHuz1z5t5hfYmLxo5Y7Uip5'
+load_dotenv()
+LINE_SIMULATION_NOTIFIER_TOKEN = os.getenv('LINE_SIMULATION_NOTIFIER_TOKEN')
 line_notify_api = 'https://notify-api.line.me/api/notify'
-message = 'simulation finished'
+
+path = os.getcwd()
+message = path
 
 
 payload = {'message': message}
-headers = {'Authorization': 'Bearer ' + line_notify_token} 
+headers = {'Authorization': 'Bearer ' + LINE_SIMULATION_NOTIFIER_TOKEN} 
 line_notify = requests.post(line_notify_api, data=payload, headers=headers)
-
-
