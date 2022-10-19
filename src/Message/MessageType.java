@@ -1,4 +1,4 @@
-package Message;
+package message;
 
 public enum MessageType {
 	SOLICITATION,

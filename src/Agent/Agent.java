@@ -1,6 +1,6 @@
-package Agent;
+package agent;
 
-import static Constants.Constants.*;
+import static shared.Constants.*;
 
 import java.util.ArrayDeque;
 import java.util.ArrayList;
@@ -13,19 +13,16 @@ import java.util.List;
 import java.util.Map;
 import java.util.Queue;
 
-import Comparator.SubUtilityComparator;
-import Environment.Area;
-import Environment.Environment;
-import Message.Message;
-import Message.MessageType;
-import Random.Sfmt;
-import Task.SubTask;
-import Task.Task;
+import comparator.SubUtilityComparator;
+import environment.Area;
+import environment.Environment;
+import message.Message;
+import message.MessageType;
+import random.Sfmt;
+import task.SubTask;
+import task.Task;
 
 public class Agent {
-	//固有番号をつけるためのもの
-	static int num = 0;
-	
 	//定数------------------------------------------------------------------------------------
 	
 	//座標
@@ -35,6 +32,7 @@ public class Agent {
 	protected final Area area;
 	//固有番号
 	private final int myId;
+	private final Environment env;
 	
 	//変数------------------------------------------------------------------------------------
 	
@@ -56,7 +54,7 @@ public class Agent {
 	//信頼エージェントのリスト
 	protected List<Agent> deAgents = new ArrayList<Agent>();
 	//各サブタスクtypeに応じた信頼エージェント
-	protected HashMap<Integer, List<Agent>> specificDeAgentsMap = new HashMap<Integer, List<Agent>>();
+	public HashMap<Integer, List<Agent>> specificDeAgentsMap = new HashMap<Integer, List<Agent>>();
 	//各エージェントとの距離
 	private int distance[] = new int[NUM_OF_AGENT];
 	//届いたメッセージの置き場
@@ -87,8 +85,12 @@ public class Agent {
 	protected int sumQueueSize = 0;
 	protected int failureOrFinishedmessage = 0;
 	
+	public double leaderDependabilityDegreeThreshold = INITAIL_LEADER_DEPENDABLITY_DEGREE_THRESHOLD;
+	public double memberDependabilityDegreeThreshold = INITAIL_MEMBER_DEPENDABLITY_DEGREE_THRESHOLD;
+	
 	private int allocatedSubtasks = 0;
 	private int rejectedSubtasks = 0;
+	private int wastedSubtasks = 0;
 	
 	public Role role = Role.LEADER;
 	
@@ -128,37 +130,41 @@ public class Agent {
 	
 	//集計用------------------------------------------------------------------------------------
 	//処理したタスク数
-	public static int executedTask[][] = new int[NUM_OF_AREA][EXPERIMENTAL_DURATION];
+	public int executedTask = 0;
 	//処理したサブタスク数
-	public static int executedSubTask[][] = new int[NUM_OF_AREA][EXPERIMENTAL_DURATION];
+	public int executedSubTask = 0;
 	//チームが組めなかったことによるサブタスク破棄
-	public static int wastedTask[][] = new int[NUM_OF_AREA][EXPERIMENTAL_DURATION];
+	public int wastedTask = 0;
 	//途中で断られてチームが解散になったことによるタスク失敗
-	public static int rejectedTask[][] = new int[NUM_OF_AREA][EXPERIMENTAL_DURATION];
-	public static double waitingTime[][] = new double[NUM_OF_AREA][EXPERIMENTAL_DURATION];
-	public static double executedTime[][] = new double[NUM_OF_AREA][EXPERIMENTAL_DURATION];
-	public static double allExecutedTime[][] = new double[NUM_OF_AREA][EXPERIMENTAL_DURATION];
-	public static int allocationMemberCount[][][] = new int[NUM_OF_AREA][NUM_OF_AREA][EXPERIMENTAL_DURATION];
-	public static int refusedTask[] = new int[NUM_OF_AGENT];
-	public static int finishSubTask = 0;
-	public static int allocatedSubTask[] = new int[NUM_OF_AGENT];
-	public static int leaderCount[] = new int[NUM_OF_AGENT];
-	public static int memberCount[] = new int[NUM_OF_AGENT];
-	public static int ownedSubtask[][] = new int[NUM_OF_AGENT][EXPERIMENTAL_DURATION];
+	public int rejectedTask = 0;
+	public int allocationMemberCount[] = new int[NUM_OF_AREA];
+	public double waitingTime = 0;
+	public double executedTime = 0;
+	public double allExecutedTime = 0;
+	
+	public void clearVariablesForAnalize() {
+		executedTask = 0;
+		executedSubTask = 0;
+		wastedTask = 0;
+		rejectedTask = 0;
+		for(int i=0;i<NUM_OF_AREA;i++) {
+			allocationMemberCount[i] = 0;
+		}
+		waitingTime = 0;
+		executedTime = 0;
+		allExecutedTime = 0;
+	}
 	
 	//---------------------------------------------------------------------------------------
 	
-	public Agent(Area area, int x, int y){
-		setCapacity();
-		initializeDependability();
+	public Agent(Area area, int x, int y, Environment env, int agentID){
 		gridX = x;
 		gridY = y;
 		this.area = area;
-		myId = num;
-		num++;
-		if(num == NUM_OF_AGENT){
-			num = 0;
-		}
+		this.env = env;
+		myId = agentID;
+		setCapacity();
+		initializeDependability();
 	}
 	
 	public void setRole(Role role){
@@ -197,6 +203,21 @@ public class Agent {
 			leaderDe[i] = 0.0;
 			memberDe[i] = 0.0;
 		}
+	}
+	
+	public void updateThreshold() {
+		if(role == Role.LEADER) {
+//			leaderDependabilityDegreeThreshold -= rejectedSubtasks * LEADER_THRESHOLD_DECREASING_RATE;
+//			leaderDependabilityDegreeThreshold += wastedSubtasks * LEADER_THRESHOLD_INCREASING_RATE;
+//			leaderDependabilityDegreeThreshold += LEADER_THRESHOLD_INCREASING_RATE;
+//			leaderDependabilityDegreeThreshold = Math.max(leaderDependabilityDegreeThreshold, 0.0000000000001);
+		}else if(role == Role.MEMBER) {
+//			memberDependabilityDegreeThreshold -= MEMBER_THRESHOLD_DECREASING_RATE;
+//			memberDependabilityDegreeThreshold += rejectedSubtasks * MEMBER_THRESHOLD_INCREASING_RATE;
+//			memberDependabilityDegreeThreshold = Math.max(memberDependabilityDegreeThreshold, 0.0000000000001);
+		}
+		rejectedSubtasks = 0;
+		wastedSubtasks = 0;
 	}
 	
 	public void setMainAgents(List<Agent> agents){
@@ -311,7 +332,7 @@ public class Agent {
 		while(capacity[0] == 0 && capacity[1] == 0 && capacity[2] == 0){
 			int p = 0;
 			for(int i=0;i<3;i++){
-				capacity[i] = 1 + Environment.rnd.NextInt(5);
+				capacity[i] = 1 + env.rnd.NextInt(5);
 //				capacity[i] = 3;
 				capave += (double)capacity[i];
 				if(capacity[i] != 0){
@@ -328,7 +349,7 @@ public class Agent {
 		Agent member = message.from();
 		SubTask subTask = message.getSubTask();
 		int taskId = subTask.getTaskId();
-		int tick = Environment.tick;
+		int tick = env.tick;
 		sumQueueSize += message.getQueueSize();
 		failureOrFinishedmessage++;
 		
@@ -337,12 +358,12 @@ public class Agent {
 		executingMember.remove(member);
 		int startTick = executionTimeMap.get(taskId);
 		updateDependablity(message,true, tick - startTick);
-		executedSubTask[this.getArea().getId()][tick]++;
-		allExecutedTime[this.getArea().getId()][tick] += tick - startTick;
-		executedTime[this.getArea().getId()][tick] += message.getExecutedTime();
+		executedSubTask++;
+		allExecutedTime += tick - startTick;
+		executedTime += message.getExecutedTime();
 		if(executingMember.isEmpty()){
 			memberListMap.remove(taskId);
-			executedTask[this.getArea().getId()][tick]++;
+			executedTask++;
 		}
 	}
 	
@@ -526,10 +547,10 @@ public class Agent {
 	
 	public int eGreedy() {
 		int A;
-        int randNum = Environment.rnd.NextInt(101);
+        int randNum = env.rnd.NextInt(101);
         if (randNum <= EPSILON * 100.0) {
         	//eの確率
-			A = Environment.rnd.NextInt(2);
+			A = env.rnd.NextInt(2);
         } else {
         	//(1-e)の確率
         	A = 0;
@@ -539,10 +560,8 @@ public class Agent {
 	
 	//---------------------------------------------------------------------------------------
 	public void act(){
-		int tick = Environment.tick;
+		int tick = env.tick;
 		chooseSubTasks();
-		memberCount[getMyId()]++;
-		ownedSubtask[getMyId()][tick] += messageQueue.size();
 		
 		switch(memberState){
 		case INACTIVE:
@@ -606,13 +625,13 @@ public class Agent {
 	//---------------------------------------------------------------------------------------
 	
 	public void startToExecuteTask(){
-		int tick = Environment.tick;
+		int tick = env.tick;
 		Message allocationMessage = messageQueue.poll();
-		mySubTask = allocationMessage.getSubTask(); 
+		mySubTask = allocationMessage.getSubTask();
 		int et = getExcutingTime(mySubTask);	
 		remainingTime = et;
 		finishMessage = new Message(MessageType.FINISH, this, allocationMessage.from(), allocationMessage.getSubTask(), et, messageQueue.size());
-		waitingTime[this.getArea().getId()][tick] += tick - allocateTimeMap.get(finishMessage.getSubTask().getTaskId());
+		waitingTime += tick - allocateTimeMap.get(finishMessage.getSubTask().getTaskId());
 		executeTask();
 	}
 	
@@ -638,12 +657,12 @@ public class Agent {
 						if(!deAgents.contains(message.from())){
 							decide = false;
 						}
-						if(expectedTasks + messageQueue.size() < SUB_TASK_QUEUE_SIZE - deAgents.size()){
-							decide = true;
-						}
+//						if(expectedTasks + messageQueue.size() < SUB_TASK_QUEUE_SIZE - deAgents.size()){
+//							decide = true;
+//						}
 					}
 				}else if(p == 1){
-					message = decideMessage(solicitationMessages, Environment.rnd);
+					message = decideMessage(solicitationMessages, env.rnd);
 				}
 				
 //					if(expectedTasks + taskQueue.size() ){
@@ -725,7 +744,6 @@ public class Agent {
 	public void executeTask(){
 		remainingTime--;
 		if(remainingTime == 0){
-			finishSubTask++;
 			allMessages.add(finishMessage);
 			mySubTask = null;
 			finishMessage = null;
@@ -750,7 +768,6 @@ public class Agent {
 				updateMemberEvaluation(true);
 				updateDependablity(message, true);
 				preSubTasks.add(message);
-				allocatedSubTask[getMyId()]++;
 			}
 			break;
 		case COLLAPSE_TEAM:
@@ -778,13 +795,12 @@ public class Agent {
 			finishMemberSubTask(message);
 			break;
 		}
-		
 	}
 	
 	//---------------------------------------------------------------------------------------
 	
 	private void chooseSubTasks(){
-		int tick = Environment.tick;
+		int tick = env.tick;
 		sortMessagesByMemberDE(preSubTasks);
 		for(int i = 0;i<preSubTasks.size();i++){
 			Message message = preSubTasks.get(i);
@@ -792,8 +808,8 @@ public class Agent {
 			if(messageQueue.size() >= SUB_TASK_QUEUE_SIZE){
 				allMessages.add(new Message(MessageType.REFUSE, this, message.from(), message.getSubTask()));
 				
-				refusedTask[getMyId()]++;
-				rejectedTask[this.getArea().getId()][tick]++;
+				rejectedSubtasks++;
+				rejectedTask++;
 			}else{
 				messageQueue.add(message);
 				allocateTimeMap.put(message.getSubTask().getTaskId(), tick);
@@ -857,8 +873,7 @@ public class Agent {
 	//For leaders
 
 	public void act(List<Agent> agents){
-		int tick = Environment.tick;
-		leaderCount[getMyId()]++;
+		int tick = env.tick;
 		switch(leaderState){
 		case SELECT_MEMBER:
 			if(!area.taskIsEmpty()){//タスクがあれば
@@ -903,7 +918,8 @@ public class Agent {
 			}else if(judge == 1){
 				//全部返信がきててアロケーションできないなら
 				failAllocate();
-				wastedTask[this.getArea().getId()][tick]++;
+				wastedSubtasks++;
+				wastedTask++;
 				leaderState = LeaderState.EXECUTING_TASK;
 				clearLeaderInstance();
 			}else{
@@ -967,7 +983,7 @@ public class Agent {
 		List<SubTask> subTasks = task.getSubTasks();
 		List<Agent> copyAgents = new ArrayList<Agent>(agents);
 		copyAgents.remove(this);
-		Collections.shuffle(copyAgents, Environment.r);
+		Collections.shuffle(copyAgents, env.r);
 		
 		mySubTask = subTasks.get(0);
 		subTasks.remove(mySubTask);
@@ -997,7 +1013,7 @@ public class Agent {
 		List<Agent> copyAgents = new ArrayList<Agent>(agents);
 //		copyAgents.removeAll(executingMembers);
 		copyAgents.remove(this);
-		Collections.shuffle(copyAgents, Environment.r);
+		Collections.shuffle(copyAgents, env.r);
 		sortAgentsByLeaderDE(copyAgents);
 		
 		HashMap<Integer, List<Agent>> specificSortingAgentsMap = new HashMap<Integer, List<Agent>>();
@@ -1141,7 +1157,7 @@ public class Agent {
 		List<SubTask> confSubTask = new ArrayList<SubTask>();
 		List<Agent> copyAgents = new ArrayList<Agent>(agents);
 		copyAgents.remove(this);
-		Collections.shuffle(copyAgents, Environment.r);
+		Collections.shuffle(copyAgents, env.r);
 		sortAgentsByLeaderDE(copyAgents);
 		
 		//リーダーは自分の処理するサブタスクを取っておく。
@@ -1231,6 +1247,7 @@ public class Agent {
 		case REFUSE:
 			updateDependablity(message, false, 0);
 			notifyFailure(message);
+			rejectedSubtasks++;
 //			updateRoleEvaluation(false);
 			break;
 		case FINISH:
@@ -1273,7 +1290,7 @@ public class Agent {
 	//---------------------------------------------------------------------------------------
 	
 	public void taskAllocate(){
-		int tick = Environment.tick;
+		int tick = env.tick;
         Iterator<SubTask> subtask_itr = team.keySet().iterator();
         int taskId = -1;
         // hasNextを使用して値がある場合はループを継続する
@@ -1284,7 +1301,7 @@ public class Agent {
             taskId = subtask.getTaskId();
             Agent member = team.get(subtask);
             Message message = new Message(MessageType.ALLOCATION, this, member, subtask);
-            allocationMemberCount[this.getArea().getId()][member.getArea().getId()][tick]++; 
+            allocationMemberCount[member.getArea().getId()]++; 
             allMessages.add(message);
             //this.updatede(new MessagetoLeader(message.getto(),message.getfrom(),message.getsubtask(),0,message.getto().setexcutiontime(message.getsubtask())), true);
             membersExcuting.add(member);
@@ -1322,7 +1339,6 @@ public class Agent {
 	public void executeSubTask(){
 		remainingTime--;
 		if(remainingTime == 0){
-			finishSubTask++;
 			mySubTask = null;
 		}
 	}

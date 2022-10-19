@@ -6,3 +6,4 @@ config/
 .classpath
 .project
 .DS_Store
+.env

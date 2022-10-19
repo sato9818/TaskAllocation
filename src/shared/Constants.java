@@ -1,4 +1,4 @@
-package Constants;
+package shared;
 
 public class Constants {
 	private Constants(){};
@@ -8,11 +8,11 @@ public class Constants {
 	public static boolean CNP_MODE = false;
 	public static boolean RECIPROCITY = false;
 	public static final boolean FULL_RESOURCE = false;
-	public static final boolean THRESHOLD_FIXED = false;
+	public static final boolean THRESHOLD_FIXED = true;
 	
 	//負荷
 	public static final double LOW_WORKLOAD = 2;
-	public static final double MODERATE_WORKLOAD = 22;
+	public static final double MODERATE_WORKLOAD = 18;
 	public static final double HIGH_WORKLOAD = 6;
 	
 	//エリア分割
@@ -40,12 +40,16 @@ public class Constants {
 	
 	//リーダー
 	public static final int LEADER_DEPENDABLITY_AGENT_THRESHOLD = 1;
-	public static final double LEADER_DEPENDABLITY_DEGREE_THRESHOLD = 0.7;
+	public static final double INITAIL_LEADER_DEPENDABLITY_DEGREE_THRESHOLD = 1.0;
+	public static final double LEADER_THRESHOLD_INCREASING_RATE = 0.1;
+	public static final double LEADER_THRESHOLD_DECREASING_RATE = 0.1;
 	
 	//メンバ
 	public static final int INACTIVE_THRESHOLD = 100;
-	public static final int MEMBER_DEPENDABLITY_AGENT_THRESHOLD = 3;
-	public static final double MEMBER_DEPENDABLITY_DEGREE_THRESHOLD = 0.7;
+	public static final int MEMBER_DEPENDABLITY_AGENT_THRESHOLD = 5;
+	public static final double INITAIL_MEMBER_DEPENDABLITY_DEGREE_THRESHOLD = 1.0;
+	public static final double MEMBER_THRESHOLD_INCREASING_RATE = 0.1;
+	public static final double MEMBER_THRESHOLD_DECREASING_RATE = 0.01;
 	
 	//エージェント
 	public static final int TYPES_OF_RESOURCE = 3;
@@ -68,7 +72,7 @@ public class Constants {
 	public static final int RESTORE_SUBTASKS_TIME = EXPERIMENTAL_DURATION;
 	public static final int TIME_TO_RESET_DE = EXPERIMENTAL_DURATION;
 	
-	public static final int FIRST_MEASURE_TIME = 10000;
+	public static final int FIRST_MEASURE_TIME = EXPERIMENTAL_DURATION;
 	
-	public static final int TRIAL_COUNT = 1;
+	public static final int TRIAL_COUNT = 20;
 }

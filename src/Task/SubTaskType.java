@@ -1,4 +1,4 @@
-package Task;
+package task;
 
 public enum SubTaskType {
 	NORMAL_TASK,

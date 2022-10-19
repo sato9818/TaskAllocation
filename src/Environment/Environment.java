@@ -1,5 +1,5 @@
-package Environment;
-import static Constants.Constants.*;
+package environment;
+import static shared.Constants.*;
 
 import java.io.BufferedWriter;
 import java.io.File;
@@ -15,11 +15,11 @@ import java.util.List;
 import java.util.Queue;
 import java.util.Random;
 
-import Agent.Agent;
-import Agent.Role;
-import Agent.LeaderState;
-import Message.Message;
-import Random.Sfmt;
+import agent.Agent;
+import agent.LeaderState;
+import agent.Role;
+import message.Message;
+import random.Sfmt;
 
 public class Environment {
 	
@@ -28,17 +28,41 @@ public class Environment {
 	private List<Agent> agents = new ArrayList<Agent>();
 	private List<Area> areas = new ArrayList<Area>();
 	private HashMap<Integer, List<Message>> mailBoxes = new HashMap<Integer, List<Message>>();
-	public static Sfmt rnd;
-	public static Random r;
-	public static int tick;
 	
-	public static double communicationTime[][] = new double[NUM_OF_AREA][EXPERIMENTAL_DURATION];
-	public static double countSentMessages[][] = new double[NUM_OF_AREA][EXPERIMENTAL_DURATION];
-	public static int countMembers[][] = new int[NUM_OF_AREA][EXPERIMENTAL_DURATION];
-	public static int countLeaders[][] = new int[NUM_OF_AREA][EXPERIMENTAL_DURATION];
-	public static int reciprocityMembers[][] = new int[NUM_OF_AREA][EXPERIMENTAL_DURATION];
-	public static int reciprocityLeaders[][] = new int[NUM_OF_AREA][EXPERIMENTAL_DURATION];
-	public static double avgSubTaskQueue[] = new double[EXPERIMENTAL_DURATION];
+	public Sfmt rnd;
+	public Random r;
+	private int taskID = 0;
+	private int areaID = 0;
+	private int agentID = 0;
+	public int tick;
+	
+	public int countMembers[][] = new int[NUM_OF_AREA][EXPERIMENTAL_DURATION];
+	public int countLeaders[][] = new int[NUM_OF_AREA][EXPERIMENTAL_DURATION];
+	public int leaderDependableAgents[][][] = new int[TYPES_OF_RESOURCE][NUM_OF_AREA][EXPERIMENTAL_DURATION];
+	public int memberDependableAgents[][] = new int[NUM_OF_AREA][EXPERIMENTAL_DURATION];
+	public int reciprocalMembers[][] = new int[NUM_OF_AREA][EXPERIMENTAL_DURATION];
+	public int reciprocalLeaders[][] = new int[NUM_OF_AREA][EXPERIMENTAL_DURATION];
+	public double avgSubTaskQueue[][] = new double[NUM_OF_AREA][EXPERIMENTAL_DURATION];
+	public double avgLeaderThreshold[][] = new double[NUM_OF_AREA][EXPERIMENTAL_DURATION];
+	public double avgMemberThreshold[][] = new double[NUM_OF_AREA][EXPERIMENTAL_DURATION];
+	public double communicationTime[][] = new double[NUM_OF_AREA][EXPERIMENTAL_DURATION];
+	public double countSentMessages[][] = new double[NUM_OF_AREA][EXPERIMENTAL_DURATION];
+	
+	//agentから集計用------------------------------------------------------------------------------------
+	//処理したタスク数
+	public int executedTask[][] = new int[NUM_OF_AREA][EXPERIMENTAL_DURATION];
+	//処理したサブタスク数
+	public int executedSubTask[][] = new int[NUM_OF_AREA][EXPERIMENTAL_DURATION];
+	//チームが組めなかったことによるサブタスク破棄
+	public int wastedTask[][] = new int[NUM_OF_AREA][EXPERIMENTAL_DURATION];
+	//途中で断られてチームが解散になったことによるタスク失敗
+	public int rejectedTask[][] = new int[NUM_OF_AREA][EXPERIMENTAL_DURATION];
+	public double waitingTime[][] = new double[NUM_OF_AREA][EXPERIMENTAL_DURATION];
+	public double executedTime[][] = new double[NUM_OF_AREA][EXPERIMENTAL_DURATION];
+	public double allExecutedTime[][] = new double[NUM_OF_AREA][EXPERIMENTAL_DURATION];
+	public int allocationMemberCount[][][] = new int[NUM_OF_AREA][NUM_OF_AREA][EXPERIMENTAL_DURATION];
+	
+	public int overflowedTask[][] = new int[NUM_OF_AREA][EXPERIMENTAL_DURATION];
 
 	
 	
@@ -60,12 +84,11 @@ public class Environment {
 		int divX = GRID_X / NUM_OF_VERTICAL_DIVISION;
 		int divY = GRID_Y / NUM_OF_HORIZONTAL_DIVISION;
 		
-		int count = 0;
 		for(int i=0;i<NUM_OF_VERTICAL_DIVISION;i++){
 			for(int j=0;j<NUM_OF_HORIZONTAL_DIVISION;j++){
-				Area area = new Area(WORKLOADS[count], i*divX, j*divY, (i+1) * divX - 1, (j+1) * divY - 1);
+				Area area = new Area(WORKLOADS[areaID], i*divX, j*divY, (i+1) * divX - 1, (j+1) * divY - 1, areaID);
 				areas.add(area);
-				count++;
+				areaID++;
 			}
 		}
 		
@@ -88,13 +111,15 @@ public class Environment {
 			int x = grid.get(i).x;
 			int y = grid.get(i).y;
 			int p = rnd.NextInt(2);
+			Area area = identifyArea(x, y);
+			area.addAgent();
 			if(p == 0){
-				Agent leader = new Agent(identifyArea(x, y), x, y);
+				Agent leader = new Agent(area, x, y, this, agentID++);
 				leader.setRole(Role.LEADER);
 				leaders.add(leader);
 				agents.add(leader);
 			}else if(p == 1){
-				Agent member = new Agent(identifyArea(x, y), x, y);
+				Agent member = new Agent(area, x, y, this, agentID++);
 				member.setRole(Role.MEMBER);
 				members.add(member);
 				agents.add(member);
@@ -127,8 +152,8 @@ public class Environment {
 	
 	//---------------------------------------------------------------------------------------
 	
-	public void run(int tick){
-		Environment.tick = tick;
+	public void run(int t){
+		tick = t;
 		System.out.println("tick: " + tick + "---------------------------------------------------------------------------------------------------");
 //		System.out.println("# leader: " + leaders.size());
 //		System.out.println("# member: " + members.size());
@@ -145,11 +170,20 @@ public class Environment {
 		}
 		
 		for(int i=0;i<areas.size();i++){
-			areas.get(i).addTask(tick);
+			taskID = areas.get(i).addTask(tick, taskID, rnd);
+			if(taskID > 1000000) {
+				taskID = 0;
+			}
 		}
+
+		if(!THRESHOLD_FIXED){
+			updateAgentsThreshold();
+		}
+		
 		if(RECIPROCITY){
 			updateDependablityAgent();
 		}
+		
 		agentsGetMessages();
 		
 		Collections.shuffle(leaders, r);
@@ -163,6 +197,33 @@ public class Environment {
 		changeAgentRole();
 		countAgents();
 		decreaseDependability();
+		aggregateAgentData();
+	}
+	
+	private void updateAgentsThreshold(){
+		for(Agent agent : agents){
+			agent.updateThreshold();
+		}
+	}
+	
+	private void aggregateAgentData() {
+		for(Agent agent: agents) {
+			executedTask[agent.getArea().getId()][tick] += agent.executedTask;
+			executedSubTask[agent.getArea().getId()][tick] += agent.executedSubTask;
+			wastedTask[agent.getArea().getId()][tick] += agent.wastedTask;
+			rejectedTask[agent.getArea().getId()][tick] += agent.rejectedTask;
+			waitingTime[agent.getArea().getId()][tick] += agent.waitingTime;
+			executedTime[agent.getArea().getId()][tick] += agent.executedTime;
+			allExecutedTime[agent.getArea().getId()][tick] += agent.allExecutedTime;
+			for(Area area: areas) {
+				allocationMemberCount[agent.getArea().getId()][area.getId()][tick] = agent.allocationMemberCount[area.getId()];
+			}
+			agent.clearVariablesForAnalize();
+		}
+		
+		for(Area area: areas) {
+			overflowedTask[area.getId()][tick] += area.overflowedTask[tick];
+		}
 	}
 	
 	//---------------------------------------------------------------------------------------
@@ -220,6 +281,8 @@ public class Environment {
 				
 		}
 	}
+	
+	
 	
 	//---------------------------------------------------------------------------------------
 
@@ -314,25 +377,34 @@ public class Environment {
 		for(int i=0;i<leaders.size();i++){
 			Agent leader = leaders.get(i);
 			countLeaders[leader.getArea().getId()][tick]++;
-			if(leader.isReciprocity() == true){
-				reciprocityLeaders[leader.getArea().getId()][tick]++;
-			}else{
-//				System.out.println("not reciprocity");
+			avgLeaderThreshold[leader.getArea().getId()][tick] += leader.leaderDependabilityDegreeThreshold;
+			for(int type=0;type<TYPES_OF_RESOURCE;type++) {
+				leaderDependableAgents[type][leader.getArea().getId()][tick] += leader.specificDeAgentsMap.get(type).size();
 			}
-			
+			if(leader.isReciprocity() == true){
+				reciprocalLeaders[leader.getArea().getId()][tick]++;
+			}
 		}
-		double buf = 0;
 		for(int i=0;i<members.size();i++){
 			Agent member = members.get(i);
-			buf += (double)member.getSubTaskQueueSize();
+			avgSubTaskQueue[member.getArea().getId()][tick] += (double)member.getSubTaskQueueSize();
 			countMembers[member.getArea().getId()][tick]++;
+			avgMemberThreshold[member.getArea().getId()][tick] += member.memberDependabilityDegreeThreshold;
+			memberDependableAgents[member.getArea().getId()][tick] += member.getDeAgents().size();
 			if(member.isReciprocity() == true){
-				reciprocityMembers[member.getArea().getId()][tick]++;
-			}else{
-//				System.out.println("not reciprocity");
+				reciprocalMembers[member.getArea().getId()][tick]++;
 			}
 		}
-		avgSubTaskQueue[tick] += buf / members.size();
+		
+		for(Area area : areas) {
+			for(int type=0;type<TYPES_OF_RESOURCE;type++) {
+				leaderDependableAgents[type][area.getId()][tick] += countLeaders[area.getId()][tick];
+			}
+			avgLeaderThreshold[area.getId()][tick] /= countLeaders[area.getId()][tick];
+			avgMemberThreshold[area.getId()][tick] /= countMembers[area.getId()][tick];
+			avgSubTaskQueue[area.getId()][tick] /= countMembers[area.getId()][tick];
+			memberDependableAgents[area.getId()][tick] /= countMembers[area.getId()][tick];
+		}
 	}
 	
 	//---------------------------------------------------------------------------------------
@@ -346,11 +418,11 @@ public class Environment {
 			List<Agent> dependableAgents = new ArrayList<Agent>();
 			for(int j=0;j<agents.size();j++){
 				Agent agent = agents.get(j);
-				if(LEADER_DEPENDABLITY_DEGREE_THRESHOLD < leader.getLeaderDependablity(agent.getMyId())){
+				if(leader.leaderDependabilityDegreeThreshold < leader.getLeaderDependablity(agent.getMyId())){
 					leader.adddeagent(agent);
 				}
 				for(int k=0;k<3;k++){
-					if(LEADER_DEPENDABLITY_DEGREE_THRESHOLD < leader.getLeaderSpecificDependablity(k, agent.getMyId())){
+					if(leader.leaderDependabilityDegreeThreshold < leader.getLeaderSpecificDependablity(k, agent.getMyId())){
 						leader.addSpecificDeAgents(k, agent);
 //						if(!dependableAgents.contains(agent)){//値を重複させない
 //							dependableAgents.add(agent);
@@ -366,7 +438,7 @@ public class Environment {
 			member.clearDependablityAgent();
 			for(int j=0;j<agents.size();j++){
 				Agent agent = agents.get(j);
-				if(MEMBER_DEPENDABLITY_DEGREE_THRESHOLD < member.getMemberDependablity(agent.getMyId())){
+				if(member.memberDependabilityDegreeThreshold < member.getMemberDependablity(agent.getMyId())){
 					member.adddeagent(agent);
 				}
 			}
@@ -437,124 +509,6 @@ public class Environment {
 //    	}
 	}
 	
-	//---------------------------------------------------------------------------------------
-	
-	public void exportAllocatedSubTask(boolean reciprocity){
-		try{
-			FileWriter fw;
-			if(RECIPROCITY){
-				fw = new FileWriter("csv/ReciprocityAgentInfo.csv", false);
-			}else{
-				fw = new FileWriter("csv/RationalAgentInfo.csv", false);
-			}
-			PrintWriter pw = new PrintWriter(new BufferedWriter(fw));
-            pw.print("Agent ID");
-            pw.print(",");
-        	pw.print("Area ID");
-            pw.print(",");
-        	pw.print("x");
-        	pw.print(",");
-        	pw.print("y");
-        	for(int i=0;i<TYPES_OF_RESOURCE;i++){
-        		pw.print(",");
-            	pw.print("Resource: " + (i+1));
-        	}
-        	pw.print(",");
-        	pw.print("Resouce Average");
-        	pw.print(",");
-        	pw.print("Leader Evaluation");
-        	pw.print(",");
-        	pw.print("Member Evaluation");
-        	pw.print(",");
-        	pw.print("Allocated Subtasks");
-        	pw.print(",");
-        	pw.print("Refused Subtasks");
-        	pw.print(",");
-        	pw.print("Member Count");
-        	pw.print(",");
-        	pw.print("Leader Count");
-        	pw.println();
-        	for(int i=0;i<agents.size();i++){
-    			Agent agent = agents.get(i);
-    			pw.print(agent.getMyId());
-    			pw.print(",");
-            	pw.print(agent.getArea().getId());
-                pw.print(",");
-            	pw.print(agent.getPositionX());
-            	pw.print(",");
-            	pw.print(agent.getPositionY());
-            	for(int j=0;j<TYPES_OF_RESOURCE;j++){
-            		pw.print(",");
-                	pw.print(agent.getCapacity(j));
-            	}
-            	pw.print(",");
-            	pw.print(agent.averageOfCapability());
-            	pw.print(",");
-            	pw.print(agent.getLeaderEvaluation());
-            	pw.print(",");
-            	pw.print(agent.getMemberEvaluation());
-            	pw.print(",");
-            	pw.print(Agent.allocatedSubTask[agent.getMyId()]);
-            	pw.print(",");
-            	pw.print(Agent.refusedTask[agent.getMyId()]);
-            	pw.print(",");
-            	pw.print(Agent.memberCount[agent.getMyId()]);
-            	pw.print(",");
-            	pw.print(Agent.leaderCount[agent.getMyId()]);
-            	
-            	pw.println();
-    		}
-        	pw.close();
-		}catch(IOException ex){
-			System.out.println(ex);
-		}
-		
-	}
-	
-	//---------------------------------------------------------------------------------------
-	
-	public void exportOwnedSubTask(boolean reciprocity){
-		try{
-			FileWriter fw;
-			if(RECIPROCITY){
-				fw = new FileWriter("csv/ReciprocityAgentOwnedSubTask.csv", false);
-			}else{
-				fw = new FileWriter("csv/RationalAgentOwnedSubTask.csv", false);
-			}
-			PrintWriter pw = new PrintWriter(new BufferedWriter(fw));
-            pw.print("tick");
-  
-        	for(int i=0;i<agents.size();i++){
-        		pw.print(",");
-            	pw.print(agents.get(i).getMyId());
-        	}
-        	
-        	pw.println();
-        	
-        	
-    		for(int i=0;i<EXPERIMENTAL_DURATION - 1;i++){
-    			if((i+1) % 100 == 0){
-    				pw.print(i+1);
-    			}
-    			for(int j=0;j<agents.size();j++){
-        			Agent agent = agents.get(j);
-        			Agent.ownedSubtask[agent.getMyId()][i+1] += Agent.ownedSubtask[agent.getMyId()][i];
-        			if((i+1) % 100 == 0){
-    	    			pw.print(",");
-    	            	pw.print(String.format("%.2f", (double)(Agent.ownedSubtask[agent.getMyId()][i+1] - Agent.ownedSubtask[agent.getMyId()][i-99]) / 100));
-        			}
-        		}
-    			if((i+1) % 100 == 0){
-    				pw.println();
-    			}
-    			
-    		}
-        	pw.close();
-		}catch(IOException ex){
-			System.out.println(ex);
-		}
-		
-	}
 	//---------------------------------------------------------------------------------------
 	
 	public void exportAgentConnection(){

@@ -1,4 +1,4 @@
-package Agent;
+package agent;
 
 public enum LeaderState {
 	SELECT_MEMBER,

@@ -1,14 +1,14 @@
-package Task;
+package task;
 import java.util.ArrayList;
 import java.util.List;
 
-import Random.Sfmt;
-import Environment.Environment;
-import static Constants.Constants.*;
+import environment.Environment;
+import random.Sfmt;
+
+import static shared.Constants.*;
 
 public class Task {
-	static int num = 0;
-	private int id;
+	private final int id;
 	private List<SubTask> subtasks = new ArrayList<SubTask>();
 	
 	private int utility = 0;
@@ -17,16 +17,12 @@ public class Task {
 	
 	//---------------------------------------------------------------------------------------
 	
-	public Task(){
+	public Task(int taskID, Sfmt rnd){
 		int numOfSubtask;
-		numOfSubtask = BASIC_SUBTASKS + Environment.rnd.NextInt(SUBTASK_FLUCTUATION+1);
-		if(num == 1000000){
-			num = 0;
-		}
-		id=num;
-		num++;
+		numOfSubtask = BASIC_SUBTASKS + rnd.NextInt(SUBTASK_FLUCTUATION+1);
+		id=taskID;
 		for(int i=0;i<numOfSubtask;i++){
-			SubTask subtask = new SubTask(id);
+			SubTask subtask = new SubTask(id, rnd);
 			subtasks.add(subtask);
 			utility += subtask.getutility();
 		}
