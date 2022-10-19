@@ -33,12 +33,11 @@ public class Main {
 		System.out.println(CNP_MODE);
 		long start = System.currentTimeMillis();
 		
-		Environment[] envs = new Environment[TRIAL_COUNT];
 		Thread[] taskAllcationThreads = new Thread[TRIAL_COUNT];
 		
 		for(int trial = 0;trial<TRIAL_COUNT;trial++){
-			envs[trial] = new Environment(Seed._seeds[trial]);
-			taskAllcationThreads[trial] = new TaskAllocationThread(envs[trial]);
+			Environment env = new Environment(Seed._seeds[trial]);
+			taskAllcationThreads[trial] = new TaskAllocationThread(env);
 			taskAllcationThreads[trial].start();
 		}
 		try {
@@ -51,7 +50,7 @@ public class Main {
 
 		long end = System.currentTimeMillis();
 		System.out.println((end - start)  + "ms");
-		export(envs);		
+		export();		
 	}
 	
 	private static void getConstants() {
@@ -176,37 +175,31 @@ public class Main {
 	}
 	
 	
-	private static void export(Environment[] envs){
+	private static void export(){
 		for(int areaIndex=0;areaIndex<NUM_OF_AREA;areaIndex++){
 			PrintWriter pw = initializeCsvForArea(areaIndex);
 			int executedTask = 0, wastedTask = 0, messageCount = 0, overflowedTask = 0, rejectedTask = 0, leadersNum = 0, membersNum = 0, reciprocalLeaders = 0, reciprocalMembers = 0;
         	double communicationTime = 0, executedTime = 0, waitingTime = 0, allExecutedTime = 0;
         	int[] allocatedMember = new int[NUM_OF_AREA];
-        	
-
-        	
 
         	for(int tick=0;tick<EXPERIMENTAL_DURATION;tick++){
-        		for(int trial = 0;trial<TRIAL_COUNT;trial++) {
-            		Environment env = envs[trial];
-	        		executedTask += env.executedTask[areaIndex][tick];
-	        		wastedTask += env.wastedTask[areaIndex][tick];
-	        		communicationTime += divide(env.communicationTime[areaIndex][tick], env.countSentMessages[areaIndex][tick]);
-	        		executedTime += divide(env.executedTime[areaIndex][tick] , env.executedSubTask[areaIndex][tick]);
-	        		waitingTime += divide(env.waitingTime[areaIndex][tick] , env.executedSubTask[areaIndex][tick]);
-	        		allExecutedTime += divide(env.allExecutedTime[areaIndex][tick] , env.executedSubTask[areaIndex][tick]);
-	        		messageCount += env.countSentMessages[areaIndex][tick];
-	        		overflowedTask += env.overflowedTask[areaIndex][tick];
-	        		rejectedTask += env.rejectedTask[areaIndex][tick];
-	        		leadersNum += env.countLeaders[areaIndex][tick];
-	        		membersNum += env.countMembers[areaIndex][tick];
-	        		reciprocalLeaders = env.reciprocalLeaders[areaIndex][tick];
-	        		reciprocalMembers = env.reciprocalMembers[areaIndex][tick];
-	        		
-	        		for(int j=0;j<NUM_OF_AREA;j++){
-	        			allocatedMember[j] += env.allocationMemberCount[areaIndex][j][tick];
-		        	}
-        		}
+        		executedTask += Environment.executedTask[areaIndex][tick];
+        		wastedTask += Environment.wastedTask[areaIndex][tick];
+        		communicationTime += divide(Environment.communicationTime[areaIndex][tick], Environment.countSentMessages[areaIndex][tick]);
+        		executedTime += divide(Environment.executedTime[areaIndex][tick] , Environment.executedSubTask[areaIndex][tick]);
+        		waitingTime += divide(Environment.waitingTime[areaIndex][tick] , Environment.executedSubTask[areaIndex][tick]);
+        		allExecutedTime += divide(Environment.allExecutedTime[areaIndex][tick] , Environment.executedSubTask[areaIndex][tick]);
+        		messageCount += Environment.countSentMessages[areaIndex][tick];
+        		overflowedTask += Environment.overflowedTask[areaIndex][tick];
+        		rejectedTask += Environment.rejectedTask[areaIndex][tick];
+        		leadersNum += Environment.countLeaders[areaIndex][tick];
+        		membersNum += Environment.countMembers[areaIndex][tick];
+        		reciprocalLeaders += Environment.reciprocalLeaders[areaIndex][tick];
+        		reciprocalMembers += Environment.reciprocalMembers[areaIndex][tick];
+        		
+        		for(int j=0;j<NUM_OF_AREA;j++){
+        			allocatedMember[j] += Environment.allocationMemberCount[areaIndex][j][tick];
+	        	}
 	        		
 				if(tick % 100 == 0){
 					pw.print(tick);
@@ -215,13 +208,13 @@ public class Main {
 		        	pw.print(",");
 		        	pw.print(wastedTask / TRIAL_COUNT);
 		        	pw.print(",");
-		        	pw.print(communicationTime / 100 / TRIAL_COUNT);
+		        	pw.print(communicationTime / 100);
 		        	pw.print(",");
-		        	pw.print(executedTime / 100 / TRIAL_COUNT);
+		        	pw.print(executedTime / 100);
 		        	pw.print(",");
-		        	pw.print(waitingTime / 100 / TRIAL_COUNT);
+		        	pw.print(waitingTime / 100);
 		        	pw.print(",");
-		        	pw.print(allExecutedTime / 100 / TRIAL_COUNT);
+		        	pw.print(allExecutedTime / 100);
 		        	pw.print(",");
 		        	pw.print(leadersNum / TRIAL_COUNT / 100);
 		        	pw.print(",");
@@ -275,38 +268,33 @@ public class Main {
     	int overflowedTask = 0;
     	double avgSubTaskQueue = 0;
     	int rejectedTask = 0;
-    	int memberDependableAgents = 0;
+    	double memberDependableAgents = 0;
     	double avgLeaderThreshold = 0, avgMemberThreshold = 0;
-    	int[] leaderDependableAgents = new int[TYPES_OF_RESOURCE];
+    	double[] leaderDependableAgents = new double[TYPES_OF_RESOURCE];
     	
         for(int tick=0;tick<EXPERIMENTAL_DURATION;tick++){
-        	for(int trial = 0;trial<TRIAL_COUNT;trial++) {
-        		Environment env = envs[trial];
-	        	for(int i=0;i<NUM_OF_AREA;i++){
-	        		executedTask += env.executedTask[i][tick];
-	        		wastedTask += env.wastedTask[i][tick];
-	        		communicationTime += divide(env.communicationTime[i][tick], env.countSentMessages[i][tick]);
-	        		executedTime += divide(env.executedTime[i][tick] , env.executedSubTask[i][tick]);
-	        		waitingTime += divide(env.waitingTime[i][tick] , env.executedSubTask[i][tick]);
-	        		allExecutedTime += divide(env.allExecutedTime[i][tick] , env.executedSubTask[i][tick]);
-	        		messageCount += env.countSentMessages[i][tick];
-	        		overflowedTask += env.overflowedTask[i][tick];
-	        		rejectedTask += env.rejectedTask[i][tick];
-	        		avgSubTaskQueue += env.avgSubTaskQueue[i][tick];
-		        	avgLeaderThreshold += env.avgLeaderThreshold[i][tick];
-		        	avgMemberThreshold += env.avgMemberThreshold[i][tick];
-		        	for(int type=0;type<TYPES_OF_RESOURCE;type++) {
-	        			leaderDependableAgents[type] = env.leaderDependableAgents[type][i][tick];
-	    			}
-		        	memberDependableAgents += env.memberDependableAgents[i][tick];
-	        		
-	        		if(tick % 100 == 0){
-	        			leaderCount += env.countLeaders[i][tick];
-	        			memberCount += env.countMembers[i][tick];
-	        			reciprocityLeaders += env.reciprocalLeaders[i][tick];
-	        			reciprocityMembers += env.reciprocalMembers[i][tick];
-	        		}
-	        	}
+        	for(int i=0;i<NUM_OF_AREA;i++){
+        		executedTask += Environment.executedTask[i][tick];
+        		wastedTask += Environment.wastedTask[i][tick];
+        		communicationTime += divide(Environment.communicationTime[i][tick], Environment.countSentMessages[i][tick]);
+        		executedTime += divide(Environment.executedTime[i][tick] , Environment.executedSubTask[i][tick]);
+        		waitingTime += divide(Environment.waitingTime[i][tick] , Environment.executedSubTask[i][tick]);
+        		allExecutedTime += divide(Environment.allExecutedTime[i][tick] , Environment.executedSubTask[i][tick]);
+        		messageCount += Environment.countSentMessages[i][tick];
+        		overflowedTask += Environment.overflowedTask[i][tick];
+        		rejectedTask += Environment.rejectedTask[i][tick];
+        		avgSubTaskQueue += divide(Environment.avgSubTaskQueue[i][tick], Environment.countMembers[i][tick]);
+	        	avgLeaderThreshold += divide(Environment.avgLeaderThreshold[i][tick], Environment.countLeaders[i][tick]);
+	        	avgMemberThreshold += divide(Environment.avgMemberThreshold[i][tick], Environment.countMembers[i][tick]);
+	        	for(int type=0;type<TYPES_OF_RESOURCE;type++) {
+        			leaderDependableAgents[type] += divide(Environment.leaderDependableAgents[type][i][tick], Environment.countLeaders[i][tick]);
+    			}
+	        	memberDependableAgents += divide(Environment.memberDependableAgents[i][tick], Environment.countMembers[i][tick]);
+        		
+	        	leaderCount += Environment.countLeaders[i][tick];
+    			memberCount += Environment.countMembers[i][tick];
+    			reciprocityLeaders += Environment.reciprocalLeaders[i][tick];
+    			reciprocityMembers += Environment.reciprocalMembers[i][tick];
         	}
 	        	
 	        	
@@ -318,37 +306,37 @@ public class Main {
 	        	pw.print(",");
 	        	pw.print(wastedTask / TRIAL_COUNT);
 	        	pw.print(",");
-	        	pw.print(communicationTime / 100 / NUM_OF_AREA / TRIAL_COUNT);
+	        	pw.print(communicationTime / 100 / NUM_OF_AREA);
 	        	pw.print(",");
-	        	pw.print(executedTime / 100 / NUM_OF_AREA / TRIAL_COUNT);
+	        	pw.print(executedTime / 100 / NUM_OF_AREA);
 	        	pw.print(",");
-	        	pw.print(waitingTime / 100 / NUM_OF_AREA / TRIAL_COUNT);
+	        	pw.print(waitingTime / 100 / NUM_OF_AREA);
 	        	pw.print(",");
-	        	pw.print(allExecutedTime / 100 / NUM_OF_AREA / TRIAL_COUNT);
+	        	pw.print(allExecutedTime / 100 / NUM_OF_AREA);
 	        	pw.print(",");
-	        	pw.print(leaderCount / TRIAL_COUNT);
+	        	pw.print(leaderCount / TRIAL_COUNT / 100);
 	        	pw.print(",");
-	        	pw.print(memberCount / TRIAL_COUNT);
+	        	pw.print(memberCount / TRIAL_COUNT / 100);
 	        	pw.print(",");
-	        	pw.print(reciprocityLeaders / TRIAL_COUNT);
+	        	pw.print(reciprocityLeaders / TRIAL_COUNT / 100);
 	        	pw.print(",");
-	        	pw.print(reciprocityMembers / TRIAL_COUNT);
+	        	pw.print(reciprocityMembers / TRIAL_COUNT / 100);
 	        	pw.print(",");
 	        	pw.print(messageCount / TRIAL_COUNT);
 	        	pw.print(",");
 	        	pw.print(overflowedTask / TRIAL_COUNT);
 	        	pw.print(",");
-	        	pw.print(avgSubTaskQueue / TRIAL_COUNT / 100);
+	        	pw.print(avgSubTaskQueue / 100 / NUM_OF_AREA);
 	        	pw.print(",");
-	        	pw.print(avgLeaderThreshold / TRIAL_COUNT / 100);
+	        	pw.print(avgLeaderThreshold / 100 / NUM_OF_AREA);
 	        	pw.print(",");
-	        	pw.print(avgMemberThreshold / TRIAL_COUNT / 100);
+	        	pw.print(avgMemberThreshold / 100 / NUM_OF_AREA);
 	        	pw.print(",");
 	        	for(int type=0;type<TYPES_OF_RESOURCE;type++) {
-	        		pw.print(leaderDependableAgents[type] / TRIAL_COUNT / 100);
+	        		pw.print(leaderDependableAgents[type] / 100 / NUM_OF_AREA);
 		        	pw.print(",");
     			}
-	        	pw.print(memberDependableAgents / TRIAL_COUNT / 100);
+	        	pw.print(memberDependableAgents / 100 / NUM_OF_AREA);
 	        	pw.print(",");
 	        	pw.print(rejectedTask / TRIAL_COUNT);
 	        	pw.print(",");

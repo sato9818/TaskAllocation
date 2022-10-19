@@ -36,33 +36,33 @@ public class Environment {
 	private int agentID = 0;
 	public int tick;
 	
-	public int countMembers[][] = new int[NUM_OF_AREA][EXPERIMENTAL_DURATION];
-	public int countLeaders[][] = new int[NUM_OF_AREA][EXPERIMENTAL_DURATION];
-	public int leaderDependableAgents[][][] = new int[TYPES_OF_RESOURCE][NUM_OF_AREA][EXPERIMENTAL_DURATION];
-	public int memberDependableAgents[][] = new int[NUM_OF_AREA][EXPERIMENTAL_DURATION];
-	public int reciprocalMembers[][] = new int[NUM_OF_AREA][EXPERIMENTAL_DURATION];
-	public int reciprocalLeaders[][] = new int[NUM_OF_AREA][EXPERIMENTAL_DURATION];
-	public double avgSubTaskQueue[][] = new double[NUM_OF_AREA][EXPERIMENTAL_DURATION];
-	public double avgLeaderThreshold[][] = new double[NUM_OF_AREA][EXPERIMENTAL_DURATION];
-	public double avgMemberThreshold[][] = new double[NUM_OF_AREA][EXPERIMENTAL_DURATION];
-	public double communicationTime[][] = new double[NUM_OF_AREA][EXPERIMENTAL_DURATION];
-	public double countSentMessages[][] = new double[NUM_OF_AREA][EXPERIMENTAL_DURATION];
+	static public int countMembers[][] = new int[NUM_OF_AREA][EXPERIMENTAL_DURATION];
+	static public int countLeaders[][] = new int[NUM_OF_AREA][EXPERIMENTAL_DURATION];
+	static public double leaderDependableAgents[][][] = new double[TYPES_OF_RESOURCE][NUM_OF_AREA][EXPERIMENTAL_DURATION];
+	static public double memberDependableAgents[][] = new double[NUM_OF_AREA][EXPERIMENTAL_DURATION];
+	static public int reciprocalMembers[][] = new int[NUM_OF_AREA][EXPERIMENTAL_DURATION];
+	static public int reciprocalLeaders[][] = new int[NUM_OF_AREA][EXPERIMENTAL_DURATION];
+	static public double avgSubTaskQueue[][] = new double[NUM_OF_AREA][EXPERIMENTAL_DURATION];
+	static public double avgLeaderThreshold[][] = new double[NUM_OF_AREA][EXPERIMENTAL_DURATION];
+	static public double avgMemberThreshold[][] = new double[NUM_OF_AREA][EXPERIMENTAL_DURATION];
+	static public double communicationTime[][] = new double[NUM_OF_AREA][EXPERIMENTAL_DURATION];
+	static public double countSentMessages[][] = new double[NUM_OF_AREA][EXPERIMENTAL_DURATION];
 	
 	//agentから集計用------------------------------------------------------------------------------------
 	//処理したタスク数
-	public int executedTask[][] = new int[NUM_OF_AREA][EXPERIMENTAL_DURATION];
+	static public int executedTask[][] = new int[NUM_OF_AREA][EXPERIMENTAL_DURATION];
 	//処理したサブタスク数
-	public int executedSubTask[][] = new int[NUM_OF_AREA][EXPERIMENTAL_DURATION];
+	static public int executedSubTask[][] = new int[NUM_OF_AREA][EXPERIMENTAL_DURATION];
 	//チームが組めなかったことによるサブタスク破棄
-	public int wastedTask[][] = new int[NUM_OF_AREA][EXPERIMENTAL_DURATION];
+	static public int wastedTask[][] = new int[NUM_OF_AREA][EXPERIMENTAL_DURATION];
 	//途中で断られてチームが解散になったことによるタスク失敗
-	public int rejectedTask[][] = new int[NUM_OF_AREA][EXPERIMENTAL_DURATION];
-	public double waitingTime[][] = new double[NUM_OF_AREA][EXPERIMENTAL_DURATION];
-	public double executedTime[][] = new double[NUM_OF_AREA][EXPERIMENTAL_DURATION];
-	public double allExecutedTime[][] = new double[NUM_OF_AREA][EXPERIMENTAL_DURATION];
-	public int allocationMemberCount[][][] = new int[NUM_OF_AREA][NUM_OF_AREA][EXPERIMENTAL_DURATION];
+	static public int rejectedTask[][] = new int[NUM_OF_AREA][EXPERIMENTAL_DURATION];
+	static public double waitingTime[][] = new double[NUM_OF_AREA][EXPERIMENTAL_DURATION];
+	static public double executedTime[][] = new double[NUM_OF_AREA][EXPERIMENTAL_DURATION];
+	static public double allExecutedTime[][] = new double[NUM_OF_AREA][EXPERIMENTAL_DURATION];
+	static public int allocationMemberCount[][][] = new int[NUM_OF_AREA][NUM_OF_AREA][EXPERIMENTAL_DURATION];
 	
-	public int overflowedTask[][] = new int[NUM_OF_AREA][EXPERIMENTAL_DURATION];
+	static public int overflowedTask[][] = new int[NUM_OF_AREA][EXPERIMENTAL_DURATION];
 
 	
 	
@@ -206,7 +206,7 @@ public class Environment {
 		}
 	}
 	
-	private void aggregateAgentData() {
+	synchronized private void aggregateAgentData() {
 		for(Agent agent: agents) {
 			executedTask[agent.getArea().getId()][tick] += agent.executedTask;
 			executedSubTask[agent.getArea().getId()][tick] += agent.executedSubTask;
@@ -216,7 +216,7 @@ public class Environment {
 			executedTime[agent.getArea().getId()][tick] += agent.executedTime;
 			allExecutedTime[agent.getArea().getId()][tick] += agent.allExecutedTime;
 			for(Area area: areas) {
-				allocationMemberCount[agent.getArea().getId()][area.getId()][tick] = agent.allocationMemberCount[area.getId()];
+				allocationMemberCount[agent.getArea().getId()][area.getId()][tick] += agent.allocationMemberCount[area.getId()];
 			}
 			agent.clearVariablesForAnalize();
 		}
@@ -373,7 +373,7 @@ public class Environment {
 	
 	//---------------------------------------------------------------------------------------
 	
-	private void countAgents(){
+	synchronized private void countAgents(){
 		for(int i=0;i<leaders.size();i++){
 			Agent leader = leaders.get(i);
 			countLeaders[leader.getArea().getId()][tick]++;
@@ -394,16 +394,6 @@ public class Environment {
 			if(member.isReciprocity() == true){
 				reciprocalMembers[member.getArea().getId()][tick]++;
 			}
-		}
-		
-		for(Area area : areas) {
-			for(int type=0;type<TYPES_OF_RESOURCE;type++) {
-				leaderDependableAgents[type][area.getId()][tick] += countLeaders[area.getId()][tick];
-			}
-			avgLeaderThreshold[area.getId()][tick] /= countLeaders[area.getId()][tick];
-			avgMemberThreshold[area.getId()][tick] /= countMembers[area.getId()][tick];
-			avgSubTaskQueue[area.getId()][tick] /= countMembers[area.getId()][tick];
-			memberDependableAgents[area.getId()][tick] /= countMembers[area.getId()][tick];
 		}
 	}
 	

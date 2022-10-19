@@ -12,7 +12,7 @@ public class Constants {
 	
 	//負荷
 	public static final double LOW_WORKLOAD = 2;
-	public static final double MODERATE_WORKLOAD = 18;
+	public static final double MODERATE_WORKLOAD = 22;
 	public static final double HIGH_WORKLOAD = 6;
 	
 	//エリア分割
@@ -74,5 +74,5 @@ public class Constants {
 	
 	public static final int FIRST_MEASURE_TIME = EXPERIMENTAL_DURATION;
 	
-	public static final int TRIAL_COUNT = 20;
+	public static final int TRIAL_COUNT = 10;
 }
