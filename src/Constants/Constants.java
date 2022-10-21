@@ -12,7 +12,7 @@ public class Constants {
 	
 	//負荷
 	public static final double LOW_WORKLOAD = 2;
-	public static final double MODERATE_WORKLOAD = 10;
+	public static final double MODERATE_WORKLOAD = 22;
 	public static final double HIGH_WORKLOAD = 6;
 	
 	//エリア分割

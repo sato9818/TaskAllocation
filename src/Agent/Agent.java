@@ -386,8 +386,8 @@ public class Agent {
 				(1.0 - LEARNING_RATE/**/) * this.leaderDe[message.from().getMyId()] 
 				+ LEARNING_RATE * delta;
 		if(subTask != null)
-		if(subTask.getType() >= 0) this.specificLeaderDe[subTask.getType()][message.from().getMyId()] 
-				= (1.0 - LEARNING_RATE/**/) * this.specificLeaderDe[subTask.getType()][message.from().getMyId()] 
+		if(subTask.getType() > 0) this.specificLeaderDe[subTask.getType()-1][message.from().getMyId()] 
+				= (1.0 - LEARNING_RATE/**/) * this.specificLeaderDe[subTask.getType()-1][message.from().getMyId()] 
 				+ LEARNING_RATE * delta;
 		
 	}
