@@ -58,15 +58,15 @@ public class Constants {
 	public static final int ADDITIONAL_RESOURCE = 5;
 	
 	//tick
-	public static final int EXPERIMENTAL_DURATION = 1501;
+	public static final int EXPERIMENTAL_DURATION = 151;
 	
 	public static final int CHANGE_WORKLOAD_TIME = EXPERIMENTAL_DURATION;
 	public static final int RESTORE_WORKLOAD_TIME = EXPERIMENTAL_DURATION;
 	public static final int CHANGE_SUBTASKS_TIME = EXPERIMENTAL_DURATION;
 	public static final int RESTORE_SUBTASKS_TIME = EXPERIMENTAL_DURATION;
-	public static final int TIME_TO_RESET_DE = 40000;
+	public static final int TIME_TO_RESET_DE = EXPERIMENTAL_DURATION;
 	
-	public static final int FIRST_MEASURE_TIME = 10000;
+	public static final int FIRST_MEASURE_TIME = EXPERIMENTAL_DURATION;
 	
 	public static final int TRIAL_COUNT = 1;
 	
