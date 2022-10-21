@@ -2,11 +2,9 @@ import java.io.BufferedWriter;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.lang.reflect.Field;
 import java.util.Random;
 
 import Agent.Agent;
-import Constants.Constants;
 
 import static Constants.Constants.*;
 
@@ -19,7 +17,7 @@ public class Main {
 	static String csv_base_path;
 	static int tick = 0;
 	public static void main(String[] args){
-		getConstants();
+		System.out.println("update");
 		String mode = args[0];
 		if(mode.equals("RECIPROCITY")){
 			RECIPROCITY = true;
@@ -31,7 +29,6 @@ public class Main {
 			CNP_MODE = true;
 			csv_base_path = "csv/CNP";
 		}
-		System.out.println(CNP_MODE);
 		long start = System.currentTimeMillis();
 		
 		for(int trial = 0;trial<TRIAL_COUNT;trial++){
@@ -55,30 +52,6 @@ public class Main {
 		export();
 		
 	}
-	
-	private static void getConstants() {
-		try{
-			FileWriter fw = new FileWriter("config/config.txt", false);
-	        PrintWriter pw = new PrintWriter(new BufferedWriter(fw));
-	        
-	        Field[] fields = Constants.class.getDeclaredFields();
-	        
-	        for(Field field : fields){
-	            field.setAccessible(true);
-	            try {
-					pw.println(field.getName() + " = " + field.get(field));
-				} catch (IllegalArgumentException e) {
-					e.printStackTrace();
-				} catch (IllegalAccessException e) {
-					e.printStackTrace();
-				}
-	        }
-	        pw.close();
-		}catch(IOException ex){
-			System.out.println(ex);
-		}
-	}
-	
 	private static void export(){
 		for(int i=0;i<NUM_OF_AREA;i++){
 			try{

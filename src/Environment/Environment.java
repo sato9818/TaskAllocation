@@ -16,21 +16,20 @@ import java.util.Queue;
 import java.util.Random;
 
 import Agent.Agent;
-import Agent.Role;
-import Agent.LeaderState;
+import Agent.Leader;
+import Agent.Member;
 import Message.Message;
 import Random.Sfmt;
 
 public class Environment {
 	
-	private List<Agent> leaders = new ArrayList<Agent>();
-	private List<Agent> members = new ArrayList<Agent>();
+	private List<Leader> leaders = new ArrayList<Leader>();
+	private List<Member> members = new ArrayList<Member>();
 	private List<Agent> agents = new ArrayList<Agent>();
 	private List<Area> areas = new ArrayList<Area>();
-	private HashMap<Integer, List<Message>> mailBoxes = new HashMap<Integer, List<Message>>();
+	private HashMap<Integer, List<Message>> agentIdToMessageList = new HashMap<Integer, List<Message>>();
 	public static Sfmt rnd;
 	public static Random r;
-	public static int tick;
 	
 	public static double communicationTime[][] = new double[NUM_OF_AREA][EXPERIMENTAL_DURATION];
 	public static double countSentMessages[][] = new double[NUM_OF_AREA][EXPERIMENTAL_DURATION];
@@ -50,7 +49,7 @@ public class Environment {
 		generateAreas();
 		generateAgents();
 		for(int i=0;i<NUM_OF_AGENT;i++){
-			mailBoxes.put(agents.get(i).getMyId(), new ArrayList<Message>());
+			agentIdToMessageList.put(agents.get(i).getMyId(), new ArrayList<Message>());
 		}
 	}
 	
@@ -74,6 +73,7 @@ public class Environment {
 	//---------------------------------------------------------------------------------------
 	
 	private void generateAgents(){
+		
 		List<Grid> grid = new ArrayList<Grid>();
 		for(int i=0;i<GRID_X;i++){
 			for(int j=0;j<GRID_Y;j++){
@@ -89,13 +89,11 @@ public class Environment {
 			int y = grid.get(i).y;
 			int p = rnd.NextInt(2);
 			if(p == 0){
-				Agent leader = new Agent(identifyArea(x, y), x, y);
-				leader.setRole(Role.LEADER);
+				Leader leader = new Leader(identifyArea(x, y), x, y);
 				leaders.add(leader);
 				agents.add(leader);
 			}else if(p == 1){
-				Agent member = new Agent(identifyArea(x, y), x, y);
-				member.setRole(Role.MEMBER);
+				Member member = new Member(identifyArea(x, y), x, y);
 				members.add(member);
 				agents.add(member);
 			}
@@ -128,11 +126,7 @@ public class Environment {
 	//---------------------------------------------------------------------------------------
 	
 	public void run(int tick){
-		Environment.tick = tick;
 		System.out.println("tick: " + tick + "---------------------------------------------------------------------------------------------------");
-//		System.out.println("# leader: " + leaders.size());
-//		System.out.println("# member: " + members.size());
-//		System.out.println("# agent: " + agents.size());
 		
 		if(tick == CHANGE_WORKLOAD_TIME){
 			changeAreaWorkload(HIGH_WORKLOAD, areas.get(0));
@@ -150,49 +144,33 @@ public class Environment {
 		if(RECIPROCITY){
 			updateDependablityAgent();
 		}
-		agentsGetMessages();
+		agentsGetMessages(tick);
 		
 		Collections.shuffle(leaders, r);
 		Collections.shuffle(members, r);
 		Collections.shuffle(agents, r);
 		
 		
-		leadersAct();
-		membersAct();
+		leadersAct(tick);
+		membersAct(tick);
 		collectMessages();
-		changeAgentRole();
-		countAgents();
+		changeRole();
+		countAgents(tick);
 		decreaseDependability();
 	}
 	
 	//---------------------------------------------------------------------------------------
 	
-	private void agentsGetMessages(){
-		for(int i=0;i<leaders.size();i++){
-			Agent leader = leaders.get(i);
+	private void agentsGetMessages(int tick){
+		for(int i=0;i<agents.size();i++){
+			Agent agent = agents.get(i);
 			
-			List<Message> messageList = mailBoxes.get(leader.getMyId());
+			List<Message> messageList = agentIdToMessageList.get(agent.getMyId());
 			Iterator<Message> it = messageList.iterator();
 			while(it.hasNext()){
 				Message message = it.next();
 				if(message.isDelivered()){
-					leader.readMessageAsLeader(message);
-					communicationTime[message.from().getArea().getId()][tick] += message.from().getdistance(message.to().getMyId());
-					countSentMessages[message.from().getArea().getId()][tick]++;
-					it.remove();
-				}
-			}
-		}
-		
-		for(int i=0;i<members.size();i++){
-			Agent member = members.get(i);
-			
-			List<Message> messageList = mailBoxes.get(member.getMyId());
-			Iterator<Message> it = messageList.iterator();
-			while(it.hasNext()){
-				Message message = it.next();
-				if(message.isDelivered()){
-					member.readMessageAsMember(message);
+					agent.readMessage(message, tick);
 					communicationTime[message.from().getArea().getId()][tick] += message.from().getdistance(message.to().getMyId());
 					countSentMessages[message.from().getArea().getId()][tick]++;
 					it.remove();
@@ -203,9 +181,10 @@ public class Environment {
 	
 	//---------------------------------------------------------------------------------------
 
-	private void leadersAct(){
+	private void leadersAct(int tick){
+		
 		for(int i=0;i<leaders.size();i++){
-			Agent leader = leaders.get(i);
+			Leader leader = leaders.get(i);
 			if(tick >= TIME_TO_RESET_DE){
 				List<Agent> mainAgents = new ArrayList<Agent>();
 				for(int j = 0;j<agents.size();j++){
@@ -213,9 +192,9 @@ public class Environment {
 						mainAgents.add(agents.get(j));
 					}
 				}
-				leader.act(mainAgents);
+				leader.act(mainAgents, tick);
 			}else{
-				leader.act(agents);
+				leader.act(agents, tick);
 			}
 				
 		}
@@ -223,10 +202,11 @@ public class Environment {
 	
 	//---------------------------------------------------------------------------------------
 
-	private void membersAct(){
+	private void membersAct(int tick){
+		
 		for(int i=0;i<members.size();i++){
-			Agent member = members.get(i);
-			member.act();
+			Member member = members.get(i);
+			member.act(tick);
 		}
 	}
 	
@@ -237,7 +217,7 @@ public class Environment {
 			Agent agent = agents.get(i);
 			List<Message> messages = agent.sendMessages();
 			for(int j=0;j<messages.size();j++){
-				mailBoxes.get(messages.get(j).to().getMyId()).add(messages.get(j));
+				agentIdToMessageList.get(messages.get(j).to().getMyId()).add(messages.get(j));
 			}
 			agent.clearMessages();
 		}
@@ -245,74 +225,87 @@ public class Environment {
 	
 	//---------------------------------------------------------------------------------------
 	
-	private void changeAgentRole(){
+	private void changeRole(){
+		List<Leader> newLeaders = new ArrayList<Leader>();
+		List<Member> newMembers = new ArrayList<Member>();
+	
 		for(int i = 0;i<leaders.size();i++){
-			Agent leader = leaders.get(i);
-			if(leader.getLeaderState() != LeaderState.SELECT_MEMBER){
-				continue;
-			}
-
-			int ep = eGreedy();
-			if(ep == 0){
-				if(leader.getLeaderEvaluation() < leader.getMemberEvaluation()){
-					leaders.remove(leader);
-					leader.setRole(Role.MEMBER);
-					members.add(leader);
-				}else if(leader.getLeaderEvaluation() == leader.getMemberEvaluation()){ 
+			Leader ld = leaders.get(i);
+			if(ld.getPhase() == SELECT_MEMBER){
+				int ep = eGreedy();
+				if(ep == 0){
+					if(ld.getLeaderEvaluation() > ld.getMemberEvaluation()){
+						newLeaders.add(ld);
+					}else if(ld.getLeaderEvaluation() < ld.getMemberEvaluation()){
+						Member mem = new Member(ld);
+						newMembers.add(mem);
+					}else{
+						int p = rnd.NextInt(2);
+						if(p == 0){
+							newLeaders.add(ld);
+						}else if(p == 1){
+							Member mem = new Member(ld);
+							newMembers.add(mem);
+						}	
+					}
+				}else if(ep == 1){
 					int p = rnd.NextInt(2);
 					if(p == 0){
-						leaders.remove(leader);
-						leader.setRole(Role.MEMBER);
-						members.add(leader);
-					}	
+						newLeaders.add(ld);
+					}else if(p == 1){
+						Member mem = new Member(ld);
+						newMembers.add(mem);
+					}
 				}
-			}else if(ep == 1){
-				int p = rnd.NextInt(2);
-				if(p == 0){
-					leaders.remove(leader);
-					leader.setRole(Role.MEMBER);
-					members.add(leader);
-				}
+			}else{
+				newLeaders.add(ld);
 			}
-
 		}
 		
 		for(int i = 0;i<members.size();i++){
-			Agent member = members.get(i);
-			if(!member.roleChangable()){
-				continue;
-			}
-			int ep = eGreedy();
-			if(ep == 0){
-				if(member.getLeaderEvaluation() > member.getMemberEvaluation()){
-					members.remove(member);
-					member.setRole(Role.LEADER);
-					leaders.add(member);
-				}else if(member.getLeaderEvaluation() > member.getMemberEvaluation()){
+			Member mem = members.get(i);
+			if(mem.roleChangable()){
+				int ep = eGreedy();
+				if(ep == 0){
+					if(mem.getLeaderEvaluation() < mem.getMemberEvaluation()){
+						newMembers.add(mem);
+					}else if(mem.getLeaderEvaluation() > mem.getMemberEvaluation()){
+						Leader ld = new Leader(mem); 
+						newLeaders.add(ld);
+					}else{
+						int p = (int)rnd.NextInt(2);
+						if(p == 0){
+							Leader leader = new Leader(mem);
+							newLeaders.add(leader);
+						}else if(p == 1){
+							newMembers.add(mem);
+						}
+					}
+				}else if(ep == 1){
 					int p = (int)rnd.NextInt(2);
 					if(p == 0){
-						members.remove(member);
-						member.setRole(Role.LEADER);
-						leaders.add(member);
+						Leader leader = new Leader(mem);
+						newLeaders.add(leader);
+					}else if(p == 1){
+						newMembers.add(mem);
 					}
 				}
-			}else if(ep == 1){
-				int p = (int)rnd.NextInt(2);
-				if(p == 0){
-					members.remove(member);
-					member.setRole(Role.LEADER);
-					leaders.add(member);
-				}
+			}else{
+				newMembers.add(mem);
 			}
-
 		}
+		leaders = newLeaders;
+		members = newMembers;
+		agents.clear();
+		agents.addAll(leaders);
+		agents.addAll(members);
 	}
 	
 	//---------------------------------------------------------------------------------------
 	
-	private void countAgents(){
+	private void countAgents(int tick){
 		for(int i=0;i<leaders.size();i++){
-			Agent leader = leaders.get(i);
+			Leader leader = leaders.get(i);
 			countLeaders[leader.getArea().getId()][tick]++;
 			if(leader.isReciprocity() == true){
 				reciprocityLeaders[leader.getArea().getId()][tick]++;
@@ -323,7 +316,7 @@ public class Environment {
 		}
 		double buf = 0;
 		for(int i=0;i<members.size();i++){
-			Agent member = members.get(i);
+			Member member = members.get(i);
 			buf += (double)member.getSubTaskQueueSize();
 			countMembers[member.getArea().getId()][tick]++;
 			if(member.isReciprocity() == true){
@@ -338,11 +331,12 @@ public class Environment {
 	//---------------------------------------------------------------------------------------
 	
 	private void updateDependablityAgent(){
+		
 		for(int i=0;i<leaders.size();i++){
-			Agent leader = leaders.get(i);
+			Leader leader = leaders.get(i);
 			leader.clearDependablityAgent();
 			leader.clearSpecificDependablityAgent();
-			leader.selectLeaderAttitude(false);
+			leader.selectAction(false);
 			List<Agent> dependableAgents = new ArrayList<Agent>();
 			for(int j=0;j<agents.size();j++){
 				Agent agent = agents.get(j);
@@ -355,14 +349,14 @@ public class Environment {
 //						if(!dependableAgents.contains(agent)){//値を重複させない
 //							dependableAgents.add(agent);
 //						}
-						leader.selectLeaderAttitude(true);
+						leader.selectAction(true);
 					}
 				}
 			}
-			leader.selectLeaderAttitude();
+//			leader.selectAction();
 		}
 		for(int i=0;i<members.size();i++){
-			Agent member = members.get(i);
+			Member member = members.get(i);
 			member.clearDependablityAgent();
 			for(int j=0;j<agents.size();j++){
 				Agent agent = agents.get(j);
@@ -370,7 +364,7 @@ public class Environment {
 					member.adddeagent(agent);
 				}
 			}
-			member.selectMemberAttitude();
+			member.selectAction();
 		}
 	}
 	
@@ -557,7 +551,7 @@ public class Environment {
 	}
 	//---------------------------------------------------------------------------------------
 	
-	public void exportAgentConnection(){
+	public void exportAgentConnection(int tick){
 		try{
 			FileWriter fw;
 			fw = new FileWriter("csv/ReciprocityAgentConnection"+ tick +".csv", false);
@@ -607,7 +601,7 @@ public class Environment {
 	
 	//---------------------------------------------------------------------------------------
 	
-	public void exportForCytoscape(){
+	public void exportForCytoscape(int tick){
 		try{
 			FileWriter fw;
 			fw = new FileWriter("csv/ReciprocityAgentForCytoscape"+ tick +".csv", false);
