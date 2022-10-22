@@ -1,10 +1,10 @@
-package Task;
-import Agent.Agent;
-import Agent.Leader;
-import Agent.Member;
-import Random.Sfmt;
-import Environment.Environment;
-import static Constants.Constants.*;
+package task;
+import agent.Agent;
+import agent.Leader;
+import agent.Member;
+import random.Sfmt;
+import environment.Environment;
+import static shared.Constants.*;
 
 import java.util.ArrayList;
 import java.util.List;

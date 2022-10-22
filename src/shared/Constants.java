@@ -1,4 +1,4 @@
-package Constants;
+package shared;
 
 public class Constants {
 	private Constants(){};

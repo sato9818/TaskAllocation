@@ -1,12 +1,12 @@
-package Message;
-import static Constants.Constants.ACCEPTANCE;
-import static Constants.Constants.FINISH;
-import static Constants.Constants.SOLICITATION;
+package message;
+import static shared.Constants.ACCEPTANCE;
+import static shared.Constants.FINISH;
+import static shared.Constants.SOLICITATION;
 
 import java.util.List;
 
-import Agent.Agent;
-import Task.SubTask;
+import agent.Agent;
+import task.SubTask;
 
 public class Message {
 	private SubTask subtask;

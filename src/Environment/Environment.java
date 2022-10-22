@@ -1,5 +1,5 @@
-package Environment;
-import static Constants.Constants.*;
+package environment;
+import static shared.Constants.*;
 
 import java.io.BufferedWriter;
 import java.io.File;
@@ -15,11 +15,11 @@ import java.util.List;
 import java.util.Queue;
 import java.util.Random;
 
-import Agent.Agent;
-import Agent.Leader;
-import Agent.Member;
-import Message.Message;
-import Random.Sfmt;
+import agent.Agent;
+import agent.Leader;
+import agent.Member;
+import message.Message;
+import random.Sfmt;
 
 public class Environment {
 	

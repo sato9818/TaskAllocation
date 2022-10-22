@@ -1,5 +1,5 @@
-package Agent;
-import static Constants.Constants.*;
+package agent;
+import static shared.Constants.*;
 
 import java.util.ArrayDeque;
 import java.util.ArrayList;
@@ -7,11 +7,11 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Queue;
 
-import Environment.Area;
-import Environment.Environment;
-import Message.Message;
-import Random.Sfmt;
-import Task.SubTask;
+import environment.Area;
+import environment.Environment;
+import message.Message;
+import random.Sfmt;
+import task.SubTask;
 
 public class Member extends Agent{
 	

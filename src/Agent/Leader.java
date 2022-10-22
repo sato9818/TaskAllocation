@@ -1,5 +1,5 @@
-package Agent;
-import static Constants.Constants.*;
+package agent;
+import static shared.Constants.*;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -11,13 +11,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.Random;
 
-import Comparator.SubUtilityComparator;
-import Environment.Area;
-import Environment.Environment;
-import Message.Message;
-import Random.Sfmt;
-import Task.SubTask;
-import Task.Task;
+import comparator.SubUtilityComparator;
+import environment.Area;
+import environment.Environment;
+import message.Message;
+import random.Sfmt;
+import task.SubTask;
+import task.Task;
 
 
 public class Leader extends Agent{

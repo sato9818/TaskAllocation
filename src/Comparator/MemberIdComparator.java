@@ -1,7 +1,7 @@
-package Comparator;
+package comparator;
 import java.util.Comparator;
 
-import Agent.Member;
+import agent.Member;
 
 public class MemberIdComparator implements Comparator<Member>{
 	public int compare(Member member1, Member member2){

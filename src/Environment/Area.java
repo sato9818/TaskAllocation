@@ -1,11 +1,11 @@
-package Environment;
+package environment;
 import java.util.ArrayDeque;
 import java.util.Queue;
 
-import Random.Sfmt;
-import Task.Task;
+import random.Sfmt;
+import task.Task;
 
-import static Constants.Constants.*;
+import static shared.Constants.*;
 
 public class Area {
 	static int num = 0;

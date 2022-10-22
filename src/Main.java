@@ -4,14 +4,14 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Random;
 
-import Agent.Agent;
+import agent.Agent;
 
-import static Constants.Constants.*;
+import static shared.Constants.*;
 
-import Environment.Area;
-import Environment.Environment;
-import Random.Seed;
-import Random.Sfmt;
+import environment.Area;
+import environment.Environment;
+import random.Seed;
+import random.Sfmt;
 
 public class Main {
 	static String csv_base_path;

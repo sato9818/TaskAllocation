@@ -1,10 +1,10 @@
-package Task;
+package task;
 import java.util.ArrayList;
 import java.util.List;
 
-import Random.Sfmt;
-import Environment.Environment;
-import static Constants.Constants.*;
+import random.Sfmt;
+import environment.Environment;
+import static shared.Constants.*;
 
 public class Task {
 	static int num = 0;

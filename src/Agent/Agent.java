@@ -1,6 +1,6 @@
-package Agent;
+package agent;
 
-import static Constants.Constants.*;
+import static shared.Constants.*;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -10,11 +10,11 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-import Environment.Area;
-import Environment.Environment;
-import Message.Message;
-import Random.Sfmt;
-import Task.SubTask;
+import environment.Area;
+import environment.Environment;
+import message.Message;
+import random.Sfmt;
+import task.SubTask;
 
 public class Agent {
 	//固有番号をつけるためのもの

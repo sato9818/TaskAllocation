@@ -1,4 +1,4 @@
-package Random;
+package random;
 
 public class Seed {
 	public static final int[] _seeds = new int[]{ 7, 11, 17, 19, 31, 57, 123, 203, 223, 331,

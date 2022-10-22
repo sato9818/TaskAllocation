@@ -1,7 +1,7 @@
-package Comparator;
+package comparator;
 import java.util.Comparator;
 
-import Agent.Leader;
+import agent.Leader;
 
 public class LeaderIdComparator implements Comparator<Leader>{
 	public int compare(Leader leader1, Leader leader2){
