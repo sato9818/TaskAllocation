@@ -3,6 +3,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Random;
+import java.lang.reflect.Field;
 
 import agent.Agent;
 
@@ -12,12 +13,13 @@ import environment.Area;
 import environment.Environment;
 import random.Seed;
 import random.Sfmt;
+import shared.Constants;
 
 public class Main {
 	static String csv_base_path;
 	static int tick = 0;
 	public static void main(String[] args){
-		System.out.println("update");
+		getConstants();
 		String mode = args[0];
 		if(mode.equals("RECIPROCITY")){
 			RECIPROCITY = true;
@@ -52,6 +54,30 @@ public class Main {
 		export();
 		
 	}
+	
+	private static void getConstants() {
+		try{
+			FileWriter fw = new FileWriter("config/config.txt", false);
+	        PrintWriter pw = new PrintWriter(new BufferedWriter(fw));
+
+	        Field[] fields = Constants.class.getDeclaredFields();
+
+	        for(Field field : fields){
+	            field.setAccessible(true);
+	            try {
+					pw.println(field.getName() + " = " + field.get(field));
+				} catch (IllegalArgumentException e) {
+					e.printStackTrace();
+				} catch (IllegalAccessException e) {
+					e.printStackTrace();
+				}
+	        }
+	        pw.close();
+		}catch(IOException ex){
+			System.out.println(ex);
+		}
+	}
+	
 	private static void export(){
 		for(int i=0;i<NUM_OF_AREA;i++){
 			try{
@@ -204,6 +230,12 @@ public class Main {
         	pw.print(",");
         	pw.print("average subtask queue size");
         	pw.print(",");
+        	for(int type=0;type<TYPES_OF_RESOURCE;type++) {
+        		pw.print("average leader dependable agents type " + type);
+            	pw.print(",");
+			}
+        	pw.print("average member dependable agents");
+			pw.print(",");
         	pw.print("rejected task");
         	pw.print(",");
         	pw.print("success rate");
@@ -223,6 +255,8 @@ public class Main {
         	int overflowedTask = 0;
         	double avgSubTaskQueue = 0;
         	int rejectedTask = 0;
+        	double[] leaderDependableAgents = new double[TYPES_OF_RESOURCE];
+        	double memberDependableAgents = 0;
             for(int tick=0;tick<EXPERIMENTAL_DURATION;tick++){
             	for(int i=0;i<NUM_OF_AREA;i++){
             		executedTask += Agent.executedTask[i][tick];
@@ -230,10 +264,17 @@ public class Main {
 	        		communicationTime += divide(Environment.communicationTime[i][tick], Environment.countSentMessages[i][tick]);
 	        		executedTime += divide(Agent.executedTime[i][tick] , Agent.executedSubTask[i][tick]);
 	        		waitingTime += divide(Agent.waitingTime[i][tick] , Agent.executedSubTask[i][tick]);
-	        		allExecutedTime += divide(Agent.allExecutedTime[i][tick] , Agent.executedSubTask[i][tick]);
+	        		allExecutedTime += divide(Agent.allExecutedTime[i][tick], Agent.executedSubTask[i][tick]);
 	        		messageCount += Environment.countSentMessages[i][tick];
 	        		overflowedTask += Area.overflowedTask[i][tick];
 	        		rejectedTask += Agent.rejectedTask[i][tick];
+	        		avgSubTaskQueue += divide(Environment.avgSubTaskQueue[i][tick], Environment.countMembers[i][tick]);
+	        		
+	        		for(int type=0;type<TYPES_OF_RESOURCE;type++) {
+	        			leaderDependableAgents[type] += divide(Environment.leaderDependableAgents[type][i][tick], Environment.countLeaders[i][tick]);
+	    			}
+		        	memberDependableAgents += divide(Environment.memberDependableAgents[i][tick], Environment.countMembers[i][tick]);
+	        		
 	        		
 	        		if(tick % 100 == 0){
 	        			leaderCount += Environment.countLeaders[i][tick];
@@ -242,7 +283,7 @@ public class Main {
 	        			reciprocityMembers += Environment.reciprocityMembers[i][tick];
 	        		}
 	        	}
-            	avgSubTaskQueue += Environment.avgSubTaskQueue[tick];
+            	
             	if(tick % 100 == 0){
 					pw.print(tick);
 		        	pw.print(",");
@@ -270,7 +311,13 @@ public class Main {
 		        	pw.print(",");
 		        	pw.print(overflowedTask / TRIAL_COUNT);
 		        	pw.print(",");
-		        	pw.print(avgSubTaskQueue / TRIAL_COUNT / 100);
+		        	pw.print(avgSubTaskQueue / 100 / NUM_OF_AREA);
+		        	pw.print(",");
+		        	for(int type=0;type<TYPES_OF_RESOURCE;type++) {
+		        		pw.print(leaderDependableAgents[type] / 100 / NUM_OF_AREA);
+			        	pw.print(",");
+	    			}
+		        	pw.print(memberDependableAgents / 100 / NUM_OF_AREA);
 		        	pw.print(",");
 		        	pw.print(rejectedTask / TRIAL_COUNT);
 		        	pw.print(",");
@@ -291,6 +338,10 @@ public class Main {
 	            	overflowedTask = 0;
 	            	avgSubTaskQueue = 0;
 	            	rejectedTask = 0;
+	            	memberDependableAgents = 0;
+	            	for(int type=0;type<TYPES_OF_RESOURCE;type++) {
+	            		leaderDependableAgents[type] = 0;
+	    			}
 				}
             }
             pw.close();

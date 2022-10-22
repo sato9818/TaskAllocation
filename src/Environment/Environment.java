@@ -37,7 +37,9 @@ public class Environment {
 	public static int countLeaders[][] = new int[NUM_OF_AREA][EXPERIMENTAL_DURATION];
 	public static int reciprocityMembers[][] = new int[NUM_OF_AREA][EXPERIMENTAL_DURATION];
 	public static int reciprocityLeaders[][] = new int[NUM_OF_AREA][EXPERIMENTAL_DURATION];
-	public static double avgSubTaskQueue[] = new double[EXPERIMENTAL_DURATION];
+	public static double avgSubTaskQueue[][] = new double[NUM_OF_AREA][EXPERIMENTAL_DURATION];
+	static public double leaderDependableAgents[][][] = new double[TYPES_OF_RESOURCE][NUM_OF_AREA][EXPERIMENTAL_DURATION];
+	static public double memberDependableAgents[][] = new double[NUM_OF_AREA][EXPERIMENTAL_DURATION];
 
 	
 	
@@ -307,25 +309,24 @@ public class Environment {
 		for(int i=0;i<leaders.size();i++){
 			Leader leader = leaders.get(i);
 			countLeaders[leader.getArea().getId()][tick]++;
+			for(int subtaskType=0;subtaskType<TYPES_OF_RESOURCE;subtaskType++) {
+				leaderDependableAgents[subtaskType][leader.getArea().getId()][tick] += leader.specificDeAgentsMap.get(subtaskType).size();
+			}
+			
 			if(leader.isReciprocity() == true){
 				reciprocityLeaders[leader.getArea().getId()][tick]++;
-			}else{
-//				System.out.println("not reciprocity");
 			}
 			
 		}
-		double buf = 0;
 		for(int i=0;i<members.size();i++){
 			Member member = members.get(i);
-			buf += (double)member.getSubTaskQueueSize();
+			avgSubTaskQueue[member.getArea().getId()][tick] += member.getSubTaskQueueSize();
 			countMembers[member.getArea().getId()][tick]++;
 			if(member.isReciprocity() == true){
 				reciprocityMembers[member.getArea().getId()][tick]++;
-			}else{
-//				System.out.println("not reciprocity");
 			}
+			memberDependableAgents[member.getArea().getId()][tick] += member.deAgents.size();
 		}
-		avgSubTaskQueue[tick] += buf / members.size();
 	}
 	
 	//---------------------------------------------------------------------------------------

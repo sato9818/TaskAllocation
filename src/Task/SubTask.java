@@ -1,56 +1,76 @@
 package task;
-import agent.Agent;
-import agent.Leader;
-import agent.Member;
-import random.Sfmt;
 import environment.Environment;
+import random.Sfmt;
+
 import static shared.Constants.*;
 
 import java.util.ArrayList;
 import java.util.List;
 
+import agent.Agent;
+
 public class SubTask {
-	private int reqCapa[] = new int[TYPES_OF_RESOURCE];
-	private int utility = 0;
+	private int requiredResources[] = new int[TYPES_OF_RESOURCE];
+	private int utility;
 	private int taskId;
-	private int type = 0;
-	Leader from;
-	Member to;
+	private int type = -1;
+	Agent from;
+	Agent to;
 	
 	//---------------------------------------------------------------------------------------
 	
 	SubTask(int id){
+		
 		List<Integer> maxIndexs = new ArrayList<Integer>();
-		int maxResource = 0;
-		int basicResource = BASIC_RESOURCE;
-		int r = Environment.rnd.NextInt(3);
-		if(r == 0){
-			basicResource += RESOURCE_FLUCTUATION;
-		}
-		if(r == 1){
-			basicResource -= RESOURCE_FLUCTUATION;
-		}
+		int maxRequiredResource = 0;
+		
+//		if(r == 0){
+//			basicResource += RESOURCE_FLUCTUATION;
+//		}
+//		if(r == 1){
+//			basicResource -= RESOURCE_FLUCTUATION;
+//		}
 		for(int i=0;i<TYPES_OF_RESOURCE;i++){
-			int c;
-			if(r == i){
-				c = basicResource + Environment.rnd.NextInt(ADDITIONAL_RESOURCE + 1);
-			}else{
-				c = 0;
-			}
+			int requiredResource = BASIC_RESOURCE + Environment.rnd.NextInt(ADDITIONAL_RESOURCE + 1);
 			
-			if(c > maxResource){
+			if(requiredResource > maxRequiredResource){
 				maxIndexs.clear();
 				maxIndexs.add(i);
-				maxResource = c;
-			}else if(c == maxResource){
+				maxRequiredResource = requiredResource;
+			}else if(requiredResource == maxRequiredResource){
 				maxIndexs.add(i);
 			}
-			reqCapa[i] = c;
-			utility += reqCapa[i];
+			requiredResources[i] = requiredResource;
 		}
+		
 		type = maxIndexs.get(Environment.rnd.NextInt(maxIndexs.size()));
 		
+		if(!FULL_RESOURCE) {
+			int resourceIndex = leaveOneResouce(Environment.rnd);
+			type = resourceIndex;
+		}
+		
 		this.taskId = id;
+		setUtility();
+	}
+	
+	//---------------------------------------------------------------------------------------
+	
+	private int leaveOneResouce(Sfmt rnd) {
+		int resourceIndex = rnd.NextInt(TYPES_OF_RESOURCE);
+		for(int i=0;i<TYPES_OF_RESOURCE;i++){
+			if(resourceIndex != i) requiredResources[i] = 0;
+		}
+		return resourceIndex;
+	}
+	
+	//---------------------------------------------------------------------------------------
+	
+	private void setUtility() {
+		utility = 0;
+		for(int requiredResource :requiredResources) {
+			utility += requiredResource;
+		}
 	}
 	
 	//---------------------------------------------------------------------------------------
@@ -74,30 +94,30 @@ public class SubTask {
 	//---------------------------------------------------------------------------------------
 	
 	public int getcapacity(int i){
-		return reqCapa[i];
+		return requiredResources[i];
 	}
 	
 	//---------------------------------------------------------------------------------------
 	
-	public void setfrom(Leader l){
+	public void setfrom(Agent l){
 		from = l;
 	}
 	
 	//---------------------------------------------------------------------------------------
 	
-	public Leader getfrom(){
+	public Agent getfrom(){
 		return from;
 	}
 	
 	//---------------------------------------------------------------------------------------
 	
-	public void setto(Member m){
+	public void setto(Agent m){
 		to = m;
 	}
 	
 	//---------------------------------------------------------------------------------------
 	
-	public Member getto(){
+	public Agent getto(){
 		return to;
 	}
 	

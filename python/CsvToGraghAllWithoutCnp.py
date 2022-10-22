@@ -9,7 +9,7 @@ import numpy as np
 import datetime as dt
 
 # plt.rcParams["font.size"] = 8
-col = ["executed task", "wasted task", "communication time", "executed time", "waiting time", "all executed time", "leader count", "member count", "reciprocity leader count", "reciprocity member count", "message count", "overflowed task", "average subtask queue size", "rejected task", "success rate"]
+col = ["executed task", "wasted task", "communication time", "executed time", "waiting time", "all executed time", "leader count", "member count", "reciprocity leader count", "reciprocity member count", "message count", "overflowed task", "average subtask queue size", "average leader dependable agents type 0", "average leader dependable agents type 1", "average leader dependable agents type 2", "average member dependable agents", "rejected task", "success rate"]
 ex_types= ["Rational", "Reciprocity"]
 
 path = []

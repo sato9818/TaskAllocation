@@ -48,9 +48,9 @@ public class Agent {
 	//フェイズ
 	protected int phase = 0;
 	//信頼エージェントのリスト
-	protected List<Agent> deAgents = new ArrayList<Agent>();
+	public List<Agent> deAgents = new ArrayList<Agent>();
 	//各サブタスクtypeに応じた信頼エージェント
-	protected HashMap<Integer, List<Agent>> specificDeAgentsMap = new HashMap<Integer, List<Agent>>();
+	public HashMap<Integer, List<Agent>> specificDeAgentsMap = new HashMap<Integer, List<Agent>>();
 	//各エージェントとの距離
 	private int distance[] = new int[NUM_OF_AGENT];
 	//届いたメッセージの置き場
