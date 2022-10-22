@@ -171,62 +171,31 @@ public class Agent {
 	    }
 	}
 	
-	public void mergeSortAgentBySpecificLeaderDe(List<Agent> agents, int left, int right, int num) {
-		if (left <= right) {
-			//軸を決める
-			Agent p = agents.get((left + right) / 2);
-
-			int l = left;
-			int r = right;
-
-			while(l <= r) {
-				while(specificLeaderDe[num][agents.get(l).getMyId()] > specificLeaderDe[num][p.getMyId()]){
-					l++;
-				}
-				while(specificLeaderDe[num][agents.get(r).getMyId()] < specificLeaderDe[num][p.getMyId()]){
-					r--;
-				}
-
-				if (l <= r) {
-					Agent tmp = agents.get(l);
-					agents.set(l, agents.get(r));
-					agents.set(r, tmp);
-					l++;
-					r--;
-				}
-			}
-			mergeSortAgentBySpecificLeaderDe(agents, left, r, num);
-			mergeSortAgentBySpecificLeaderDe(agents, l, right, num);
-		}
+	public void sortAgentsByLeaderDE(List<Agent> agents) {
+		Collections.sort(agents, new Comparator<Agent>() {
+		    @Override
+		    public int compare(Agent a1, Agent a2) {
+		        return Double.compare(leaderDe[a2.getMyId()], leaderDe[a1.getMyId()]);
+		    }
+		});
 	}
 	
-	public void mergeSortMessageByMemberDe(List<Message> messages, int left, int right) {
-		if (left <= right) {
-			//軸を決める
-			Message p = messages.get((left + right) / 2);
+	public void mergeSortAgentBySpecificLeaderDE(List<Agent> agents, int idx) {
+		Collections.sort(agents, new Comparator<Agent>() {
+		    @Override
+		    public int compare(Agent a1, Agent a2) {
+		        return Double.compare(specificLeaderDe[idx][a2.getMyId()], specificLeaderDe[idx][a1.getMyId()]);
+		    }
+		});
+	}
 
-			int l = left;
-			int r = right;
-
-			while(l <= r) {
-				while(memberDe[messages.get(l).from().getMyId()] > memberDe[p.from().getMyId()]){
-					l++;
-				}
-				while(memberDe[messages.get(r).from().getMyId()] < memberDe[p.from().getMyId()]){
-					r--;
-				}
-
-				if (l <= r) {
-					Message tmp = messages.get(l);
-					messages.set(l, messages.get(r));
-					messages.set(r, tmp);
-					l++;
-					r--;
-				}
-			}
-			mergeSortMessageByMemberDe(messages, left, r);
-			mergeSortMessageByMemberDe(messages, l, right);
-		}
+	public void sortMessagesByMemberDE(List<Message> messages) {
+		Collections.sort(messages, new Comparator<Message>() {
+		    @Override
+		    public int compare(Message m1, Message m2) {
+		        return Double.compare(memberDe[m2.from().getMyId()], memberDe[m1.from().getMyId()]);
+		    }
+		});
 	}
 	
 	public void resetDe(){
