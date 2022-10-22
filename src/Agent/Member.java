@@ -143,9 +143,9 @@ public class Member extends Agent{
 						if(!deAgents.contains(message.from())){
 							decide = false;
 						}
-						if(expectedTasks + messageQueue.size() < SUB_TASK_QUEUE_SIZE - deAgents.size()){
-							decide = true;
-						}
+						// if(expectedTasks + messageQueue.size() < SUB_TASK_QUEUE_SIZE - deAgents.size()){
+						// 	decide = true;
+						// }
 					}
 				}else if(p == 1){
 					message = decideMessage(solicitationMessages, Environment.rnd);

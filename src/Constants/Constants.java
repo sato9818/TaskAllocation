@@ -42,7 +42,7 @@ public class Constants {
 	
 	//メンバ
 	public static final int INACTIVE_THRESHOLD = 100;
-	public static final int MEMBER_DEPENDABLITY_AGENT_THRESHOLD = 3;
+	public static final int MEMBER_DEPENDABLITY_AGENT_THRESHOLD = 5;
 	public static final double MEMBER_DEPENDABLITY_DEGREE_THRESHOLD = 0.7;
 	
 	//エージェント
@@ -58,7 +58,7 @@ public class Constants {
 	public static final int ADDITIONAL_RESOURCE = 5;
 	
 	//tick
-	public static final int EXPERIMENTAL_DURATION = 151;
+	public static final int EXPERIMENTAL_DURATION = 150001;
 	
 	public static final int CHANGE_WORKLOAD_TIME = EXPERIMENTAL_DURATION;
 	public static final int RESTORE_WORKLOAD_TIME = EXPERIMENTAL_DURATION;
