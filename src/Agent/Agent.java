@@ -146,31 +146,6 @@ public class Agent {
 	public void readMessage(Message message, int tick){
 	}
 	
-	private int partition(List<Agent> agents, int left, int right) {
-	    int i = left;
-	    int mid = (right+left) / 2;
-	    Agent pivotAgent = agents.get(mid);
-	    Collections.swap(agents, mid, right);
-	    for (int j = left; j < right ; j++) {
-	        if (leaderDe[agents.get(j).getMyId()] >= leaderDe[pivotAgent.getMyId()]) {
-	        	Collections.swap(agents, i, j);
-	            i++;
-	        }
-	    }
-	    Collections.swap(agents, i, right);
-
-	    return i;
-	}
-	
-	// 'right' is the most right index in agents 
-	public void sortAgentsByLeaderDe(List<Agent> agents, int left, int right) {
-		if (left < right) {    
-	        int q = partition(agents, left, right);
-	        sortAgentsByLeaderDe(agents, left, q-1);
-	        sortAgentsByLeaderDe(agents, q+1, right);
-	    }
-	}
-	
 	public void sortAgentsByLeaderDE(List<Agent> agents) {
 		Collections.sort(agents, new Comparator<Agent>() {
 		    @Override
@@ -227,7 +202,7 @@ public class Agent {
 					allAgents.remove(agent);
 				}
 			}
-			sortAgentsByLeaderDe(allAgents, 0, allAgents.size()-1);
+			sortAgentsByLeaderDE(allAgents);
 			for(int i = 0;i < mainMemberSize-mainMemberIds.size();i++){
 				Agent agent = allAgents.get(i);
 				mainMemberIds.add(agent.getMyId());
@@ -240,7 +215,7 @@ public class Agent {
 					allAgents.add(agent);
 				}
 			}
-			sortAgentsByLeaderDe(allAgents, 0, allAgents.size()-1);
+			sortAgentsByLeaderDE(allAgents);
 			for(int i = 0;i < mainMemberIds.size()-mainMemberSize;i++){
 				Agent agent = allAgents.get(allAgents.size() - i - 1);
 				mainMemberIds.remove(Integer.valueOf(agent.getMyId()));
@@ -392,8 +367,8 @@ public class Agent {
 				(1.0 - LEARNING_RATE/**/) * this.leaderDe[message.from().getMyId()] 
 				+ LEARNING_RATE * delta;
 		if(subTask != null)
-		if(subTask.getType() > 0) this.specificLeaderDe[subTask.getType()-1][message.from().getMyId()] 
-				= (1.0 - LEARNING_RATE/**/) * this.specificLeaderDe[subTask.getType()-1][message.from().getMyId()] 
+		if(subTask.getType() >= 0) this.specificLeaderDe[subTask.getType()][message.from().getMyId()] 
+				= (1.0 - LEARNING_RATE/**/) * this.specificLeaderDe[subTask.getType()][message.from().getMyId()] 
 				+ LEARNING_RATE * delta;
 		
 	}

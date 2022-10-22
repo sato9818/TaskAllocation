@@ -48,7 +48,7 @@ public class SubTask {
 			reqCapa[i] = c;
 			utility += reqCapa[i];
 		}
-		type = maxIndexs.get(Environment.rnd.NextInt(maxIndexs.size())) + 1;
+		type = maxIndexs.get(Environment.rnd.NextInt(maxIndexs.size()));
 		
 		this.taskId = id;
 	}

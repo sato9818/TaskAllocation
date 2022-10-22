@@ -203,7 +203,7 @@ public class Leader extends Agent{
 //		copyAgents.removeAll(executingMembers);
 		copyAgents.remove(this);
 		Collections.shuffle(copyAgents, Environment.r);
-		sortAgentsByLeaderDe(copyAgents, 0, copyAgents.size()-1);
+		sortAgentsByLeaderDE(copyAgents);
 		
 		HashMap<Integer, List<Agent>> specificSortingAgentsMap = new HashMap<Integer, List<Agent>>();
 		for(int i=0;i<3;i++){
@@ -221,7 +221,7 @@ public class Leader extends Agent{
 		if(this.isReciprocity()){
 			List<Agent> copyDeAgents = new ArrayList<Agent>(deAgents);
 //			copyDeAgents.removeAll(executingMembers);
-			sortAgentsByLeaderDe(copyDeAgents, 0, copyDeAgents.size() - 1);
+			sortAgentsByLeaderDE(copyDeAgents);
 			HashMap<Integer, List<Agent>> specificSortingDeAgentsMap = new HashMap<Integer, List<Agent>>();
 			for(int i=0;i<3;i++){
 				List<Agent> copySpecificDeAgents = new ArrayList<Agent>(specificDeAgentsMap.get(i));
@@ -242,7 +242,7 @@ public class Leader extends Agent{
 					Agent agent = null;
 					int type = subtask.getType();
 
-					if(type == 0){
+					if(type == -1){
 						if(!copyDeAgents.isEmpty()){
 							agent = copyDeAgents.get(0);
 							copyDeAgents.remove(agent);
@@ -251,8 +251,8 @@ public class Leader extends Agent{
 							agent = copyAgents.get(0);
 						}
 					}else{
-						if(!specificSortingDeAgentsMap.get(type - 1).isEmpty()){
-							agent = specificSortingDeAgentsMap.get(type - 1).get(0);
+						if(!specificSortingDeAgentsMap.get(type).isEmpty()){
+							agent = specificSortingDeAgentsMap.get(type).get(0);
 							confSubTask.add(subtask);
 						}else{
 //							if(!copyDeAgents.isEmpty()){
@@ -264,8 +264,8 @@ public class Leader extends Agent{
 //									agent = copyAgents.get(0);
 //								}
 //							}
-							agent = specificSortingAgentsMap.get(type - 1).get(0);
-							if(this.getLeaderSpecificDependablity(type - 1, agent.getMyId()) == 0){
+							agent = specificSortingAgentsMap.get(type).get(0);
+							if(this.getLeaderSpecificDependablity(type, agent.getMyId()) == 0){
 								agent = copyAgents.get(0);
 							}
 						}
@@ -298,11 +298,11 @@ public class Leader extends Agent{
 						subTasksList.add(subtask);
 					}
 					
-					if((type = subtask.getType()) == 0){
+					if((type = subtask.getType()) == -1){
 						agent = copyAgents.get(0);
 					}else{
-						agent = specificSortingAgentsMap.get(type - 1).get(0);
-						if(this.getLeaderSpecificDependablity(type - 1, agent.getMyId()) == 0){
+						agent = specificSortingAgentsMap.get(type).get(0);
+						if(this.getLeaderSpecificDependablity(type, agent.getMyId()) == 0){
 							agent = copyAgents.get(0);
 						}
 					}
@@ -348,7 +348,7 @@ public class Leader extends Agent{
 		List<Agent> copyAgents = new ArrayList<Agent>(agents);
 		copyAgents.remove(this);
 		Collections.shuffle(copyAgents, Environment.r);
-		sortAgentsByLeaderDe(copyAgents, 0, copyAgents.size()-1);
+		sortAgentsByLeaderDE(copyAgents);
 		
 		//リーダーは自分の処理するサブタスクを取っておく。
 		mySubTask = getMySubTask(subTasks);
@@ -356,7 +356,7 @@ public class Leader extends Agent{
 		remainingTime = getExcutingTime(mySubTask);
 		
 		List<Agent> copyDeAgents = new ArrayList<Agent>(deAgents);
-		sortAgentsByLeaderDe(copyDeAgents, 0, copyAgents.size() - 1);
+		sortAgentsByLeaderDE(copyDeAgents);
 
 		for(int i=0;i<SOLICITATION_REDUNDANCY;i++){
 			for(int j=0;j<subTasks.size();j++){
