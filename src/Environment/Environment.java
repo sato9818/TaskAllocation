@@ -40,6 +40,8 @@ public class Environment {
 	public static double avgSubTaskQueue[][] = new double[NUM_OF_AREA][EXPERIMENTAL_DURATION];
 	static public double leaderDependableAgents[][][] = new double[TYPES_OF_RESOURCE][NUM_OF_AREA][EXPERIMENTAL_DURATION];
 	static public double memberDependableAgents[][] = new double[NUM_OF_AREA][EXPERIMENTAL_DURATION];
+	static public int memberSubtaskQueueHist[][][] = new int[SUB_TASK_QUEUE_SIZE + 1][NUM_OF_AREA][EXPERIMENTAL_DURATION];
+	
 
 	
 	
@@ -321,6 +323,7 @@ public class Environment {
 		for(int i=0;i<members.size();i++){
 			Member member = members.get(i);
 			avgSubTaskQueue[member.getArea().getId()][tick] += member.getSubTaskQueueSize();
+			memberSubtaskQueueHist[member.getSubTaskQueueSize()][member.getArea().getId()][tick]++;
 			countMembers[member.getArea().getId()][tick]++;
 			if(member.isReciprocity() == true){
 				reciprocityMembers[member.getArea().getId()][tick]++;

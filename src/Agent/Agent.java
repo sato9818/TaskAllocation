@@ -102,6 +102,7 @@ public class Agent {
 	public static int leaderCount[] = new int[NUM_OF_AGENT];
 	public static int memberCount[] = new int[NUM_OF_AGENT];
 	public static int ownedSubtask[][] = new int[NUM_OF_AGENT][EXPERIMENTAL_DURATION];
+	static public double taskCompletionTime[][] = new double[NUM_OF_AREA][EXPERIMENTAL_DURATION];
 	
 	//---------------------------------------------------------------------------------------
 	
@@ -322,6 +323,7 @@ public class Agent {
 		if(executingMember.isEmpty()){
 			memberListMap.remove(taskId);
 			executedTask[this.getArea().getId()][tick]++;
+			taskCompletionTime[this.getArea().getId()][tick] += tick - startTick;
 		}
 	}
 	

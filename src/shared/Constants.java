@@ -60,7 +60,7 @@ public class Constants {
 	public static final int ADDITIONAL_RESOURCE = 5;
 	
 	//tick
-	public static final int EXPERIMENTAL_DURATION = 100001;
+	public static final int EXPERIMENTAL_DURATION = 150001;
 	
 	public static final int CHANGE_WORKLOAD_TIME = EXPERIMENTAL_DURATION;
 	public static final int RESTORE_WORKLOAD_TIME = EXPERIMENTAL_DURATION;
