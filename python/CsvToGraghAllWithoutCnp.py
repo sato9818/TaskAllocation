@@ -48,6 +48,6 @@ for tick in ticks:
     
     combined_df.plot(kind='bar')    
     plt.tight_layout()
-    plt.savefig(str(tick) + ".png")
+    plt.savefig("png/all/" + str(tick) + ".png")
 
 plt.close('all')
