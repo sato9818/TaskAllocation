@@ -405,7 +405,7 @@ public class Leader extends Agent{
 			if(team.containsKey(subtask)){
 				if(deAgents.contains(member) && !deAgents.contains(team.get(subtask))){
 					team.put(subtask, member);
-				}else if(leaderDe[member.getMyId()] > leaderDe[team.get(subtask).getMyId()] && 
+				}else if(specificLeaderDe[subtask.getType()][member.getMyId()] > specificLeaderDe[subtask.getType()][team.get(subtask).getMyId()] && 
 						!(!deAgents.contains(member) && deAgents.contains(team.get(subtask)))){
 					team.put(subtask, member);
 				}
