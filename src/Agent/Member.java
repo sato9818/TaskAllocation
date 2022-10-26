@@ -151,9 +151,9 @@ public class Member extends Agent{
 					message = decideMessage(solicitationMessages, Environment.rnd);
 				}
 				
-//				if(expectedTasks + taskQueue.size() ){
-//					decide = false;
-//				}
+				if(messageQueue.size() == SUB_TASK_QUEUE_SIZE){
+					decide = false;
+				}
 				if(decide){
 					expectedTasks++;
 				}
@@ -182,9 +182,6 @@ public class Member extends Agent{
 		}else{
 			sortMessagesByMemberDE(messages);
 			Message message = messages.get(0);
-//			for(int i=0;i<messages.size();i++){
-//				System.out.println("member: " + getMyId() + " " + memberDe[messages.get(i).from().getMyId()]);
-//			}
 			return message;
 		}
 	}
@@ -229,9 +226,6 @@ public class Member extends Agent{
 			allMessages.add(rejectedMessage);
 		}
 	}
-	
-	
-	
 	
 	//---------------------------------------------------------------------------------------
 	

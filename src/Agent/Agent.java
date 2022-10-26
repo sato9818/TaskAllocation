@@ -80,6 +80,10 @@ public class Agent {
 	
 	protected int sumQueueSize = 0;
 	protected int failureOrFinishedmessage = 0;
+	public double leaderDependabilityDegreeThreshold = INITAIL_LEADER_DEPENDABLITY_DEGREE_THRESHOLD;
+	public double memberDependabilityDegreeThreshold = INITAIL_MEMBER_DEPENDABLITY_DEGREE_THRESHOLD;
+	int rejectedSubtasks = 0;
+	int wastedSubtasks = 0;
 	
 	
 	
@@ -141,6 +145,8 @@ public class Agent {
 		subMemberIds = agent.subMemberIds;
 		sumQueueSize = agent.sumQueueSize;
 		failureOrFinishedmessage = agent.failureOrFinishedmessage;
+		leaderDependabilityDegreeThreshold = agent.leaderDependabilityDegreeThreshold;
+		memberDependabilityDegreeThreshold = agent.memberDependabilityDegreeThreshold;
 	}
 	
 	
@@ -154,6 +160,25 @@ public class Agent {
 		        return Double.compare(leaderDe[a2.getMyId()], leaderDe[a1.getMyId()]);
 		    }
 		});
+	}
+	
+	public void updateThreshold() {
+//		leaderDependabilityDegreeThreshold -= rejectedSubtasks * LEADER_THRESHOLD_DECREASING_RATE;
+		leaderDependabilityDegreeThreshold += wastedSubtasks * LEADER_THRESHOLD_INCREASING_RATE;
+		leaderDependabilityDegreeThreshold = Math.max(leaderDependabilityDegreeThreshold, 0.00001);
+		if(wastedSubtasks > 0)
+		System.out.println(wastedSubtasks);
+//		if(role == Role.LEADER) {
+//			
+//			leaderDependabilityDegreeThreshold += LEADER_THRESHOLD_INCREASING_RATE;
+//			leaderDependabilityDegreeThreshold = Math.max(leaderDependabilityDegreeThreshold, 0.0000000000001);
+//		}else if(role == Role.MEMBER) {
+//			memberDependabilityDegreeThreshold -= MEMBER_THRESHOLD_DECREASING_RATE;
+//			memberDependabilityDegreeThreshold += rejectedSubtasks * MEMBER_THRESHOLD_INCREASING_RATE;
+//			memberDependabilityDegreeThreshold = Math.max(memberDependabilityDegreeThreshold, 0.0000000000001);
+//		}
+		rejectedSubtasks = 0;
+		wastedSubtasks = 0;
 	}
 	
 	public void mergeSortAgentBySpecificLeaderDE(List<Agent> agents, int idx) {
@@ -353,11 +378,11 @@ public class Agent {
 		if(success){
 			delta = (double)subTask.getutility() 
 			/  //---------------------------------------------------------------
-					(double)(executedTime) ;
+					(double)(executedTime);
 			
 //				delta = (double)message.getSubTask().getutility() / (this.getdistance(message.from().getMyId()) * 2 + getExcutingTime(message.getSubTask())) ;
 //			System.out.println("excutiontime " + getExcutingTime(message.getSubTask()));
-//				delta = 1;
+				// delta = 1;
 //			System.out.println(executedTime);
 			
 		}else{
@@ -366,11 +391,11 @@ public class Agent {
 			}
 		}
 		this.leaderDe[message.from().getMyId()] = 
-				(1.0 - LEARNING_RATE/**/) * this.leaderDe[message.from().getMyId()] 
+				(1.0 - LEARNING_RATE) * this.leaderDe[message.from().getMyId()] 
 				+ LEARNING_RATE * delta;
 		if(subTask != null)
 		if(subTask.getType() >= 0) this.specificLeaderDe[subTask.getType()][message.from().getMyId()] 
-				= (1.0 - LEARNING_RATE/**/) * this.specificLeaderDe[subTask.getType()][message.from().getMyId()] 
+				= (1.0 - LEARNING_RATE) * this.specificLeaderDe[subTask.getType()][message.from().getMyId()] 
 				+ LEARNING_RATE * delta;
 		
 	}

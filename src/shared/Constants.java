@@ -12,7 +12,7 @@ public class Constants {
 	
 	//負荷
 	public static final double LOW_WORKLOAD = 2;
-	public static final double MODERATE_WORKLOAD = 18;
+	public static final double MODERATE_WORKLOAD = 22;
 	public static final double HIGH_WORKLOAD = 6;
 	
 	//エリア分割
@@ -40,12 +40,16 @@ public class Constants {
 	
 	//リーダー
 	public static final int LEADER_DEPENDABLITY_AGENT_THRESHOLD = 1;
-	public static final double LEADER_DEPENDABLITY_DEGREE_THRESHOLD = 1.0;
+//	public static final double LEADER_DEPENDABLITY_DEGREE_THRESHOLD = 1.0;
+	public static final double INITAIL_LEADER_DEPENDABLITY_DEGREE_THRESHOLD = 1.0;
+	public static final double LEADER_THRESHOLD_INCREASING_RATE = 0.01;
+	public static final double LEADER_THRESHOLD_DECREASING_RATE = 0.01;
 	
 	//メンバ
 	public static final int INACTIVE_THRESHOLD = 100;
 	public static final int MEMBER_DEPENDABLITY_AGENT_THRESHOLD = 5;
-	public static final double MEMBER_DEPENDABLITY_DEGREE_THRESHOLD = 1.0;
+	public static final double INITAIL_MEMBER_DEPENDABLITY_DEGREE_THRESHOLD = 0.1;
+//	public static final double MEMBER_DEPENDABLITY_DEGREE_THRESHOLD = 1.0;
 	
 	//エージェント
 	public static final int TYPES_OF_RESOURCE = 3;
@@ -60,7 +64,7 @@ public class Constants {
 	public static final int ADDITIONAL_RESOURCE = 5;
 	
 	//tick
-	public static final int EXPERIMENTAL_DURATION = 150001;
+	public static final int EXPERIMENTAL_DURATION = 300001;
 	
 	public static final int CHANGE_WORKLOAD_TIME = EXPERIMENTAL_DURATION;
 	public static final int RESTORE_WORKLOAD_TIME = EXPERIMENTAL_DURATION;
@@ -70,7 +74,7 @@ public class Constants {
 	
 	public static final int FIRST_MEASURE_TIME = EXPERIMENTAL_DURATION;
 	
-	public static final int TRIAL_COUNT = 10;
+	public static final int TRIAL_COUNT = 1;
 	
 //	-------------------------------------------------------------------------------------------------
 	

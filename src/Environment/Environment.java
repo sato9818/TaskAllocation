@@ -160,7 +160,14 @@ public class Environment {
 		collectMessages();
 		changeRole();
 		countAgents(tick);
+		updateAgentsThreshold();
 		decreaseDependability();
+	}
+	
+	public void updateAgentsThreshold() {
+		for(Leader leader : leaders) {
+			leader.updateThreshold();
+		}
 	}
 	
 	//---------------------------------------------------------------------------------------
@@ -344,11 +351,11 @@ public class Environment {
 			List<Agent> dependableAgents = new ArrayList<Agent>();
 			for(int j=0;j<agents.size();j++){
 				Agent agent = agents.get(j);
-				if(LEADER_DEPENDABLITY_DEGREE_THRESHOLD < leader.getLeaderDependablity(agent.getMyId())){
+				if(leader.leaderDependabilityDegreeThreshold < leader.getLeaderDependablity(agent.getMyId())){
 					leader.adddeagent(agent);
 				}
 				for(int k=0;k<3;k++){
-					if(LEADER_DEPENDABLITY_DEGREE_THRESHOLD < leader.getLeaderSpecificDependablity(k, agent.getMyId())){
+					if(leader.leaderDependabilityDegreeThreshold < leader.getLeaderSpecificDependablity(k, agent.getMyId())){
 						leader.addSpecificDeAgents(k, agent);
 //						if(!dependableAgents.contains(agent)){//値を重複させない
 //							dependableAgents.add(agent);
@@ -364,7 +371,7 @@ public class Environment {
 			member.clearDependablityAgent();
 			for(int j=0;j<agents.size();j++){
 				Agent agent = agents.get(j);
-				if(MEMBER_DEPENDABLITY_DEGREE_THRESHOLD < member.getMemberDependablity(agent.getMyId())){
+				if(member.memberDependabilityDegreeThreshold < member.getMemberDependablity(agent.getMyId())){
 					member.adddeagent(agent);
 				}
 			}

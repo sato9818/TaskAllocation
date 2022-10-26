@@ -431,6 +431,10 @@ public class Leader extends Agent{
 				makeTeam(message);
 				acceptMembers.add(message.from());
 			}else{
+				SubTask subtask = message.getSubTask();
+				if(specificDeAgentsMap.get(subtask.getType()).contains(message.from())) {
+					wastedSubtasks++;
+				}
 				updateDependablity(message, false, 0);
 			}
 			preMembers.remove(Integer.valueOf(message.from().getMyId()));	
@@ -438,6 +442,7 @@ public class Leader extends Agent{
 		case REFUSE:
 			updateDependablity(message, false, 0);
 			notifyFailure(message,tick);
+			rejectedSubtasks++;
 //			updateRoleEvaluation(false);
 			break;
 		case FINISH:
