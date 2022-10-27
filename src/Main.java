@@ -17,8 +17,6 @@ import random.Sfmt;
 import shared.Constants;
 
 public class Main {
-	static String csv_base_path;
-	static int tick = 0;
 	public static void main(String[] args){
 		getConstants();
 		String mode = args[0];
@@ -37,7 +35,7 @@ public class Main {
 		
 		for(int trial = 0;trial<TRIAL_COUNT;trial++){
 			Environment e = new Environment(Seed._seeds[trial]);
-			for(tick=0;tick<EXPERIMENTAL_DURATION;tick++){
+			for(int tick=0;tick<EXPERIMENTAL_DURATION;tick++){
 				e.run(tick);
 //				if(RECIPROCITY == true && (tick == CHANGE_SUBTASKS_TIME || tick == RESTORE_SUBTASKS_TIME || tick == FIRST_MEASURE_TIME)){
 //					e.exportAgentConnection(tick);
