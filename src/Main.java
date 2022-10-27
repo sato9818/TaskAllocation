@@ -276,7 +276,7 @@ public class Main {
 	        		messageCount += Environment.countSentMessages[i][tick];
 	        		overflowedTask += Area.overflowedTask[i][tick];
 	        		rejectedTask += Agent.rejectedTask[i][tick];
-	        		avgSubTaskQueue += divide(Environment.avgSubTaskQueue[i][tick], Environment.countMembers[i][tick]);
+	        		avgSubTaskQueue += divide(Environment.subTaskQueueSum[i][tick], Environment.countMembers[i][tick]);
 	        		avgTaskCompletionTime += divide(Agent.taskCompletionTime[i][tick], Agent.executedTask[i][tick]);
 	        		
 	        		for(int type=0;type<TYPES_OF_RESOURCE;type++) {
