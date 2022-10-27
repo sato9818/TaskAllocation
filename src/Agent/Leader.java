@@ -11,6 +11,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Random;
 
+import analysis.Analyzer;
 import comparator.SubUtilityComparator;
 import environment.Area;
 import environment.Environment;
@@ -94,7 +95,7 @@ public class Leader extends Agent{
 			}else if(judge == 1){
 				//全部返信がきててアロケーションできないなら
 				failAllocate();
-				wastedTask[this.getArea().getId()][tick]++;
+				Analyzer.wastedTask[this.getArea().getId()][tick]++;
 				phase = EXECUTING_TASK;
 				clearall();
 				time = 0;
@@ -496,7 +497,7 @@ public class Leader extends Agent{
             taskId = subtask.getTaskId();
             Agent member = team.get(subtask);
             Message message = new Message(ALLOCATION, this, member, subtask);
-            allocationMemberCount[this.getArea().getId()][member.getArea().getId()][tick]++; 
+            Analyzer.allocationMemberCount[this.getArea().getId()][member.getArea().getId()][tick]++; 
             allMessages.add(message);
             //this.updatede(new MessagetoLeader(message.getto(),message.getfrom(),message.getsubtask(),0,message.getto().setexcutiontime(message.getsubtask())), true);
             membersExcuting.add(member);
@@ -536,7 +537,6 @@ public class Leader extends Agent{
 	public void executeSubTask(){
 		remainingTime--;
 		if(remainingTime == 0){
-			finishSubTask++;
 			mySubTask = null;
 		}
 	}

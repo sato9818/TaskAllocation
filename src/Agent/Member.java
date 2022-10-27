@@ -7,6 +7,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Queue;
 
+import analysis.Analyzer;
 import environment.Area;
 import environment.Environment;
 import message.Message;
@@ -117,7 +118,7 @@ public class Member extends Agent{
 		int et = getExcutingTime(mySubTask);	
 		remainingTime = et;
 		finishMessage = new Message(FINISH, this, allocationMessage.from(), allocationMessage.getSubTask(), et, messageQueue.size());
-		waitingTime[this.getArea().getId()][tick] += tick - allocateTimeMap.get(finishMessage.getSubTask().getTaskId());
+		Analyzer.waitingTime[this.getArea().getId()][tick] += tick - allocateTimeMap.get(finishMessage.getSubTask().getTaskId());
 		executeTask(tick);
 	}
 	
@@ -232,7 +233,6 @@ public class Member extends Agent{
 	public void executeTask(int tick){
 		remainingTime--;
 		if(remainingTime == 0){
-			finishSubTask++;
 			allMessages.add(finishMessage);
 			mySubTask = null;
 			finishMessage = null;
@@ -302,7 +302,7 @@ public class Member extends Agent{
 				allMessages.add(new Message(REFUSE, this, message.from(), message.getSubTask()));
 				
 				refusedTask[getMyId()]++;
-				rejectedTask[this.getArea().getId()][tick]++;
+				Analyzer.rejectedTask[this.getArea().getId()][tick]++;
 			}else{
 				messageQueue.add(message);
 				allocateTimeMap.put(message.getSubTask().getTaskId(), tick);

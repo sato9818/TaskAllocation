@@ -18,6 +18,7 @@ import java.util.Random;
 import agent.Agent;
 import agent.Leader;
 import agent.Member;
+import analysis.Analyzer;
 import message.Message;
 import random.Sfmt;
 
@@ -30,20 +31,6 @@ public class Environment {
 	private HashMap<Integer, List<Message>> agentIdToMessageList = new HashMap<Integer, List<Message>>();
 	public static Sfmt rnd;
 	public static Random r;
-	
-	public static double communicationTime[][] = new double[NUM_OF_AREA][EXPERIMENTAL_DURATION];
-	public static double countSentMessages[][] = new double[NUM_OF_AREA][EXPERIMENTAL_DURATION];
-	public static int countMembers[][] = new int[NUM_OF_AREA][EXPERIMENTAL_DURATION];
-	public static int countLeaders[][] = new int[NUM_OF_AREA][EXPERIMENTAL_DURATION];
-	public static int reciprocityMembers[][] = new int[NUM_OF_AREA][EXPERIMENTAL_DURATION];
-	public static int reciprocityLeaders[][] = new int[NUM_OF_AREA][EXPERIMENTAL_DURATION];
-	public static double subTaskQueueSum[][] = new double[NUM_OF_AREA][EXPERIMENTAL_DURATION];
-	static public double leaderDependableAgents[][][] = new double[TYPES_OF_RESOURCE][NUM_OF_AREA][EXPERIMENTAL_DURATION];
-	static public double memberDependableAgents[][] = new double[NUM_OF_AREA][EXPERIMENTAL_DURATION];
-	static public int memberSubtaskQueueHist[][][] = new int[SUB_TASK_QUEUE_SIZE + 1][NUM_OF_AREA][EXPERIMENTAL_DURATION];
-	
-
-	
 	
 	//---------------------------------------------------------------------------------------
 	
@@ -182,8 +169,8 @@ public class Environment {
 				Message message = it.next();
 				if(message.isDelivered()){
 					agent.readMessage(message, tick);
-					communicationTime[message.from().getArea().getId()][tick] += message.from().getdistance(message.to().getMyId());
-					countSentMessages[message.from().getArea().getId()][tick]++;
+					Analyzer.communicationTime[message.from().getArea().getId()][tick] += message.from().getdistance(message.to().getMyId());
+					Analyzer.countSentMessages[message.from().getArea().getId()][tick]++;
 					it.remove();
 				}
 			}
@@ -317,25 +304,25 @@ public class Environment {
 	private void countAgents(int tick){
 		for(int i=0;i<leaders.size();i++){
 			Leader leader = leaders.get(i);
-			countLeaders[leader.getArea().getId()][tick]++;
+			Analyzer.countLeaders[leader.getArea().getId()][tick]++;
 			for(int subtaskType=0;subtaskType<TYPES_OF_RESOURCE;subtaskType++) {
-				leaderDependableAgents[subtaskType][leader.getArea().getId()][tick] += leader.specificDeAgentsMap.get(subtaskType).size();
+				Analyzer.leaderDependableAgents[subtaskType][leader.getArea().getId()][tick] += leader.specificDeAgentsMap.get(subtaskType).size();
 			}
 			
 			if(leader.isReciprocity() == true){
-				reciprocityLeaders[leader.getArea().getId()][tick]++;
+				Analyzer.reciprocalLeaders[leader.getArea().getId()][tick]++;
 			}
 			
 		}
 		for(int i=0;i<members.size();i++){
 			Member member = members.get(i);
-			subTaskQueueSum[member.getArea().getId()][tick] += member.getSubTaskQueueSize();
-			memberSubtaskQueueHist[member.getSubTaskQueueSize()][member.getArea().getId()][tick]++;
-			countMembers[member.getArea().getId()][tick]++;
+			Analyzer.subTaskQueueSum[member.getArea().getId()][tick] += member.getSubTaskQueueSize();
+			Analyzer.memberSubtaskQueueHist[member.getSubTaskQueueSize()][member.getArea().getId()][tick]++;
+			Analyzer.countMembers[member.getArea().getId()][tick]++;
 			if(member.isReciprocity() == true){
-				reciprocityMembers[member.getArea().getId()][tick]++;
+				Analyzer.reciprocalMembers[member.getArea().getId()][tick]++;
 			}
-			memberDependableAgents[member.getArea().getId()][tick] += member.deAgents.size();
+			Analyzer.memberDependableAgents[member.getArea().getId()][tick] += member.deAgents.size();
 		}
 	}
 	

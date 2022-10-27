@@ -10,6 +10,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
+import analysis.Analyzer;
 import environment.Area;
 import environment.Environment;
 import message.Message;
@@ -88,25 +89,11 @@ public class Agent {
 	
 	
 	//集計用------------------------------------------------------------------------------------
-	//処理したタスク数
-	public static int executedTask[][] = new int[NUM_OF_AREA][EXPERIMENTAL_DURATION];
-	//処理したサブタスク数
-	public static int executedSubTask[][] = new int[NUM_OF_AREA][EXPERIMENTAL_DURATION];
-	//チームが組めなかったことによるサブタスク破棄
-	public static int wastedTask[][] = new int[NUM_OF_AREA][EXPERIMENTAL_DURATION];
-	//途中で断られてチームが解散になったことによるタスク失敗
-	public static int rejectedTask[][] = new int[NUM_OF_AREA][EXPERIMENTAL_DURATION];
-	public static double waitingTime[][] = new double[NUM_OF_AREA][EXPERIMENTAL_DURATION];
-	public static double executedTime[][] = new double[NUM_OF_AREA][EXPERIMENTAL_DURATION];
-	public static double allExecutedTime[][] = new double[NUM_OF_AREA][EXPERIMENTAL_DURATION];
-	public static int allocationMemberCount[][][] = new int[NUM_OF_AREA][NUM_OF_AREA][EXPERIMENTAL_DURATION];
 	public static int refusedTask[] = new int[NUM_OF_AGENT];
-	public static int finishSubTask = 0;
 	public static int allocatedSubTask[] = new int[NUM_OF_AGENT];
 	public static int leaderCount[] = new int[NUM_OF_AGENT];
 	public static int memberCount[] = new int[NUM_OF_AGENT];
 	public static int ownedSubtask[][] = new int[NUM_OF_AGENT][EXPERIMENTAL_DURATION];
-	static public double taskCompletionTime[][] = new double[NUM_OF_AREA][EXPERIMENTAL_DURATION];
 	
 	//---------------------------------------------------------------------------------------
 	
@@ -342,13 +329,13 @@ public class Agent {
 		executingMember.remove(member);
 		int startTick = executionTimeMap.get(taskId);
 		updateDependablity(message,true,tick - startTick);
-		executedSubTask[this.getArea().getId()][tick]++;
-		allExecutedTime[this.getArea().getId()][tick] += tick - startTick;
-		executedTime[this.getArea().getId()][tick] += message.getExecutedTime();
+		Analyzer.executedSubTask[this.getArea().getId()][tick]++;
+		Analyzer.allExecutedTime[this.getArea().getId()][tick] += tick - startTick;
+		Analyzer.executedTime[this.getArea().getId()][tick] += message.getExecutedTime();
 		if(executingMember.isEmpty()){
 			memberListMap.remove(taskId);
-			executedTask[this.getArea().getId()][tick]++;
-			taskCompletionTime[this.getArea().getId()][tick] += tick - startTick;
+			Analyzer.executedTask[this.getArea().getId()][tick]++;
+			Analyzer.taskCompletionTime[this.getArea().getId()][tick] += tick - startTick;
 		}
 	}
 	
