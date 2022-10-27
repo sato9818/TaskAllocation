@@ -71,7 +71,7 @@ public class Analyzer {
 	public static int reciprocalLeaders[][] = new int[NUM_OF_AREA][EXPERIMENTAL_DURATION];
 	public static int memberSubtaskQueueHist[][][] = new int[SUB_TASK_QUEUE_SIZE + 1][NUM_OF_AREA][EXPERIMENTAL_DURATION];
 	
-	public void export(){
+	public void exportAreaData(){
 		for(int i=0;i<NUM_OF_AREA;i++){
 			try{
 				FileWriter fw = new FileWriter(csvBasePath + "/Area" + i + ".csv", false);
@@ -189,74 +189,75 @@ public class Analyzer {
 	        	pw.close();
 			}catch(IOException ex){
 				System.out.println(ex);
-			}
-			
+			}	
 		}
+	}
+	public void exportEnvironmentData() {
 		try{
-			FileWriter fw = new FileWriter(csvBasePath + "/Analyzer.csv", false);
+			FileWriter fw = new FileWriter(csvBasePath + "/Environment.csv", false);
             PrintWriter pw = new PrintWriter(new BufferedWriter(fw));
-            pw.print("tick");
+            pw.print("Tick");
         	pw.print(",");
-        	pw.print("executed task");
+        	pw.print("Num of completed task");
         	pw.print(",");
-        	pw.print("wasted task");
+        	pw.print("Num of team formation failure");
         	pw.print(",");
-        	pw.print("communication time");
+        	pw.print("Average communication time");
         	pw.print(",");
-        	pw.print("executed time");
+        	pw.print("Average subtask completion time from member perspective");
         	pw.print(",");
-        	pw.print("waiting time");
+        	pw.print("Average time of subtask being in subtask queue");
         	pw.print(",");
-        	pw.print("all executed time");
+        	pw.print("Average subtask completion time from leader perspective");
         	pw.print(",");
-        	pw.print("average task completion time");
+        	pw.print("Average task completion time");
         	pw.print(",");
-        	pw.print("leader count");
+        	pw.print("Num of leaders");
         	pw.print(",");
-        	pw.print("member count");
+        	pw.print("Num of members");
         	pw.print(",");
-        	pw.print("reciprocity leader count");
+        	pw.print("Num of reciprocal leaders");
         	pw.print(",");
-        	pw.print("reciprocity member count");
+        	pw.print("Num of reciprocal members");
         	pw.print(",");
-        	pw.print("message count");
+        	pw.print("Num of sent messages");
         	pw.print(",");
-        	pw.print("overflowed task");
+        	pw.print("Num of overflowed task from task queue");
         	pw.print(",");
-        	pw.print("average subtask queue size");
+        	pw.print("Average subtask queue size");
         	pw.print(",");
         	for(int type=0;type<TYPES_OF_RESOURCE;type++) {
-        		pw.print("average leader dependable agents type " + type);
+        		pw.print("Average leader dependable agents type " + type);
             	pw.print(",");
 			}
-        	pw.print("average member dependable agents");
+        	pw.print("Average member dependable agents");
 			pw.print(",");
 			for(int size=0;size<=SUB_TASK_QUEUE_SIZE;size++) {
-        		pw.print("subtask queue size " + size);
+        		pw.print("Num of members whose subtask queue size is " + size);
             	pw.print(",");
 			}
-        	pw.print("rejected task");
+        	pw.print("Num of rejected task");
         	pw.print(",");
-        	pw.print("success rate");
+        	pw.print("Task completion success rate");
         	pw.println();
         	
-            int executedTask = 0;
-        	int wastedTask = 0;
+            long executedTask = 0;
+        	long wastedTask = 0;
         	double communicationTime = 0;
         	double executedTime = 0;
         	double waitingTime = 0;
         	double allExecutedTime = 0;
-        	int leaderCount = 0;
-        	int memberCount = 0;
-        	int reciprocityMembers = 0;
-        	int reciprocityLeaders = 0;
-        	int messageCount = 0;
-        	int overflowedTask = 0;
+        	long leaderCount = 0;
+        	long memberCount = 0;
+        	long reciprocityMembers = 0;
+        	long reciprocityLeaders = 0;
+        	long messageCount = 0;
+        	long overflowedTask = 0;
         	double avgSubTaskQueue = 0;
-        	int rejectedTask = 0;
+        	long rejectedTask = 0;
         	double[] leaderDependableAgents = new double[TYPES_OF_RESOURCE];
         	double memberDependableAgents = 0;
-        	int memberSubtaskQueueHist[] = new int[SUB_TASK_QUEUE_SIZE+1];
+        	long memberSubtaskQueueHist[] = new long[SUB_TASK_QUEUE_SIZE+1];
         	double avgTaskCompletionTime = 0;
             for(int tick=0;tick<EXPERIMENTAL_DURATION;tick++){
             	for(int i=0;i<NUM_OF_AREA;i++){

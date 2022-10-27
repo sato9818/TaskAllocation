@@ -153,8 +153,8 @@ public class Agent {
 //		leaderDependabilityDegreeThreshold -= rejectedSubtasks * LEADER_THRESHOLD_DECREASING_RATE;
 		leaderDependabilityDegreeThreshold += wastedSubtasks * LEADER_THRESHOLD_INCREASING_RATE;
 		leaderDependabilityDegreeThreshold = Math.max(leaderDependabilityDegreeThreshold - 0.00001, 0);
-		if(wastedSubtasks > 0)
-		System.out.println(wastedSubtasks);
+//		if(wastedSubtasks > 0)
+//		System.out.println(wastedSubtasks);
 //		if(role == Role.LEADER) {
 //			
 //			leaderDependabilityDegreeThreshold += LEADER_THRESHOLD_INCREASING_RATE;

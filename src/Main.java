@@ -53,7 +53,8 @@ public class Main {
 		}
 		long end = System.currentTimeMillis();
 		System.out.println((end - start)  + "ms");
-		analyzer.export();
+		analyzer.exportAreaData();
+		analyzer.exportEnvironmentData();
 	}
 	
 	private static void getConstants() {

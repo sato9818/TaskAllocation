@@ -117,7 +117,7 @@ public class Environment {
 	//---------------------------------------------------------------------------------------
 	
 	public void run(int tick){
-		System.out.println("tick: " + tick + "---------------------------------------------------------------------------------------------------");
+//		System.out.println("tick: " + tick + "---------------------------------------------------------------------------------------------------");
 		
 		if(tick == CHANGE_WORKLOAD_TIME){
 			changeAreaWorkload(HIGH_WORKLOAD, areas.get(0));

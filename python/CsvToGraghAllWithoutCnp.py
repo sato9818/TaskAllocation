@@ -1,15 +1,16 @@
-import matplotlib as mpl
 import matplotlib.pyplot as plt
-import math
-
 import pandas as pd
-import numpy as np
-import datetime as dt
 
 # plt.rcParams["font.size"] = 8
-col = ["executed task", "wasted task", "communication time", "executed time", "waiting time", "all executed time", "average task completion time","leader count", "member count", "reciprocity leader count", "reciprocity member count", "message count", "overflowed task", "average subtask queue size", "average leader dependable agents type 0", "average leader dependable agents type 1", "average leader dependable agents type 2", "average member dependable agents", "rejected task", "success rate"]
+col = [ \
+    "Num of completed task", "Num of team formation failure", "Average communication time", "Average subtask completion time from member perspective", "Average time of subtask being in subtask queue", \
+    "Average subtask completion time from leader perspective", "Average task completion time","Num of leaders", "Num of members", \
+    "Num of reciprocal leaders", "Num of reciprocal members", "Num of sent messages", "Num of overflowed task from task queue", \
+    "Average subtask queue size", "Average leader dependable agents type 0", "Average leader dependable agents type 1", \
+    "Average leader dependable agents type 2", "Average member dependable agents", "Num of rejected task", "Task completion success rate" \
+    ]
 ex_types= ["Rational", "Reciprocity"]
-subtask_queue_size = ["subtask queue size 0", "subtask queue size 1", "subtask queue size 2", "subtask queue size 3", "subtask queue size 4", "subtask queue size 5"]
+subtask_queue_size = ["Num of members whose subtask queue size is 0", "Num of members whose subtask queue size is 1", "Num of members whose subtask queue size is 2", "Num of members whose subtask queue size is 3", "Num of members whose subtask queue size is 4", "Num of members whose subtask queue size is 5"]
 
 path = []
 for ex_type in ex_types:
@@ -18,7 +19,7 @@ for ex_type in ex_types:
 dfs = []
 for p in path:
     df = pd.read_csv(p, index_col=0)
-    df["success rate"] = df["executed task"] / (df["executed task"] + df["wasted task"] + df["rejected task"] + df["overflowed task"])
+    # df["success rate"] = df["executed task"] / (df["executed task"] + df["wasted task"] + df["rejected task"] + df["overflowed task"])
     dfs.append(df)
 
 for c in col:
