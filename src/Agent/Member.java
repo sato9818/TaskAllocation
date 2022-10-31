@@ -35,8 +35,8 @@ public class Member extends Agent{
 	
 	//---------------------------------------------------------------------------------------
 	
-	public Member(Area area, int x, int y){
-		super(area, x, y);
+	public Member(Area area, int x, int y, int id, Environment e){
+		super(area, x, y, id, e);
 	}
 	
 	//---------------------------------------------------------------------------------------
@@ -149,7 +149,7 @@ public class Member extends Agent{
 						// }
 					}
 				}else if(p == 1){
-					message = decideMessage(solicitationMessages, Environment.rnd);
+					message = decideMessage(solicitationMessages, environment.rnd);
 				}
 				
 				if(messageQueue.size() == SUB_TASK_QUEUE_SIZE){

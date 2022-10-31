@@ -2,15 +2,13 @@ package environment;
 import java.util.ArrayDeque;
 import java.util.Queue;
 
+import analysis.Analyzer;
 import random.Sfmt;
 import task.Task;
 
 import static shared.Constants.*;
 
 public class Area {
-	static int num = 0;
-	public static int overflowedTask[][] = new int[NUM_OF_AREA][EXPERIMENTAL_DURATION];
-	
 	private Queue<Task> taskQueue = new ArrayDeque<Task>();
 	private final int minX;
 	private final int maxX;
@@ -23,17 +21,13 @@ public class Area {
 	private int taskCount = 0; 
 	
 	
-	Area(double workload, int minX, int minY, int maxX, int maxY){
+	Area(double workload, int minX, int minY, int maxX, int maxY, int id){
 		this.workload = workload;
 		this.minX = minX;
 		this.minY = minY;
 		this.maxX = maxX;
 		this.maxY = maxY;
-		id = num;
-		num++;
-		if(num == NUM_OF_AREA){
-			num = 0;
-		}
+		this.id = id;
 	}
 	
 	//---------------------------------------------------------------------------------------
@@ -48,18 +42,18 @@ public class Area {
 	
 	//---------------------------------------------------------------------------------------
 	
-	public void addTask(int tick){
-		int p = Environment.rnd.NextPoisson(workload);
+	public int addTask(Sfmt rnd, int tick, int taskID){
+		int p = rnd.NextPoisson(workload);
 		taskCount += p;
 		for(int i=0;i<p;i++){
-			Task task = new Task();
+			Task task = new Task(rnd, taskID++);
 			if(taskQueue.size() > TASK_QUEUE_SIZE){
-				overflowedTask[getId()][tick]++;
+				Analyzer.overflowedTask[getId()][tick]++;
 			}else{
 				taskQueue.add(task);
 			}
-			
 		}
+		return taskID;
 	}
 	
 	//---------------------------------------------------------------------------------------

@@ -29,8 +29,11 @@ public class Environment {
 	private List<Agent> agents = new ArrayList<Agent>();
 	private List<Area> areas = new ArrayList<Area>();
 	private HashMap<Integer, List<Message>> agentIdToMessageList = new HashMap<Integer, List<Message>>();
-	public static Sfmt rnd;
-	public static Random r;
+	private int agentID = 0;
+	private int areaID = 0;
+	private int taskID = 0;
+	public Sfmt rnd;
+	public Random r;
 	
 	//---------------------------------------------------------------------------------------
 	
@@ -53,7 +56,7 @@ public class Environment {
 		int count = 0;
 		for(int i=0;i<NUM_OF_VERTICAL_DIVISION;i++){
 			for(int j=0;j<NUM_OF_HORIZONTAL_DIVISION;j++){
-				Area area = new Area(WORKLOADS[count], i*divX, j*divY, (i+1) * divX - 1, (j+1) * divY - 1);
+				Area area = new Area(WORKLOADS[count], i*divX, j*divY, (i+1) * divX - 1, (j+1) * divY - 1, areaID++);
 				areas.add(area);
 				count++;
 			}
@@ -80,11 +83,11 @@ public class Environment {
 			int y = grid.get(i).y;
 			int p = rnd.NextInt(2);
 			if(p == 0){
-				Leader leader = new Leader(identifyArea(x, y), x, y);
+				Leader leader = new Leader(identifyArea(x, y), x, y, agentID++, this);
 				leaders.add(leader);
 				agents.add(leader);
 			}else if(p == 1){
-				Member member = new Member(identifyArea(x, y), x, y);
+				Member member = new Member(identifyArea(x, y), x, y, agentID++, this);
 				members.add(member);
 				agents.add(member);
 			}
@@ -130,7 +133,7 @@ public class Environment {
 		}
 		
 		for(int i=0;i<areas.size();i++){
-			areas.get(i).addTask(tick);
+			taskID = areas.get(i).addTask(rnd, tick, taskID);
 		}
 		if(RECIPROCITY){
 			updateDependablityAgent();

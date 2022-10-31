@@ -18,10 +18,6 @@ import random.Sfmt;
 import task.SubTask;
 
 public class Agent {
-	//固有番号をつけるためのもの
-	static int num = 0;
-	
-	
 	//定数------------------------------------------------------------------------------------
 	
 	//座標
@@ -79,6 +75,8 @@ public class Agent {
 	//タスクを渡してまだ終了報告が返ってきていないメンバ
 	protected List<Agent> executingMembers = new ArrayList<Agent>();
 	
+	final protected Environment environment;
+	
 	protected int sumQueueSize = 0;
 	protected int failureOrFinishedmessage = 0;
 	public double leaderDependabilityDegreeThreshold = INITAIL_LEADER_DEPENDABLITY_DEGREE_THRESHOLD;
@@ -97,22 +95,20 @@ public class Agent {
 	
 	//---------------------------------------------------------------------------------------
 	
-	Agent(Area area, int x, int y){
+	Agent(Area area, int x, int y, int id, Environment e){
+		environment = e;
 		setCapacity();
 		initializeDependability();
 		gridX = x;
 		gridY = y;
 		this.area = area;
-		myId = num;
-		num++;
-		if(num == NUM_OF_AGENT){
-			num = 0;
-		}
+		myId = id;
 	}
 	
 	//---------------------------------------------------------------------------------------
 	
 	Agent(Agent agent){
+		environment = agent.environment;
 		myId = agent.getMyId();
 		capacity = agent.capacity;
 		area = agent.getArea();
@@ -305,7 +301,7 @@ public class Agent {
 		while(capacity[0] == 0 && capacity[1] == 0 && capacity[2] == 0){
 			int p = 0;
 			for(int i=0;i<3;i++){
-				capacity[i] = 1 + Environment.rnd.NextInt(5);
+				capacity[i] = 1 + environment.rnd.NextInt(5);
 //				capacity[i] = 3;
 				capave += (double)capacity[i];
 				if(capacity[i] != 0){
@@ -521,10 +517,10 @@ public class Agent {
 	
 	public int eGreedy() {
 		int A;
-        int randNum = Environment.rnd.NextInt(101);
+        int randNum = environment.rnd.NextInt(101);
         if (randNum <= EPSILON * 100.0) {
         	//eの確率
-			A = Environment.rnd.NextInt(2);
+			A = environment.rnd.NextInt(2);
         } else {
         	//(1-e)の確率
         	A = 0;

@@ -19,7 +19,7 @@ public class SubTask {
 	
 	//---------------------------------------------------------------------------------------
 	
-	SubTask(int id){
+	SubTask(int id, Sfmt rnd){
 		
 		List<Integer> maxIndexs = new ArrayList<Integer>();
 		int maxRequiredResource = 0;
@@ -31,7 +31,7 @@ public class SubTask {
 //			basicResource -= RESOURCE_FLUCTUATION;
 //		}
 		for(int i=0;i<TYPES_OF_RESOURCE;i++){
-			int requiredResource = BASIC_RESOURCE + Environment.rnd.NextInt(ADDITIONAL_RESOURCE + 1);
+			int requiredResource = BASIC_RESOURCE + rnd.NextInt(ADDITIONAL_RESOURCE + 1);
 			
 			if(requiredResource > maxRequiredResource){
 				maxIndexs.clear();
@@ -43,10 +43,10 @@ public class SubTask {
 			requiredResources[i] = requiredResource;
 		}
 		
-		type = maxIndexs.get(Environment.rnd.NextInt(maxIndexs.size()));
+		type = maxIndexs.get(rnd.NextInt(maxIndexs.size()));
 		
 		if(!FULL_RESOURCE) {
-			int resourceIndex = leaveOneResouce(Environment.rnd);
+			int resourceIndex = leaveOneResouce(rnd);
 			type = resourceIndex;
 		}
 		

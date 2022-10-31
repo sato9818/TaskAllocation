@@ -38,8 +38,8 @@ public class Leader extends Agent{
 	
 	
 	//---------------------------------------------------------------------------------------
-	public Leader(Area area, int x, int y){
-		super(area, x, y);
+	public Leader(Area area, int x, int y, int id, Environment e){
+		super(area, x, y, id, e);
 	}
 	//---------------------------------------------------------------------------------------
 	public Leader(Member mem){
@@ -173,7 +173,7 @@ public class Leader extends Agent{
 		List<SubTask> subTasks = task.getSubTasks();
 		List<Agent> copyAgents = new ArrayList<Agent>(agents);
 		copyAgents.remove(this);
-		Collections.shuffle(copyAgents, Environment.r);
+		Collections.shuffle(copyAgents, environment.r);
 		
 		mySubTask = subTasks.get(0);
 		subTasks.remove(mySubTask);
@@ -203,7 +203,7 @@ public class Leader extends Agent{
 		List<Agent> copyAgents = new ArrayList<Agent>(agents);
 //		copyAgents.removeAll(executingMembers);
 		copyAgents.remove(this);
-		Collections.shuffle(copyAgents, Environment.r);
+		Collections.shuffle(copyAgents, environment.r);
 		sortAgentsByLeaderDE(copyAgents);
 		
 		HashMap<Integer, List<Agent>> specificSortingAgentsMap = new HashMap<Integer, List<Agent>>();
@@ -348,7 +348,7 @@ public class Leader extends Agent{
 		List<SubTask> confSubTask = new ArrayList<SubTask>();
 		List<Agent> copyAgents = new ArrayList<Agent>(agents);
 		copyAgents.remove(this);
-		Collections.shuffle(copyAgents, Environment.r);
+		Collections.shuffle(copyAgents, environment.r);
 		sortAgentsByLeaderDE(copyAgents);
 		
 		//リーダーは自分の処理するサブタスクを取っておく。

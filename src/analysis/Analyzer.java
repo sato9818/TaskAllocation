@@ -34,6 +34,8 @@ public class Analyzer {
 	public static double countSentMessages[][] = new double[NUM_OF_AREA][EXPERIMENTAL_DURATION];
 	//どのエリアのエージェントがどのエリアのエージェントにタスクを割り当てたか
 	public static int allocationMemberCount[][][] = new int[NUM_OF_AREA][NUM_OF_AREA][EXPERIMENTAL_DURATION];
+	//環境のタスクキューから溢れたタスク
+	public static int overflowedTask[][] = new int[NUM_OF_AREA][EXPERIMENTAL_DURATION];
 	
 	//100tick毎の平均を出すもの（エリア数でも割る必要あり）
 	//サブタスクの処理数で割る値
@@ -131,7 +133,7 @@ public class Analyzer {
 	        		waitingTime += divide(Analyzer.waitingTime[i][tick] , Analyzer.executedSubTask[i][tick]);
 	        		allExecutedTime += divide(Analyzer.allExecutedTime[i][tick] , Analyzer.executedSubTask[i][tick]);
 	        		messageCount += Analyzer.countSentMessages[i][tick];
-	        		overflowedTask += Area.overflowedTask[i][tick];
+	        		overflowedTask += Analyzer.overflowedTask[i][tick];
 	        		rejectedTask += Analyzer.rejectedTask[i][tick];
 	        		for(int j=0;j<NUM_OF_AREA;j++){
 	        			allocatedMember[j] += Analyzer.allocationMemberCount[i][j][tick];
@@ -268,7 +270,7 @@ public class Analyzer {
 	        		waitingTime += divide(Analyzer.waitingTime[i][tick] , Analyzer.executedSubTask[i][tick]);
 	        		allExecutedTime += divide(Analyzer.allExecutedTime[i][tick], Analyzer.executedSubTask[i][tick]);
 	        		messageCount += Analyzer.countSentMessages[i][tick];
-	        		overflowedTask += Area.overflowedTask[i][tick];
+	        		overflowedTask += Analyzer.overflowedTask[i][tick];
 	        		rejectedTask += Analyzer.rejectedTask[i][tick];
 	        		avgSubTaskQueue += divide(Analyzer.subTaskQueueSum[i][tick], Analyzer.countMembers[i][tick]);
 	        		avgTaskCompletionTime += divide(Analyzer.taskCompletionTime[i][tick], Analyzer.executedTask[i][tick]);
