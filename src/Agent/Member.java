@@ -152,7 +152,7 @@ public class Member extends Agent{
 					message = decideMessage(solicitationMessages, environment.rnd);
 				}
 				
-				if(COOPERATIVE && messageQueue.size() + expectedTasks == SUB_TASK_QUEUE_SIZE){
+				if(COOPERATIVE && messageQueue.size() + expectedTasks >= SUB_TASK_QUEUE_SIZE){
 					decide = false;
 				}
 				

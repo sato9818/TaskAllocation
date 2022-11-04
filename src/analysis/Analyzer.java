@@ -61,6 +61,8 @@ public class Analyzer {
 	//リーダー数で割る
 	//リーダーの信頼エージェントの数
 	public static double leaderDependableAgents[][][] = new double[TYPES_OF_RESOURCE][NUM_OF_AREA][EXPERIMENTAL_DURATION];
+	// リーダーの信頼エージェントを決めるための閾値
+	public static double leaderAverageThreshold[][] = new double[NUM_OF_AREA][EXPERIMENTAL_DURATION];
 	
 	//メンバ数で割る
 	//メンバの信頼エージェントの数
@@ -241,6 +243,8 @@ public class Analyzer {
         	pw.print("Num of rejected task");
         	pw.print(",");
         	pw.print("Task completion success rate");
+			pw.print(",");
+			pw.print("Average of leader threshold");
         	pw.println();
         	
             long executedTask = 0;
@@ -261,6 +265,7 @@ public class Analyzer {
         	double memberDependableAgents = 0;
         	long memberSubtaskQueueHist[] = new long[SUB_TASK_QUEUE_SIZE+1];
         	double avgTaskCompletionTime = 0;
+			double leaderAverageThreshold = 0;
             for(int tick=0;tick<EXPERIMENTAL_DURATION;tick++){
             	for(int i=0;i<NUM_OF_AREA;i++){
             		executedTask += Analyzer.executedTask[i][tick];
@@ -282,6 +287,7 @@ public class Analyzer {
 	            		memberSubtaskQueueHist[size] += Analyzer.memberSubtaskQueueHist[size][i][tick];
 					}
 		        	memberDependableAgents += divide(Analyzer.memberDependableAgents[i][tick], Analyzer.countMembers[i][tick]);
+					leaderAverageThreshold += divide(Analyzer.leaderAverageThreshold[i][tick], Analyzer.countLeaders[i][tick]);
 	        		
 	        		
 	        		if(tick % 100 == 0){
@@ -336,6 +342,8 @@ public class Analyzer {
 		        	pw.print(rejectedTask / TRIAL_COUNT);
 		        	pw.print(",");
 		        	pw.print((double)executedTask / (executedTask + wastedTask + overflowedTask + rejectedTask));
+					pw.print(",");
+					pw.print(leaderAverageThreshold / 100 / NUM_OF_AREA);
 		        	pw.println();
 		        	
 		        	executedTask = 0;
@@ -360,6 +368,7 @@ public class Analyzer {
 	            	for(int size=0;size<=SUB_TASK_QUEUE_SIZE;size++) {
 	            		memberSubtaskQueueHist[size] = 0;
 					}
+					leaderAverageThreshold = 0;
 				}
             }
             pw.close();

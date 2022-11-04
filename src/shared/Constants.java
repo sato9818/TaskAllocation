@@ -13,7 +13,7 @@ public class Constants {
 	
 	//負荷
 	public static final double LOW_WORKLOAD = 2;
-	public static final double MODERATE_WORKLOAD = 22;
+	public static final double MODERATE_WORKLOAD = 10;
 	public static final double HIGH_WORKLOAD = 6;
 	
 	//エリア分割
@@ -44,7 +44,7 @@ public class Constants {
 //	public static final double LEADER_DEPENDABLITY_DEGREE_THRESHOLD = 1.0;
 	public static final double INITAIL_LEADER_DEPENDABLITY_DEGREE_THRESHOLD = 1.0;
 	public static final double LEADER_THRESHOLD_INCREASING_RATE = 0.01;
-	public static final double LEADER_THRESHOLD_DECREASING_RATE = 0.01;
+	public static final double LEADER_THRESHOLD_DECREASING_RATE = 0.00001;
 	
 	//メンバ
 	public static final int INACTIVE_THRESHOLD = 100;

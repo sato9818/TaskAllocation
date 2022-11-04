@@ -142,10 +142,10 @@ public class Agent {
 		});
 	}
 	
-	public void updateThreshold() {
+	public void updateThreshold(int tick) {
 //		leaderDependabilityDegreeThreshold -= rejectedSubtasks * LEADER_THRESHOLD_DECREASING_RATE;
 		leaderDependabilityDegreeThreshold += wastedSubtasks * LEADER_THRESHOLD_INCREASING_RATE;
-		leaderDependabilityDegreeThreshold = Math.max(leaderDependabilityDegreeThreshold - 0.00001, 0);
+		leaderDependabilityDegreeThreshold = Math.max(leaderDependabilityDegreeThreshold - LEADER_THRESHOLD_DECREASING_RATE, 0);
 //		if(wastedSubtasks > 0)
 //		System.out.println(wastedSubtasks);
 //		if(role == Role.LEADER) {
@@ -159,6 +159,7 @@ public class Agent {
 //		}
 		rejectedSubtasks = 0;
 		wastedSubtasks = 0;
+		Analyzer.leaderAverageThreshold[this.getArea().getId()][tick] += leaderDependabilityDegreeThreshold;
 	}
 	
 	public void mergeSortAgentBySpecificLeaderDE(List<Agent> agents, int idx) {

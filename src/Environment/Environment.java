@@ -150,13 +150,13 @@ public class Environment {
 		collectMessages();
 		changeRole();
 		countAgents(tick);
-		updateAgentsThreshold();
+		updateAgentsThreshold(tick);
 		decreaseDependability();
 	}
 	
-	public void updateAgentsThreshold() {
+	public void updateAgentsThreshold(int tick) {
 		for(Leader leader : leaders) {
-			leader.updateThreshold();
+			leader.updateThreshold(tick);
 		}
 	}
 	

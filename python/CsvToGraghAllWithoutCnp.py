@@ -13,7 +13,7 @@ col = [ \
     "Average subtask completion time from leader perspective", "Average task completion time","Num of leaders", "Num of members", \
     "Num of reciprocal leaders", "Num of reciprocal members", "Num of sent messages", "Num of overflowed task from task queue", \
     "Average subtask queue size", "Average leader dependable agents type 0", "Average leader dependable agents type 1", \
-    "Average leader dependable agents type 2", "Average member dependable agents", "Num of rejected task", "Task completion success rate" \
+    "Average leader dependable agents type 2", "Average member dependable agents", "Num of rejected task", "Task completion success rate", "Average of leader threshold" \
     ]
 ex_types= ["Rational", "Reciprocity"]
 subtask_queue_size = ["Num of members whose subtask queue size is 0", "Num of members whose subtask queue size is 1", "Num of members whose subtask queue size is 2", "Num of members whose subtask queue size is 3", "Num of members whose subtask queue size is 4", "Num of members whose subtask queue size is 5"]
