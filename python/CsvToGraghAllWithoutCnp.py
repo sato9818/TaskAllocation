@@ -1,7 +1,13 @@
 import matplotlib.pyplot as plt
 import pandas as pd
+import os
+import shutil
 
-# plt.rcParams["font.size"] = 8
+shutil.rmtree('png/all')
+os.mkdir('png/all')
+shutil.rmtree('pdf/all')
+os.mkdir('pdf/all')
+
 col = [ \
     "Num of completed task", "Num of team formation failure", "Average communication time", "Average subtask completion time from member perspective", "Average time of subtask being in subtask queue", \
     "Average subtask completion time from leader perspective", "Average task completion time","Num of leaders", "Num of members", \
@@ -37,6 +43,8 @@ for c in col:
     plt.tight_layout()
     plt.savefig("pdf/all/"+ c +".pdf")
     plt.savefig("png/all/"+ c +".png")
+
+plt.close('all')
 
 ticks=[10000, 50000, 150000]
 for tick in ticks:

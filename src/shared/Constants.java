@@ -9,7 +9,7 @@ public class Constants {
 	public static boolean RECIPROCITY = false;
 	public static final boolean FULL_RESOURCE = false;
 	public static final boolean THRESHOLD_FIXED = false;
-	public static final boolean COOPERATIVE = true;
+	public static final boolean COOPERATIVE = false;
 	
 	//負荷
 	public static final double LOW_WORKLOAD = 2;
