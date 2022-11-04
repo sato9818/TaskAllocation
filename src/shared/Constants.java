@@ -9,6 +9,7 @@ public class Constants {
 	public static boolean RECIPROCITY = false;
 	public static final boolean FULL_RESOURCE = false;
 	public static final boolean THRESHOLD_FIXED = false;
+	public static final boolean COOPERATIVE = true;
 	
 	//負荷
 	public static final double LOW_WORKLOAD = 2;
@@ -64,7 +65,7 @@ public class Constants {
 	public static final int ADDITIONAL_RESOURCE = 5;
 	
 	//tick
-	public static final int EXPERIMENTAL_DURATION = 50001;
+	public static final int EXPERIMENTAL_DURATION = 150001;
 	
 	public static final int CHANGE_WORKLOAD_TIME = EXPERIMENTAL_DURATION;
 	public static final int RESTORE_WORKLOAD_TIME = EXPERIMENTAL_DURATION;
