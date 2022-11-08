@@ -148,9 +148,9 @@ public class Environment {
 		leadersAct(tick);
 		membersAct(tick);
 		collectMessages();
-		changeRole();
+		if(!THRESHOLD_FIXED) updateAgentsThreshold(tick);
 		countAgents(tick);
-		updateAgentsThreshold(tick);
+		changeRole();
 		decreaseDependability();
 	}
 	
@@ -315,7 +315,7 @@ public class Environment {
 			if(leader.isReciprocity() == true){
 				Analyzer.reciprocalLeaders[leader.getArea().getId()][tick]++;
 			}
-			
+			Analyzer.leaderAverageThreshold[leader.getArea().getId()][tick] += leader.leaderDependabilityDegreeThreshold;
 		}
 		for(int i=0;i<members.size();i++){
 			Member member = members.get(i);
@@ -326,6 +326,7 @@ public class Environment {
 				Analyzer.reciprocalMembers[member.getArea().getId()][tick]++;
 			}
 			Analyzer.memberDependableAgents[member.getArea().getId()][tick] += member.deAgents.size();
+			Analyzer.memberAverageThreshold[member.getArea().getId()][tick] += member.memberDependabilityDegreeThreshold;
 		}
 	}
 	

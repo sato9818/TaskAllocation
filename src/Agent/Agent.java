@@ -12,6 +12,7 @@ import analysis.Analyzer;
 import environment.Area;
 import environment.Environment;
 import message.Message;
+import message.MessageType;
 import task.SubTask;
 
 public class Agent {
@@ -143,23 +144,13 @@ public class Agent {
 	}
 	
 	public void updateThreshold(int tick) {
-//		leaderDependabilityDegreeThreshold -= rejectedSubtasks * LEADER_THRESHOLD_DECREASING_RATE;
 		leaderDependabilityDegreeThreshold += wastedSubtasks * LEADER_THRESHOLD_INCREASING_RATE;
 		leaderDependabilityDegreeThreshold = Math.max(leaderDependabilityDegreeThreshold - LEADER_THRESHOLD_DECREASING_RATE, 0);
-//		if(wastedSubtasks > 0)
-//		System.out.println(wastedSubtasks);
-//		if(role == Role.LEADER) {
-//			
-//			leaderDependabilityDegreeThreshold += LEADER_THRESHOLD_INCREASING_RATE;
-//			leaderDependabilityDegreeThreshold = Math.max(leaderDependabilityDegreeThreshold, 0.0000000000001);
-//		}else if(role == Role.MEMBER) {
-//			memberDependabilityDegreeThreshold -= MEMBER_THRESHOLD_DECREASING_RATE;
-//			memberDependabilityDegreeThreshold += rejectedSubtasks * MEMBER_THRESHOLD_INCREASING_RATE;
-//			memberDependabilityDegreeThreshold = Math.max(memberDependabilityDegreeThreshold, 0.0000000000001);
-//		}
+
+		memberDependabilityDegreeThreshold += rejectedSubtasks * MEMBER_THRESHOLD_INCREASING_RATE;
+		memberDependabilityDegreeThreshold = Math.max(memberDependabilityDegreeThreshold - MEMBER_THRESHOLD_DECREASING_RATE, 0);
 		rejectedSubtasks = 0;
 		wastedSubtasks = 0;
-		Analyzer.leaderAverageThreshold[this.getArea().getId()][tick] += leaderDependabilityDegreeThreshold;
 	}
 	
 	public void mergeSortAgentBySpecificLeaderDE(List<Agent> agents, int idx) {
@@ -344,7 +335,7 @@ public class Agent {
 		members.remove(betrayal);
 		executingMembers.remove(betrayal);
 		for(int i=0;i<members.size();i++){
-			allMessages.add(new Message(COLLAPSE_TEAM, this, members.get(i), message.getSubTask()));
+			allMessages.add(new Message(MessageType.COLLAPSE_TEAM, this, members.get(i), message.getSubTask()));
 		}
 		memberListMap.remove(message.getSubTask().getTaskId());
 		
@@ -367,7 +358,7 @@ public class Agent {
 //			System.out.println(executedTime);
 			
 		}else{
-			if(message.getType() == REFUSE){
+			if(message.getType() == MessageType.REFUSE){
 				delta = - (double)message.getSubTask().getutility();
 			}
 		}

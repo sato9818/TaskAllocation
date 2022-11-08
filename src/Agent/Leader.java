@@ -16,6 +16,7 @@ import comparator.SubUtilityComparator;
 import environment.Area;
 import environment.Environment;
 import message.Message;
+import message.MessageType;
 import random.Sfmt;
 import task.SubTask;
 import task.Task;
@@ -158,7 +159,7 @@ public class Leader extends Agent{
 		for(int i=0;i<copyAgents.size();i++){
 			Agent agent = copyAgents.get(i);
 			if(this.getdistance(agent.getMyId()) <= 2){
-				Message message = new Message(CNP_SOLICITATION, this, agent, subTasks);
+				Message message = new Message(MessageType.CNP_SOLICITATION, this, agent, subTasks);
 				messages.add(message);
 				preMembers.add(agent.getMyId());
 			}
@@ -183,7 +184,7 @@ public class Leader extends Agent{
 			for(int j=0;j<subTasks.size();j++){
 				SubTask subtask = subTasks.get(j);
 				Agent agent = copyAgents.get(0);
-				Message message = new Message(SOLICITATION, this, agent, subtask);
+				Message message = new Message(MessageType.SOLICITATION, this, agent, subtask);
 				copyAgents.remove(agent);
 				messages.add(message);
 				preMembers.add(agent.getMyId());
@@ -280,7 +281,7 @@ public class Leader extends Agent{
 							specificSortingDeAgentsMap.get(k).remove(agent);
 						}
 					}
-					Message message = new Message(SOLICITATION, this, agent, subtask);
+					Message message = new Message(MessageType.SOLICITATION, this, agent, subtask);
 					copyAgents.remove(agent);
 					messages.add(message);
 					preMembers.add(agent.getMyId());
@@ -312,7 +313,7 @@ public class Leader extends Agent{
 					for(int k=0;k<3;k++){
 						specificSortingAgentsMap.get(k).remove(agent);
 					}
-					Message message = new Message(SOLICITATION, this, agent, subtask);
+					Message message = new Message(MessageType.SOLICITATION, this, agent, subtask);
 					messages.add(message);
 					preMembers.add(agent.getMyId());
 				}
@@ -377,7 +378,7 @@ public class Leader extends Agent{
 				}else{
 					agent = copyAgents.get(0);
 				}
-				Message message = new Message(SOLICITATION, this, agent, subtask);
+				Message message = new Message(MessageType.SOLICITATION, this, agent, subtask);
 				copyAgents.remove(agent);
 				messages.add(message);
 				preMembers.add(agent.getMyId());
@@ -422,10 +423,10 @@ public class Leader extends Agent{
 	public void readMessage(Message message, int tick){
 		switch(message.getType()){
 		case SOLICITATION:
-			allMessages.add(new Message(ACCEPTANCE, this, message.from(), message.getSubTask(), false));
+			allMessages.add(new Message(MessageType.ACCEPTANCE, this, message.from(), message.getSubTask(), false));
 			break;
 		case CNP_SOLICITATION:
-			allMessages.add(new Message(ACCEPTANCE, this, message.from(), null, false));
+			allMessages.add(new Message(MessageType.ACCEPTANCE, this, message.from(), null, false));
 			break;
 		case ACCEPTANCE:
 			if(message.isAccepted()){
@@ -443,7 +444,7 @@ public class Leader extends Agent{
 		case REFUSE:
 			updateDependablity(message, false, 0);
 			notifyFailure(message,tick);
-			rejectedSubtasks++;
+			// rejectedSubtasks++;
 //			updateRoleEvaluation(false);
 			break;
 		case FINISH:
@@ -478,7 +479,7 @@ public class Leader extends Agent{
 	
 	public void failAllocate(){
 		for(int i=0;i<acceptMembers.size();i++){
-			Message message = new Message(ALLOCATION, this, acceptMembers.get(i), (SubTask)null);
+			Message message = new Message(MessageType.ALLOCATION, this, acceptMembers.get(i), (SubTask)null);
 			allMessages.add(message);
 		}
 		updateRoleEvaluation(false);
@@ -496,7 +497,7 @@ public class Leader extends Agent{
             SubTask subtask = (SubTask)subtask_itr.next();
             taskId = subtask.getTaskId();
             Agent member = team.get(subtask);
-            Message message = new Message(ALLOCATION, this, member, subtask);
+            Message message = new Message(MessageType.ALLOCATION, this, member, subtask);
             Analyzer.allocationMemberCount[this.getArea().getId()][member.getArea().getId()][tick]++; 
             allMessages.add(message);
             //this.updatede(new MessagetoLeader(message.getto(),message.getfrom(),message.getsubtask(),0,message.getto().setexcutiontime(message.getsubtask())), true);
@@ -505,7 +506,7 @@ public class Leader extends Agent{
             acceptMembers.remove(team.get(subtask));
         }
         for(int i=0;i<acceptMembers.size();i++){
-			Message message = new Message(ALLOCATION, this, acceptMembers.get(i), (SubTask)null);
+			Message message = new Message(MessageType.ALLOCATION, this, acceptMembers.get(i), (SubTask)null);
 			allMessages.add(message);
 		}
   

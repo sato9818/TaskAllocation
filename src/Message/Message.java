@@ -1,7 +1,4 @@
 package message;
-import static shared.Constants.ACCEPTANCE;
-import static shared.Constants.FINISH;
-import static shared.Constants.SOLICITATION;
 
 import java.util.List;
 
@@ -12,7 +9,7 @@ public class Message {
 	private SubTask subtask;
 	private List<SubTask> subtasks;
 	private int delay;
-	private int type;
+	private MessageType type;
 	private Agent from;
 	private Agent to;
 	private boolean acceptance;
@@ -25,7 +22,7 @@ public class Message {
 	//REFUSE
 	//COLLAPSE_TEAM
 	
-	public Message(int type, Agent from, Agent to, SubTask subtask){
+	public Message(MessageType type, Agent from, Agent to, SubTask subtask){
 		setDelay(from, to);
 		this.type = type;
 		this.from = from;
@@ -34,7 +31,7 @@ public class Message {
 	}
 	//---------------------------------------------------------------------------------------
 	//ACCEPTANCE
-	public Message(int type, Agent from, Agent to, SubTask subtask, boolean acceptance){
+	public Message(MessageType type, Agent from, Agent to, SubTask subtask, boolean acceptance){
 		setDelay(from, to);
 		this.type = type;
 		this.from = from;
@@ -46,7 +43,7 @@ public class Message {
 	
 	//---------------------------------------------------------------------------------------
 	//FINISH
-	public Message(int type, Agent from, Agent to, SubTask subtask, int executedTime, int queueSize){
+	public Message(MessageType type, Agent from, Agent to, SubTask subtask, int executedTime, int queueSize){
 		setDelay(from, to);
 		this.type = type;
 		this.from = from;
@@ -58,7 +55,7 @@ public class Message {
 	
 	//---------------------------------------------------------------------------------------
 	//CNP_SOLICITATION
-	public Message(int type, Agent from, Agent to, List<SubTask> subtasks){
+	public Message(MessageType type, Agent from, Agent to, List<SubTask> subtasks){
 		setDelay(from, to);
 		this.type = type;
 		this.from = from;
@@ -100,7 +97,7 @@ public class Message {
 	
 	//---------------------------------------------------------------------------------------
 	
-	public int getType(){
+	public MessageType getType(){
 		return type;
 	}
 	//---------------------------------------------------------------------------------------

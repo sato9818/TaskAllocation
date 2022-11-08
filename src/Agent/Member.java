@@ -11,6 +11,7 @@ import analysis.Analyzer;
 import environment.Area;
 import environment.Environment;
 import message.Message;
+import message.MessageType;
 import random.Sfmt;
 import task.SubTask;
 
@@ -117,7 +118,7 @@ public class Member extends Agent{
 		mySubTask = allocationMessage.getSubTask(); 
 		int et = getExcutingTime(mySubTask);	
 		remainingTime = et;
-		finishMessage = new Message(FINISH, this, allocationMessage.from(), allocationMessage.getSubTask(), et, messageQueue.size());
+		finishMessage = new Message(MessageType.FINISH, this, allocationMessage.from(), allocationMessage.getSubTask(), et, messageQueue.size());
 		Analyzer.waitingTime[this.getArea().getId()][tick] += tick - allocateTimeMap.get(finishMessage.getSubTask().getTaskId());
 		executeTask(tick);
 	}
@@ -129,7 +130,7 @@ public class Member extends Agent{
 			for(int i=0;i<solicitationMessages.size();i++){
 				Message message = solicitationMessages.get(i);
 				SubTask subTask = decideSubTask(message);
-				Message acceptedMessage = new Message(ACCEPTANCE, this, message.from(), subTask, true);
+				Message acceptedMessage = new Message(MessageType.ACCEPTANCE, this, message.from(), subTask, true);
 				allMessages.add(acceptedMessage);
 			}
 			solicitationMessages.clear();
@@ -224,10 +225,10 @@ public class Member extends Agent{
 	
 	public void sendReplyMessages(Message solicitationMessage, boolean decide){
 		if(decide){
-			Message acceptedMessage = new Message(ACCEPTANCE, this, solicitationMessage.from(), solicitationMessage.getSubTask(), true); 
+			Message acceptedMessage = new Message(MessageType.ACCEPTANCE, this, solicitationMessage.from(), solicitationMessage.getSubTask(), true); 
 			allMessages.add(acceptedMessage);
 		}else{
-			Message rejectedMessage = new Message(ACCEPTANCE, this, solicitationMessage.from(), solicitationMessage.getSubTask(), false); 
+			Message rejectedMessage = new Message(MessageType.ACCEPTANCE, this, solicitationMessage.from(), solicitationMessage.getSubTask(), false); 
 			allMessages.add(rejectedMessage);
 		}
 	}
@@ -286,6 +287,7 @@ public class Member extends Agent{
 		case REFUSE:
 			updateDependablity(message, false, 0);
 			notifyFailure(message,tick);
+			rejectedSubtasks++;
 			break;
 		case FINISH:
 			finishMemberSubTask(message, tick);
@@ -303,7 +305,7 @@ public class Member extends Agent{
 			Message message = preSubTasks.get(i);
 //			System.out.println("de: " + de[message.from().getMyId()]);
 			if(messageQueue.size() >= SUB_TASK_QUEUE_SIZE){
-				allMessages.add(new Message(REFUSE, this, message.from(), message.getSubTask()));
+				allMessages.add(new Message(MessageType.REFUSE, this, message.from(), message.getSubTask()));
 				
 				refusedTask[getMyId()]++;
 				Analyzer.rejectedTask[this.getArea().getId()][tick]++;

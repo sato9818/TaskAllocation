@@ -8,13 +8,13 @@ public class Constants {
 	public static boolean CNP_MODE = false;
 	public static boolean RECIPROCITY = false;
 	public static final boolean FULL_RESOURCE = false;
-	public static final boolean THRESHOLD_FIXED = false;
+	public static final boolean THRESHOLD_FIXED = true;
 	public static final boolean COOPERATIVE = false;
 	
 	//負荷
 	public static final double LOW_WORKLOAD = 2;
 	public static final double MODERATE_WORKLOAD = 10;
-	public static final double HIGH_WORKLOAD = 6;
+	public static final double HIGH_WORKLOAD = 22;
 	
 	//エリア分割
 	public static final int NUM_OF_VERTICAL_DIVISION = 1;
@@ -49,8 +49,10 @@ public class Constants {
 	//メンバ
 	public static final int INACTIVE_THRESHOLD = 100;
 	public static final int MEMBER_DEPENDABLITY_AGENT_THRESHOLD = 5;
-	public static final double INITAIL_MEMBER_DEPENDABLITY_DEGREE_THRESHOLD = 0.1;
+	public static final double INITAIL_MEMBER_DEPENDABLITY_DEGREE_THRESHOLD = 1.0;
 //	public static final double MEMBER_DEPENDABLITY_DEGREE_THRESHOLD = 1.0;
+	public static final double MEMBER_THRESHOLD_INCREASING_RATE = 0.01;
+	public static final double MEMBER_THRESHOLD_DECREASING_RATE = 0.00001;
 	
 	//エージェント
 	public static final int TYPES_OF_RESOURCE = 3;
@@ -78,21 +80,6 @@ public class Constants {
 	public static final int TRIAL_COUNT = 1;
 	
 //	-------------------------------------------------------------------------------------------------
-	
-	//サブタスクの種類
-	public static final int NORMAL_TASK= 0;
-	public static final int REQUIRE_FIRST = 1;
-	public static final int REQUIRE_SECOUND = 2;
-	public static final int REQUIRE_THIRD = 3;
-	
-	//メッセージの種類
-	public static final int SOLICITATION = 0;
-	public static final int ACCEPTANCE = 1;
-	public static final int ALLOCATION = 2;
-	public static final int FINISH = 3;
-	public static final int REFUSE = 4;
-	public static final int COLLAPSE_TEAM = 5;
-	public static final int CNP_SOLICITATION = 6;
 
 	
 	//リーダーの状態

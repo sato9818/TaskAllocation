@@ -63,6 +63,7 @@ public class Analyzer {
 	public static double leaderDependableAgents[][][] = new double[TYPES_OF_RESOURCE][NUM_OF_AREA][EXPERIMENTAL_DURATION];
 	// リーダーの信頼エージェントを決めるための閾値
 	public static double leaderAverageThreshold[][] = new double[NUM_OF_AREA][EXPERIMENTAL_DURATION];
+	public static double memberAverageThreshold[][] = new double[NUM_OF_AREA][EXPERIMENTAL_DURATION];
 	
 	//メンバ数で割る
 	//メンバの信頼エージェントの数
@@ -245,6 +246,8 @@ public class Analyzer {
         	pw.print("Task completion success rate");
 			pw.print(",");
 			pw.print("Average of leader threshold");
+			pw.print(",");
+			pw.print("Average of member threshold");
         	pw.println();
         	
             long executedTask = 0;
@@ -266,6 +269,7 @@ public class Analyzer {
         	long memberSubtaskQueueHist[] = new long[SUB_TASK_QUEUE_SIZE+1];
         	double avgTaskCompletionTime = 0;
 			double leaderAverageThreshold = 0;
+			double memberAverageThreshold = 0;
             for(int tick=0;tick<EXPERIMENTAL_DURATION;tick++){
             	for(int i=0;i<NUM_OF_AREA;i++){
             		executedTask += Analyzer.executedTask[i][tick];
@@ -279,6 +283,7 @@ public class Analyzer {
 	        		rejectedTask += Analyzer.rejectedTask[i][tick];
 	        		avgSubTaskQueue += divide(Analyzer.subTaskQueueSum[i][tick], Analyzer.countMembers[i][tick]);
 	        		avgTaskCompletionTime += divide(Analyzer.taskCompletionTime[i][tick], Analyzer.executedTask[i][tick]);
+					
 	        		
 	        		for(int type=0;type<TYPES_OF_RESOURCE;type++) {
 	        			leaderDependableAgents[type] += divide(Analyzer.leaderDependableAgents[type][i][tick], Analyzer.countLeaders[i][tick]);
@@ -288,6 +293,7 @@ public class Analyzer {
 					}
 		        	memberDependableAgents += divide(Analyzer.memberDependableAgents[i][tick], Analyzer.countMembers[i][tick]);
 					leaderAverageThreshold += divide(Analyzer.leaderAverageThreshold[i][tick], Analyzer.countLeaders[i][tick]);
+					memberAverageThreshold += divide(Analyzer.memberAverageThreshold[i][tick], Analyzer.countMembers[i][tick]);
 	        		
 	        		
 	        		if(tick % 100 == 0){
@@ -344,6 +350,8 @@ public class Analyzer {
 		        	pw.print((double)executedTask / (executedTask + wastedTask + overflowedTask + rejectedTask));
 					pw.print(",");
 					pw.print(leaderAverageThreshold / 100 / NUM_OF_AREA);
+					pw.print(",");
+					pw.print(memberAverageThreshold / 100 / NUM_OF_AREA);
 		        	pw.println();
 		        	
 		        	executedTask = 0;
@@ -369,6 +377,7 @@ public class Analyzer {
 	            		memberSubtaskQueueHist[size] = 0;
 					}
 					leaderAverageThreshold = 0;
+					memberAverageThreshold = 0;
 				}
             }
             pw.close();
