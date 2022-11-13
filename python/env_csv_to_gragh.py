@@ -2,6 +2,7 @@ import matplotlib.pyplot as plt
 import pandas as pd
 import os
 import shutil
+import sys
 
 shutil.rmtree('png/all')
 os.mkdir('png/all')
@@ -13,9 +14,10 @@ col = [ \
     "Average subtask completion time from leader perspective", "Average task completion time","Num of leaders", "Num of members", \
     "Num of reciprocal leaders", "Num of reciprocal members", "Num of sent messages", "Num of overflowed task from task queue", \
     "Average subtask queue size", "Average leader dependable agents type 0", "Average leader dependable agents type 1", \
-    "Average leader dependable agents type 2", "Average member dependable agents", "Num of rejected task", "Task completion success rate", "Average of leader threshold", "Average of member threshold" \
+    "Average leader dependable agents type 2", "Average member dependable agents", "Num of rejected task", "Task completion success rate", "Average of leader threshold", "Average of member threshold", "Average subtask queue size from leader perspective" \
     ]
-ex_types= ["Rational", "Reciprocity"]
+args = sys.argv
+ex_types = args[1:]
 subtask_queue_size = ["Num of members whose subtask queue size is 0", "Num of members whose subtask queue size is 1", "Num of members whose subtask queue size is 2", "Num of members whose subtask queue size is 3", "Num of members whose subtask queue size is 4", "Num of members whose subtask queue size is 5"]
 
 path = []

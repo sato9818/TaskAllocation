@@ -81,6 +81,8 @@ public class Agent {
 	public double memberDependabilityDegreeThreshold = INITAIL_MEMBER_DEPENDABLITY_DEGREE_THRESHOLD;
 	int rejectedSubtasks = 0;
 	int wastedSubtasks = 0;
+	int executedSubtasks = 0;
+	int queueSizeSum = 0;
 	
 	
 	
@@ -128,6 +130,8 @@ public class Agent {
 		failureOrFinishedmessage = agent.failureOrFinishedmessage;
 		leaderDependabilityDegreeThreshold = agent.leaderDependabilityDegreeThreshold;
 		memberDependabilityDegreeThreshold = agent.memberDependabilityDegreeThreshold;
+		executedSubtasks = agent.executedSubtasks;
+		queueSizeSum = agent.queueSizeSum;
 	}
 	
 	
@@ -143,12 +147,33 @@ public class Agent {
 		});
 	}
 	
+	protected void updateThreshold(Agent agent) {
+		if(THRESHOLD_FIXED) return;
+		if(agent.leaderDependabilityDegreeThreshold > 0.6) {
+			memberDependabilityDegreeThreshold = 1.0;
+		} else {
+			memberDependabilityDegreeThreshold = 0.1;
+		}
+	}
+	
 	public void updateThreshold(int tick) {
-		leaderDependabilityDegreeThreshold += wastedSubtasks * LEADER_THRESHOLD_INCREASING_RATE;
-		leaderDependabilityDegreeThreshold = Math.max(leaderDependabilityDegreeThreshold - LEADER_THRESHOLD_DECREASING_RATE, 0);
+		if(tick % 100 == 0) {
+			// leaderDependabilityDegreeThreshold = -0.1 * ((double)queueSizeSum / executedSubtasks) + 1.5;
+			if((double)queueSizeSum / executedSubtasks >= 1.2) {
+				leaderDependabilityDegreeThreshold = 0.1;
+			}else if((double)queueSizeSum / executedSubtasks >= 0.5) {
+				leaderDependabilityDegreeThreshold = 0.5;
+			}else {
+				leaderDependabilityDegreeThreshold = 1.0;
+			}
+			queueSizeSum = 0;
+			executedSubtasks = 0;
+		}
+		// leaderDependabilityDegreeThreshold += wastedSubtasks * LEADER_THRESHOLD_INCREASING_RATE;
+		// leaderDependabilityDegreeThreshold = Math.max(leaderDependabilityDegreeThreshold - LEADER_THRESHOLD_DECREASING_RATE, 0);
 
-		memberDependabilityDegreeThreshold += rejectedSubtasks * MEMBER_THRESHOLD_INCREASING_RATE;
-		memberDependabilityDegreeThreshold = Math.max(memberDependabilityDegreeThreshold - MEMBER_THRESHOLD_DECREASING_RATE, 0);
+		// memberDependabilityDegreeThreshold += rejectedSubtasks * MEMBER_THRESHOLD_INCREASING_RATE;
+		// memberDependabilityDegreeThreshold = Math.max(memberDependabilityDegreeThreshold - MEMBER_THRESHOLD_DECREASING_RATE, 0);
 		rejectedSubtasks = 0;
 		wastedSubtasks = 0;
 	}
@@ -317,6 +342,9 @@ public class Agent {
 		Analyzer.executedSubTask[this.getArea().getId()][tick]++;
 		Analyzer.allExecutedTime[this.getArea().getId()][tick] += tick - startTick;
 		Analyzer.executedTime[this.getArea().getId()][tick] += message.getExecutedTime();
+		executedSubtasks++;
+		Analyzer.subtaskQueueSizeFromLeaderPerspective[this.getArea().getId()][tick] += message.getQueueSize();
+		queueSizeSum += message.getQueueSize();
 		if(executingMember.isEmpty()){
 			memberListMap.remove(taskId);
 			Analyzer.executedTask[this.getArea().getId()][tick]++;

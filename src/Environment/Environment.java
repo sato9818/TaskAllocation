@@ -158,6 +158,9 @@ public class Environment {
 		for(Leader leader : leaders) {
 			leader.updateThreshold(tick);
 		}
+		for(Member member : members) {
+			member.updateThreshold(tick);
+		}
 	}
 	
 	//---------------------------------------------------------------------------------------

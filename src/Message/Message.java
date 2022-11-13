@@ -147,4 +147,10 @@ public class Message {
 	public int getQueueSize(){
 		return queueSize;
 	}
+	
+	// 
+	
+	public void setQueueSize(int queueSize) {
+		this.queueSize = queueSize;
+	}
 }

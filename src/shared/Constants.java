@@ -8,21 +8,21 @@ public class Constants {
 	public static boolean CNP_MODE = false;
 	public static boolean RECIPROCITY = false;
 	public static final boolean FULL_RESOURCE = false;
-	public static final boolean THRESHOLD_FIXED = true;
+	public static final boolean THRESHOLD_FIXED = false;
 	public static final boolean COOPERATIVE = false;
 	
 	//負荷
-	public static final double LOW_WORKLOAD = 2;
-	public static final double MODERATE_WORKLOAD = 10;
-	public static final double HIGH_WORKLOAD = 22;
+	public static final double LOW_WORKLOAD = 3;
+	public static final double MODERATE_WORKLOAD = 7;
+	public static final double HIGH_WORKLOAD = 11;
 	
 	//エリア分割
-	public static final int NUM_OF_VERTICAL_DIVISION = 1;
-	public static final int NUM_OF_HORIZONTAL_DIVISION = 1;
+	public static final int NUM_OF_VERTICAL_DIVISION = 2;
+	public static final int NUM_OF_HORIZONTAL_DIVISION = 2;
 	public static final int NUM_OF_AREA = NUM_OF_VERTICAL_DIVISION * NUM_OF_HORIZONTAL_DIVISION;
 	public static final int TASK_QUEUE_SIZE = 1000;
-//	public static final double[] WORKLOADS = { LOW_WORKLOAD, MODERATE_WORKLOAD, HIGH_WORKLOAD, LOW_WORKLOAD };
-	public static final double[] WORKLOADS = { MODERATE_WORKLOAD };
+	public static final double[] WORKLOADS = { LOW_WORKLOAD, MODERATE_WORKLOAD, HIGH_WORKLOAD, LOW_WORKLOAD };
+	// public static final double[] WORKLOADS = { MODERATE_WORKLOAD };
 	
 	//グリッドの範囲
 	public static final int GRID_X = 50;
@@ -90,6 +90,4 @@ public class Constants {
 	public static final int INACTIVE = 0;
 	public static final int ACTIVE = 1;
 	public static final int EXECUTING_TASK = 2;
-	
-	
 }

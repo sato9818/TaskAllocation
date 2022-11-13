@@ -238,6 +238,7 @@ public class Member extends Agent{
 	public void executeTask(int tick){
 		remainingTime--;
 		if(remainingTime == 0){
+			finishMessage.setQueueSize(messageQueue.size());
 			allMessages.add(finishMessage);
 			mySubTask = null;
 			finishMessage = null;
@@ -264,6 +265,7 @@ public class Member extends Agent{
 				updateRoleEvaluation(true);
 				updateDependablity(message, true);
 				preSubTasks.add(message);
+				updateThreshold(message.from());
 				allocatedSubTask[getMyId()]++;
 			}
 			break;
