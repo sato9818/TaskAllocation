@@ -262,7 +262,7 @@ public class Agent {
 	//---------------------------------------------------------------------------------------
 	
 	public void setdistance(Agent agent){
-		int dis = (int)Math.ceil((double)manhattan(this.getPositionX(), agent.getPositionX(), this.getPositionY(), agent.getPositionY()) / 200 * 10/**/ );
+		int dis = (int)Math.ceil((double)manhattan(this.getPositionX(), agent.getPositionX(), this.getPositionY(), agent.getPositionY()) / 100 * 5);
 		distance[agent.getMyId()] = dis;
 	}
 	
