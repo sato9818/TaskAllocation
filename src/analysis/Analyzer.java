@@ -36,6 +36,8 @@ public class Analyzer {
 	public static int allocationMemberCount[][][] = new int[NUM_OF_AREA][NUM_OF_AREA][EXPERIMENTAL_DURATION];
 	//環境のタスクキューから溢れたタスク
 	public static int overflowedTask[][] = new int[NUM_OF_AREA][EXPERIMENTAL_DURATION];
+	//役割更新回数
+	public static int roleChangeCount[][] = new int[NUM_OF_AREA][EXPERIMENTAL_DURATION];
 	
 	//100tick毎の平均を出すもの（エリア数でも割る必要あり）
 	//サブタスクの処理数で割る値
@@ -133,6 +135,8 @@ public class Analyzer {
     		pw.print(",");
         	pw.print("Num of allocated subtasks to member in area "+ j);
     	}
+    	pw.print(",");
+    	pw.print("Num of role changes");
     	pw.println();
 	}
 	
@@ -166,6 +170,7 @@ public class Analyzer {
 			double leaderAverageThreshold = 0;
 			double memberAverageThreshold = 0;
 			double subtaskQueueSizeFromLeaderPerspective = 0;
+			long numOfRoleChange = 0;
         	
         	int[] allocatedMember = new int[NUM_OF_AREA];
         	
@@ -195,6 +200,7 @@ public class Analyzer {
 	        	memberDependableAgents += divide(Analyzer.memberDependableAgents[i][tick], Analyzer.countMembers[i][tick]);
 				leaderAverageThreshold += divide(Analyzer.leaderAverageThreshold[i][tick], Analyzer.countLeaders[i][tick]);
 				memberAverageThreshold += divide(Analyzer.memberAverageThreshold[i][tick], Analyzer.countMembers[i][tick]);
+				numOfRoleChange += Analyzer.roleChangeCount[i][tick];
         		
 				if(tick % 100 == 0){
 					pw.print(tick);
@@ -250,6 +256,8 @@ public class Analyzer {
 		        		pw.print(",");
 			        	pw.print(allocatedMember[j] / TRIAL_COUNT);
 		        	}
+		        	pw.print(",");
+		        	pw.print(numOfRoleChange / TRIAL_COUNT);
 		        	pw.println();
 		        	
 	        		executedTask = 0;
@@ -276,6 +284,7 @@ public class Analyzer {
 					for(int j=0;j<NUM_OF_AREA;j++){
 	        			allocatedMember[j] = 0;
 		        	}
+					numOfRoleChange = 0;
 				}
 			}
         	
@@ -333,6 +342,8 @@ public class Analyzer {
 		pw.print("Average of member threshold");
 		pw.print(",");
 		pw.print("Average subtask queue size from leader perspective");
+		pw.print(",");
+    	pw.print("Num of role changes");
     	pw.println();
 	}
 	
@@ -368,6 +379,7 @@ public class Analyzer {
 		double leaderAverageThreshold = 0;
 		double memberAverageThreshold = 0;
 		double subtaskQueueSizeFromLeaderPerspective = 0;
+		long numOfRoleChange = 0;
         for(int tick=0;tick<EXPERIMENTAL_DURATION;tick++){
         	for(int i=0;i<NUM_OF_AREA;i++){
         		executedTask += Analyzer.executedTask[i][tick];
@@ -392,6 +404,7 @@ public class Analyzer {
 	        	memberDependableAgents += divide(Analyzer.memberDependableAgents[i][tick], Analyzer.countMembers[i][tick]);
 				leaderAverageThreshold += divide(Analyzer.leaderAverageThreshold[i][tick], Analyzer.countLeaders[i][tick]);
 				memberAverageThreshold += divide(Analyzer.memberAverageThreshold[i][tick], Analyzer.countMembers[i][tick]);
+				numOfRoleChange += Analyzer.roleChangeCount[i][tick];
         		
         		
         		if(tick % 100 == 0){
@@ -452,6 +465,8 @@ public class Analyzer {
 				pw.print(memberAverageThreshold / 100 / NUM_OF_AREA);
 				pw.print(",");
 				pw.print(subtaskQueueSizeFromLeaderPerspective / 100 / NUM_OF_AREA);
+				pw.print(",");
+	        	pw.print(numOfRoleChange / TRIAL_COUNT);
 	        	pw.println();
 	        	
 	        	executedTask = 0;
@@ -479,6 +494,7 @@ public class Analyzer {
 				}
 				leaderAverageThreshold = 0;
 				memberAverageThreshold = 0;
+				numOfRoleChange = 0;
 			}
         }
         pw.close();

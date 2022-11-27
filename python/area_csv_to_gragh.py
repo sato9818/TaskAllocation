@@ -21,7 +21,7 @@ col = [ \
     "Average subtask completion time from leader perspective", "Average task completion time","Num of leaders", "Num of members", \
     "Num of reciprocal leaders", "Num of reciprocal members", "Num of sent messages", "Num of overflowed task from task queue", \
     "Average subtask queue size", "Average leader dependable agents type 0", "Average leader dependable agents type 1", \
-    "Average leader dependable agents type 2", "Average member dependable agents", "Num of rejected task", "Task completion success rate", "Average of leader threshold", "Average of member threshold", "Average subtask queue size from leader perspective" \
+    "Average leader dependable agents type 2", "Average member dependable agents", "Num of rejected task", "Task completion success rate", "Average of leader threshold", "Average of member threshold", "Average subtask queue size from leader perspective", "Num of role changes" \
     ]
 args = sys.argv
 ex_types = args[1:]
@@ -73,6 +73,7 @@ for c in col:
     plt.tight_layout()
     plt.savefig("pdf/area/"+ c +".pdf")
     plt.savefig("png/area/"+ c +".png")
+    plt.close()
 
 fig, axes = plt.subplots(nrows=hei, ncols=wid, figsize=(9, 6))
 count=0
