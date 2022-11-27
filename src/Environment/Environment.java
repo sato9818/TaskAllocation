@@ -150,16 +150,13 @@ public class Environment {
 		collectMessages();
 		if(!THRESHOLD_FIXED) updateAgentsThreshold(tick);
 		countAgents(tick);
-		changeRole();
+		changeRole(tick);
 		decreaseDependability();
 	}
 	
 	public void updateAgentsThreshold(int tick) {
-		for(Leader leader : leaders) {
-			leader.updateThreshold(tick);
-		}
-		for(Member member : members) {
-			member.updateThreshold(tick);
+		for(Agent agent : agents) {
+			agent.updateThreshold(tick);
 		}
 	}
 	
@@ -229,7 +226,7 @@ public class Environment {
 	
 	//---------------------------------------------------------------------------------------
 	
-	private void changeRole(){
+	private void changeRole(int tick){
 		List<Leader> newLeaders = new ArrayList<Leader>();
 		List<Member> newMembers = new ArrayList<Member>();
 	
@@ -243,6 +240,7 @@ public class Environment {
 					}else if(ld.getLeaderEvaluation() < ld.getMemberEvaluation()){
 						Member mem = new Member(ld);
 						newMembers.add(mem);
+						Analyzer.roleChangeCount[ld.getArea().getId()][tick]++;
 					}else{
 						int p = rnd.NextInt(2);
 						if(p == 0){
@@ -250,6 +248,7 @@ public class Environment {
 						}else if(p == 1){
 							Member mem = new Member(ld);
 							newMembers.add(mem);
+							Analyzer.roleChangeCount[ld.getArea().getId()][tick]++;
 						}	
 					}
 				}else if(ep == 1){
@@ -259,6 +258,7 @@ public class Environment {
 					}else if(p == 1){
 						Member mem = new Member(ld);
 						newMembers.add(mem);
+						Analyzer.roleChangeCount[ld.getArea().getId()][tick]++;
 					}
 				}
 			}else{
@@ -276,11 +276,13 @@ public class Environment {
 					}else if(mem.getLeaderEvaluation() > mem.getMemberEvaluation()){
 						Leader ld = new Leader(mem); 
 						newLeaders.add(ld);
+						Analyzer.roleChangeCount[mem.getArea().getId()][tick]++;
 					}else{
 						int p = (int)rnd.NextInt(2);
 						if(p == 0){
 							Leader leader = new Leader(mem);
 							newLeaders.add(leader);
+							Analyzer.roleChangeCount[mem.getArea().getId()][tick]++;
 						}else if(p == 1){
 							newMembers.add(mem);
 						}
@@ -290,6 +292,7 @@ public class Environment {
 					if(p == 0){
 						Leader leader = new Leader(mem);
 						newLeaders.add(leader);
+						Analyzer.roleChangeCount[mem.getArea().getId()][tick]++;
 					}else if(p == 1){
 						newMembers.add(mem);
 					}
@@ -345,11 +348,11 @@ public class Environment {
 			List<Agent> dependableAgents = new ArrayList<Agent>();
 			for(int j=0;j<agents.size();j++){
 				Agent agent = agents.get(j);
-				if(leader.leaderDependabilityDegreeThreshold < leader.getLeaderDependablity(agent.getMyId())){
+				if(leader.leaderDependabilityDegreeThreshold <= leader.getLeaderDependablity(agent.getMyId())){
 					leader.adddeagent(agent);
 				}
 				for(int k=0;k<3;k++){
-					if(leader.leaderDependabilityDegreeThreshold < leader.getLeaderSpecificDependablity(k, agent.getMyId())){
+					if(leader.leaderDependabilityDegreeThreshold <= leader.getLeaderSpecificDependablity(k, agent.getMyId())){
 						leader.addSpecificDeAgents(k, agent);
 //						if(!dependableAgents.contains(agent)){//値を重複させない
 //							dependableAgents.add(agent);
@@ -365,7 +368,7 @@ public class Environment {
 			member.clearDependablityAgent();
 			for(int j=0;j<agents.size();j++){
 				Agent agent = agents.get(j);
-				if(member.memberDependabilityDegreeThreshold < member.getMemberDependablity(agent.getMyId())){
+				if(member.memberDependabilityDegreeThreshold <= member.getMemberDependablity(agent.getMyId())){
 					member.adddeagent(agent);
 				}
 			}
