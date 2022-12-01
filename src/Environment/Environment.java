@@ -154,12 +154,17 @@ public class Environment {
 		countAgents(tick);
 		changeRole(tick);
 		decreaseDependability();
+		if(DECAYED_EPSILON) decreaseEpsilon();
 	}
 	
 	public void updateAgentsThreshold(int tick) {
 		for(Agent agent : agents) {
 			agent.updateThreshold(tick);
 		}
+	}
+
+	private void decreaseEpsilon() {
+		epsilon = epsilon * EPSILON_DECAY_RATE;
 	}
 	
 	//---------------------------------------------------------------------------------------

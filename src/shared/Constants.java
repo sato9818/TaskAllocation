@@ -10,6 +10,7 @@ public class Constants {
 	public static final boolean FULL_RESOURCE = false;
 	public static final boolean THRESHOLD_FIXED = true;
 	public static final boolean COOPERATIVE = false;
+	public static final boolean	DECAYED_EPSILON = true;
 	
 	//負荷
 	public static final double LOW_WORKLOAD = 3;
@@ -34,6 +35,7 @@ public class Constants {
 	//学習系
 	public static final double LEARNING_RATE = 0.05;
 	public static final double INITIAL_EPSILON = 0.05;
+	public static final double EPSILON_DECAY_RATE = 0.9999;
 	
 	//エージェント/メッセージ
 	public static final int SOLICITATION_REDUNDANCY = 2;
