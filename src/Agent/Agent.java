@@ -113,6 +113,7 @@ public class Agent {
 		capacity = agent.capacity;
 		area = agent.getArea();
 		leaderDe = agent.leaderDe;
+		specificLeaderDe = agent.specificLeaderDe;
 		memberDe = agent.memberDe;
 		gridX = agent.getPositionX();
 		gridY = agent.getPositionY();

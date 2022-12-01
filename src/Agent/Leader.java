@@ -131,19 +131,6 @@ public class Leader extends Agent{
 
 	//---------------------------------------------------------------------------------------
 	
-	public List<Member> sortmemberDistance(List<Member> members){
-		for (int i = 0; i < members.size() - 1; i++) {
-            for (int j = members.size() - 1; j > i; j--) {
-                if (getdistance(members.get(j - 1).getMyId()) > getdistance(members.get(j).getMyId())) {
-                    Collections.swap(members,j-1,j);
-                }
-            }
-        }
-		return members;
-	}
-	
-	//---------------------------------------------------------------------------------------
-	
 	public List<Message> selectCnpMember(List<Agent> agents, Task task){
 		List<Message> messages = new ArrayList<Message>();
 		List<SubTask> subTasks = task.getSubTasks();
@@ -405,10 +392,18 @@ public class Leader extends Agent{
 			}
 		}else{
 			if(team.containsKey(subtask)){
-				if(deAgents.contains(member) && !deAgents.contains(team.get(subtask))){
+				int type = subtask.getType();
+				// if(deAgents.contains(member) && !deAgents.contains(team.get(subtask))){
+				// 	team.put(subtask, member);
+				// }else if(specificLeaderDe[subtask.getType()][member.getMyId()] > specificLeaderDe[subtask.getType()][team.get(subtask).getMyId()] && 
+				// 		!(!deAgents.contains(member) && deAgents.contains(team.get(subtask)))){
+				// 	team.put(subtask, member);
+				// }
+				if(type == -1 && leaderDe[member.getMyId()] >= leaderDe[team.get(subtask).getMyId()]){
 					team.put(subtask, member);
-				}else if(specificLeaderDe[subtask.getType()][member.getMyId()] > specificLeaderDe[subtask.getType()][team.get(subtask).getMyId()] && 
-						!(!deAgents.contains(member) && deAgents.contains(team.get(subtask)))){
+				}
+				
+				if(type != -1 && specificLeaderDe[type][member.getMyId()] >= specificLeaderDe[type][team.get(subtask).getMyId()]){
 					team.put(subtask, member);
 				}
 			}else{
@@ -434,9 +429,9 @@ public class Leader extends Agent{
 				acceptMembers.add(message.from());
 			}else{
 				SubTask subtask = message.getSubTask();
-				if(specificDeAgentsMap.get(subtask.getType()).contains(message.from())) {
-					wastedSubtasks++;
-				}
+				// if(specificDeAgentsMap.get(subtask.getType()).contains(message.from())) {
+				// 	wastedSubtasks++;
+				// }
 				updateDependablity(message, false, 0);
 			}
 			preMembers.remove(Integer.valueOf(message.from().getMyId()));	
