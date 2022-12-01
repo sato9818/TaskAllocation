@@ -21,6 +21,7 @@ import agent.Member;
 import analysis.Analyzer;
 import message.Message;
 import random.Sfmt;
+import util.Calculator;
 
 public class Environment {
 	
@@ -34,6 +35,7 @@ public class Environment {
 	private int taskID = 0;
 	public Sfmt rnd;
 	public Random r;
+	public double epsilon = INITIAL_EPSILON;
 	
 	//---------------------------------------------------------------------------------------
 	
@@ -233,7 +235,7 @@ public class Environment {
 		for(int i = 0;i<leaders.size();i++){
 			Leader ld = leaders.get(i);
 			if(ld.getPhase() == SELECT_MEMBER){
-				int ep = eGreedy();
+				int ep = Calculator.eGreedy(rnd, epsilon);
 				if(ep == 0){
 					if(ld.getLeaderEvaluation() > ld.getMemberEvaluation()){
 						newLeaders.add(ld);
@@ -269,7 +271,7 @@ public class Environment {
 		for(int i = 0;i<members.size();i++){
 			Member mem = members.get(i);
 			if(mem.roleChangable()){
-				int ep = eGreedy();
+				int ep = Calculator.eGreedy(rnd, epsilon);
 				if(ep == 0){
 					if(mem.getLeaderEvaluation() < mem.getMemberEvaluation()){
 						newMembers.add(mem);
@@ -662,21 +664,4 @@ public class Environment {
 	public void changeAreaWorkload(double workload, Area area){
 		area.changeWorkload(workload);
 	}
-	
-	
-	//---------------------------------------------------------------------------------------
-	
-	public int eGreedy() {
-		int A;
-        int randNum = rnd.NextInt(101);
-        if (randNum <= EPSILON * 100.0) {
-        	//eの確率
-			A = rnd.NextInt(2);
-        } else {
-        	//(1-e)の確率
-        	A = 0;
-        }
-        return A;
-	}
-	
 }

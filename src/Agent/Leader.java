@@ -20,6 +20,7 @@ import message.MessageType;
 import random.Sfmt;
 import task.SubTask;
 import task.Task;
+import util.Calculator;
 
 
 public class Leader extends Agent{
@@ -57,7 +58,7 @@ public class Leader extends Agent{
 				//タスクを取得
 				Task task = area.pushTask();
 				//候補メンバーに送るメッセージを決める(e-greedy法)
-				int p = eGreedy();
+				int p = Calculator.eGreedy(environment.rnd, environment.epsilon);
 				List<Message> messages = null;
 				if(CNP_MODE == true){
 					messages = selectCnpMember(agents, task);

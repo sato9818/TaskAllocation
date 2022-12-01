@@ -530,19 +530,4 @@ public class Agent {
 			specificDeAgentsMap.get(i).clear();
 		}
 	}
-	
-	//---------------------------------------------------------------------------------------
-	
-	public int eGreedy() {
-		int A;
-        int randNum = environment.rnd.NextInt(101);
-        if (randNum <= EPSILON * 100.0) {
-        	//eの確率
-			A = environment.rnd.NextInt(2);
-        } else {
-        	//(1-e)の確率
-        	A = 0;
-        }
-        return A;
-	}
 }

@@ -33,7 +33,7 @@ public class Constants {
 	
 	//学習系
 	public static final double LEARNING_RATE = 0.05;
-	public static final double EPSILON = 0.05;
+	public static final double INITIAL_EPSILON = 0.05;
 	
 	//エージェント/メッセージ
 	public static final int SOLICITATION_REDUNDANCY = 2;

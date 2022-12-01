@@ -14,6 +14,7 @@ import message.Message;
 import message.MessageType;
 import random.Sfmt;
 import task.SubTask;
+import util.Calculator;
 
 public class Member extends Agent{
 	
@@ -135,7 +136,7 @@ public class Member extends Agent{
 			}
 			solicitationMessages.clear();
 		}else{
-			int p = eGreedy();
+			int p = Calculator.eGreedy(environment.rnd, environment.epsilon);
 			while(!solicitationMessages.isEmpty()){
 				boolean decide = true;
 				Message message = null;
