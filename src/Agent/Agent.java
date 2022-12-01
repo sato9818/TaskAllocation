@@ -179,7 +179,7 @@ public class Agent {
 		wastedSubtasks = 0;
 	}
 	
-	public void mergeSortAgentBySpecificLeaderDE(List<Agent> agents, int idx) {
+	public void sortAgentBySpecificLeaderDE(List<Agent> agents, int idx) {
 		Collections.sort(agents, new Comparator<Agent>() {
 		    @Override
 		    public int compare(Agent a1, Agent a2) {

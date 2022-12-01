@@ -197,7 +197,7 @@ public class Leader extends Agent{
 		HashMap<Integer, List<Agent>> specificSortingAgentsMap = new HashMap<Integer, List<Agent>>();
 		for(int i=0;i<3;i++){
 			List<Agent> copySpecificAgents = new ArrayList<Agent>(copyAgents);
-			mergeSortAgentBySpecificLeaderDE(copySpecificAgents, i);
+			sortAgentBySpecificLeaderDE(copySpecificAgents, i);
 			copySpecificAgents.remove(this);
 			specificSortingAgentsMap.put(i, copySpecificAgents);
 		}
@@ -214,7 +214,7 @@ public class Leader extends Agent{
 			HashMap<Integer, List<Agent>> specificSortingDeAgentsMap = new HashMap<Integer, List<Agent>>();
 			for(int i=0;i<3;i++){
 				List<Agent> copySpecificDeAgents = new ArrayList<Agent>(specificDeAgentsMap.get(i));
-				mergeSortAgentBySpecificLeaderDE(copySpecificDeAgents, i);
+				sortAgentBySpecificLeaderDE(copySpecificDeAgents, i);
 				specificSortingDeAgentsMap.put(i, copySpecificDeAgents);
 			}
 
