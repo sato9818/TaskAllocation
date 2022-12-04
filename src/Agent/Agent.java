@@ -79,10 +79,18 @@ public class Agent {
 	protected int failureOrFinishedmessage = 0;
 	public double leaderDependabilityDegreeThreshold = INITAIL_LEADER_DEPENDABLITY_DEGREE_THRESHOLD;
 	public double memberDependabilityDegreeThreshold = INITAIL_MEMBER_DEPENDABLITY_DEGREE_THRESHOLD;
+	public double epsilonForLeader = INITIAL_EPSILON;
+	public double epsilonForMember = INITIAL_EPSILON;
 	int rejectedSubtasks = 0;
 	int wastedSubtasks = 0;
 	int executedSubtasks = 0;
 	int queueSizeSum = 0;
+	int failedSubtasks = 0;
+	int suceededSubtasks = 0;
+	double lastSuccessRate = 0.0;
+	int allocatedSubTasks = 0;
+	int lastAllocatedSubTasks = 0;
+
 	
 	
 	
@@ -108,6 +116,12 @@ public class Agent {
 	//---------------------------------------------------------------------------------------
 	
 	Agent(Agent agent){
+		lastAllocatedSubTasks = agent.lastAllocatedSubTasks;
+		allocatedSubTasks = agent.allocatedSubTasks;
+		failedSubtasks = agent.failedSubtasks;
+		suceededSubtasks = agent.suceededSubtasks;
+		epsilonForLeader = agent.epsilonForLeader;
+		epsilonForMember = agent.epsilonForMember;
 		environment = agent.environment;
 		myId = agent.getMyId();
 		capacity = agent.capacity;
@@ -155,6 +169,33 @@ public class Agent {
 		} else {
 			memberDependabilityDegreeThreshold = 0.1;
 		}
+	}
+
+	public void decreaseEpsilon(int tick){
+		// epsilon = epsilon * EPSILON_DECAY_RATE;
+		// Reward based epsilon greedy
+		if(tick % 100 != 0) return;
+		if(suceededSubtasks == 0 && failedSubtasks == 0) return;
+		if(lastSuccessRate <= (double) suceededSubtasks / (double) (suceededSubtasks + failedSubtasks)) {
+			epsilonForLeader = epsilonForLeader - 0.001;
+		} else {
+			epsilonForLeader = epsilonForLeader + 0.001;
+		}
+		if(allocatedSubTasks >= lastAllocatedSubTasks) {
+			epsilonForMember = epsilonForMember - 0.001;
+		} else {
+			epsilonForMember = epsilonForMember + 0.001;
+		}
+
+		lastSuccessRate = (double) suceededSubtasks / (double) (suceededSubtasks + failedSubtasks);
+		suceededSubtasks = 0; 
+		failedSubtasks = 0;
+		
+		lastAllocatedSubTasks = allocatedSubTasks;
+		allocatedSubTasks = 0;
+		
+		epsilonForLeader = Math.max(epsilonForLeader, 0.0);
+		epsilonForMember = Math.max(epsilonForMember, 0.0);
 	}
 	
 	public void updateThreshold(int tick) {
@@ -334,6 +375,7 @@ public class Agent {
 		int taskId = subTask.getTaskId();
 		sumQueueSize += message.getQueueSize();
 		failureOrFinishedmessage++;
+		suceededSubtasks++;
 		
 		List<Agent> executingMember = memberListMap.get(taskId);
 		if(executingMember == null) return;
@@ -361,6 +403,7 @@ public class Agent {
 		Agent betrayal = message.from();
 		sumQueueSize += SUB_TASK_QUEUE_SIZE;
 		failureOrFinishedmessage++;
+		failedSubtasks++;
 		members.remove(betrayal);
 		executingMembers.remove(betrayal);
 		for(int i=0;i<members.size();i++){

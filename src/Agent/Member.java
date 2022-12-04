@@ -136,7 +136,7 @@ public class Member extends Agent{
 			}
 			solicitationMessages.clear();
 		}else{
-			int p = Calculator.eGreedy(environment.rnd, environment.epsilon);
+			int p = Calculator.eGreedy(environment.rnd, this.epsilonForMember);
 			while(!solicitationMessages.isEmpty()){
 				boolean decide = true;
 				Message message = null;
@@ -146,21 +146,19 @@ public class Member extends Agent{
 						if(!deAgents.contains(message.from())){
 							decide = false;
 						}
-						// if(expectedTasks + messageQueue.size() < SUB_TASK_QUEUE_SIZE - deAgents.size()){
-						// 	decide = true;
-						// }
 					}
 				}else if(p == 1){
 					message = decideMessage(solicitationMessages, environment.rnd);
 				}
 				
-				if(COOPERATIVE && messageQueue.size() + expectedTasks >= SUB_TASK_QUEUE_SIZE){
-					decide = false;
-				}
+				// if(COOPERATIVE && messageQueue.size() + expectedTasks >= SUB_TASK_QUEUE_SIZE){
+				// 	decide = false;
+				// }
 				
 				if(messageQueue.size() == SUB_TASK_QUEUE_SIZE){
 					decide = false;
 				}
+				
 				if(decide){
 					expectedTasks++;
 				}
@@ -267,6 +265,7 @@ public class Member extends Agent{
 				updateDependablity(message, true);
 				preSubTasks.add(message);
 				updateThreshold(message.from());
+				allocatedSubTasks++;
 				allocatedSubTask[getMyId()]++;
 			}
 			break;

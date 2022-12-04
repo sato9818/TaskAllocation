@@ -79,6 +79,8 @@ public class Analyzer {
 	public static int reciprocalMembers[][] = new int[NUM_OF_AREA][EXPERIMENTAL_DURATION];
 	public static int reciprocalLeaders[][] = new int[NUM_OF_AREA][EXPERIMENTAL_DURATION];
 	public static int memberSubtaskQueueHist[][][] = new int[SUB_TASK_QUEUE_SIZE + 1][NUM_OF_AREA][EXPERIMENTAL_DURATION];
+	public static double leaderEpsilons[][] = new double[NUM_OF_AREA][EXPERIMENTAL_DURATION];
+	public static double memberEpsilons[][] = new double[NUM_OF_AREA][EXPERIMENTAL_DURATION];
 	
 	private void writeAreaCsvColumn(PrintWriter pw) {
 		pw.print("Tick");
@@ -344,6 +346,10 @@ public class Analyzer {
 		pw.print("Average subtask queue size from leader perspective");
 		pw.print(",");
     	pw.print("Num of role changes");
+		pw.print(",");
+    	pw.print("Average of leader epsilon");
+		pw.print(",");
+		pw.print("Average of member epsilon");
     	pw.println();
 	}
 	
@@ -380,6 +386,8 @@ public class Analyzer {
 		double memberAverageThreshold = 0;
 		double subtaskQueueSizeFromLeaderPerspective = 0;
 		long numOfRoleChange = 0;
+		double leaderEpsilons = 0;
+		double memberEpsilons = 0;
         for(int tick=0;tick<EXPERIMENTAL_DURATION;tick++){
         	for(int i=0;i<NUM_OF_AREA;i++){
         		executedTask += Analyzer.executedTask[i][tick];
@@ -412,6 +420,8 @@ public class Analyzer {
         			memberCount += Analyzer.countMembers[i][tick];
         			reciprocityLeaders += Analyzer.reciprocalLeaders[i][tick];
         			reciprocityMembers += Analyzer.reciprocalMembers[i][tick];
+					leaderEpsilons += divide(Analyzer.leaderEpsilons[i][tick], Analyzer.countLeaders[i][tick]);
+					memberEpsilons += divide(Analyzer.memberEpsilons[i][tick], Analyzer.countMembers[i][tick]);
         		}
         	}
         	
@@ -467,6 +477,10 @@ public class Analyzer {
 				pw.print(subtaskQueueSizeFromLeaderPerspective / 100 / NUM_OF_AREA);
 				pw.print(",");
 	        	pw.print(numOfRoleChange / TRIAL_COUNT);
+				pw.print(",");
+	        	pw.print(leaderEpsilons / NUM_OF_AREA);
+	        	pw.print(",");
+	        	pw.print(memberEpsilons / NUM_OF_AREA);
 	        	pw.println();
 	        	
 	        	executedTask = 0;
@@ -495,6 +509,8 @@ public class Analyzer {
 				leaderAverageThreshold = 0;
 				memberAverageThreshold = 0;
 				numOfRoleChange = 0;
+				leaderEpsilons = 0;
+				memberEpsilons = 0;
 			}
         }
         pw.close();

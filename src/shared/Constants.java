@@ -14,7 +14,7 @@ public class Constants {
 	
 	//負荷
 	public static final double LOW_WORKLOAD = 3;
-	public static final double MODERATE_WORKLOAD = 10;
+	public static final double MODERATE_WORKLOAD = 22;
 	public static final double HIGH_WORKLOAD = 11;
 	
 	//エリア分割
@@ -34,7 +34,7 @@ public class Constants {
 	
 	//学習系
 	public static final double LEARNING_RATE = 0.05;
-	public static final double INITIAL_EPSILON = 0.05;
+	public static final double INITIAL_EPSILON = 0.10;
 	public static final double EPSILON_DECAY_RATE = 0.9999;
 	
 	//エージェント/メッセージ
@@ -51,7 +51,7 @@ public class Constants {
 	//メンバ
 	public static final int INACTIVE_THRESHOLD = 100;
 	public static final int MEMBER_DEPENDABLITY_AGENT_THRESHOLD = 5;
-	public static final double INITAIL_MEMBER_DEPENDABLITY_DEGREE_THRESHOLD = 1.0;
+	public static final double INITAIL_MEMBER_DEPENDABLITY_DEGREE_THRESHOLD = 0.5;
 //	public static final double MEMBER_DEPENDABLITY_DEGREE_THRESHOLD = 1.0;
 	public static final double MEMBER_THRESHOLD_INCREASING_RATE = 0.01;
 	public static final double MEMBER_THRESHOLD_DECREASING_RATE = 0.00001;

@@ -58,7 +58,7 @@ public class Leader extends Agent{
 				//タスクを取得
 				Task task = area.pushTask();
 				//候補メンバーに送るメッセージを決める(e-greedy法)
-				int p = Calculator.eGreedy(environment.rnd, environment.epsilon);
+				int p = Calculator.eGreedy(environment.rnd, this.epsilonForLeader);
 				List<Message> messages = null;
 				if(CNP_MODE == true){
 					messages = selectCnpMember(agents, task);
@@ -98,6 +98,7 @@ public class Leader extends Agent{
 				//全部返信がきててアロケーションできないなら
 				failAllocate();
 				Analyzer.wastedTask[this.getArea().getId()][tick]++;
+				failedSubtasks++;
 				phase = EXECUTING_TASK;
 				clearall();
 				time = 0;

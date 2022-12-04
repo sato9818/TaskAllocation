@@ -154,7 +154,7 @@ public class Environment {
 		countAgents(tick);
 		changeRole(tick);
 		decreaseDependability();
-		if(DECAYED_EPSILON) decreaseEpsilon();
+		if(DECAYED_EPSILON) decreaseAgentsEpsilon(tick);
 	}
 	
 	public void updateAgentsThreshold(int tick) {
@@ -163,7 +163,10 @@ public class Environment {
 		}
 	}
 
-	private void decreaseEpsilon() {
+	private void decreaseAgentsEpsilon(int tick) {
+		for(Agent agent : agents) {
+			agent.decreaseEpsilon(tick);
+		}
 		epsilon = epsilon * EPSILON_DECAY_RATE;
 	}
 	
@@ -329,6 +332,7 @@ public class Environment {
 				Analyzer.reciprocalLeaders[leader.getArea().getId()][tick]++;
 			}
 			Analyzer.leaderAverageThreshold[leader.getArea().getId()][tick] += leader.leaderDependabilityDegreeThreshold;
+			Analyzer.leaderEpsilons[leader.getArea().getId()][tick] += leader.epsilonForLeader;
 		}
 		for(int i=0;i<members.size();i++){
 			Member member = members.get(i);
@@ -340,6 +344,7 @@ public class Environment {
 			}
 			Analyzer.memberDependableAgents[member.getArea().getId()][tick] += member.deAgents.size();
 			Analyzer.memberAverageThreshold[member.getArea().getId()][tick] += member.memberDependabilityDegreeThreshold;
+			Analyzer.memberEpsilons[member.getArea().getId()][tick] += member.epsilonForMember;
 		}
 	}
 	
