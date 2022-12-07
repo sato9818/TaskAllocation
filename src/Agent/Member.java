@@ -260,6 +260,7 @@ public class Member extends Agent{
 			if(message.getSubTask() == null){
 				updateRoleEvaluation(false);
 				updateDependablity(message, false);
+				unallocatedSubtasks++;
 			}else{
 				updateRoleEvaluation(true);
 				updateDependablity(message, true);

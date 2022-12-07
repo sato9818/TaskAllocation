@@ -124,10 +124,10 @@ public class Environment {
 	public void run(int tick){
 //		System.out.println("tick: " + tick + "---------------------------------------------------------------------------------------------------");
 		
-		if(tick == CHANGE_WORKLOAD_TIME){
+		if(tick == CHANGE_WORKLOAD_TIME || tick == CHANGE_WORKLOAD_TIME2){
 			changeAreaWorkload(HIGH_WORKLOAD, areas.get(0));
 		}
-		if(tick == RESTORE_WORKLOAD_TIME){
+		if(tick == RESTORE_WORKLOAD_TIME || tick == RESTORE_WORKLOAD_TIME2){
 			changeAreaWorkload(MODERATE_WORKLOAD, areas.get(0));
 		}
 		if(tick >= TIME_TO_RESET_DE && tick % 100 == 0){

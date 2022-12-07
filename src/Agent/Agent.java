@@ -89,7 +89,8 @@ public class Agent {
 	int suceededSubtasks = 0;
 	double lastSuccessRate = 0.0;
 	int allocatedSubTasks = 0;
-	int lastAllocatedSubTasks = 0;
+	int unallocatedSubtasks = 0;
+	double lastAllocatedRate = 0;
 
 	
 	
@@ -116,7 +117,8 @@ public class Agent {
 	//---------------------------------------------------------------------------------------
 	
 	Agent(Agent agent){
-		lastAllocatedSubTasks = agent.lastAllocatedSubTasks;
+		unallocatedSubtasks = agent.unallocatedSubtasks;
+		lastAllocatedRate = agent.lastAllocatedRate;
 		allocatedSubTasks = agent.allocatedSubTasks;
 		failedSubtasks = agent.failedSubtasks;
 		suceededSubtasks = agent.suceededSubtasks;
@@ -172,29 +174,36 @@ public class Agent {
 	}
 
 	public void decreaseEpsilon(int tick){
-		// epsilon = epsilon * EPSILON_DECAY_RATE;
+		// epsilonForLeader = epsilonForLeader * EPSILON_DECAY_RATE;
+		// epsilonForMember = epsilonForMember * EPSILON_DECAY_RATE;
 		// Reward based epsilon greedy
 		if(tick % 100 != 0) return;
+		decreaseLeaderEpsilon();
+		decreaseMemberEpsilon();
+	}
+	private void decreaseLeaderEpsilon() {
 		if(suceededSubtasks == 0 && failedSubtasks == 0) return;
 		if(lastSuccessRate <= (double) suceededSubtasks / (double) (suceededSubtasks + failedSubtasks)) {
-			epsilonForLeader = epsilonForLeader - 0.001;
+			epsilonForLeader = epsilonForLeader - 0.0001;
 		} else {
-			epsilonForLeader = epsilonForLeader + 0.001;
+			epsilonForLeader = epsilonForLeader + 0.0001;
 		}
-		if(allocatedSubTasks >= lastAllocatedSubTasks) {
-			epsilonForMember = epsilonForMember - 0.001;
-		} else {
-			epsilonForMember = epsilonForMember + 0.001;
-		}
-
 		lastSuccessRate = (double) suceededSubtasks / (double) (suceededSubtasks + failedSubtasks);
 		suceededSubtasks = 0; 
 		failedSubtasks = 0;
-		
-		lastAllocatedSubTasks = allocatedSubTasks;
-		allocatedSubTasks = 0;
-		
 		epsilonForLeader = Math.max(epsilonForLeader, 0.0);
+	}
+
+	private void decreaseMemberEpsilon() {
+		if(allocatedSubTasks == 0 && unallocatedSubtasks == 0) return;
+		if(lastAllocatedRate <= (double) allocatedSubTasks / (double) (allocatedSubTasks + unallocatedSubtasks)) {
+			epsilonForMember = epsilonForMember - 0.0001;
+		} else {
+			epsilonForMember = epsilonForMember + 0.0001;
+		}
+		lastAllocatedRate = (double) allocatedSubTasks / (double) (allocatedSubTasks + unallocatedSubtasks);
+		allocatedSubTasks = 0;
+		unallocatedSubtasks = 0;
 		epsilonForMember = Math.max(epsilonForMember, 0.0);
 	}
 	
