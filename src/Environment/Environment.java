@@ -79,19 +79,39 @@ public class Environment {
 		}
 		
 		Collections.shuffle(grid, r);
-		
-		for(int i=0;i<NUM_OF_AGENT;i++){
-			int x = grid.get(i).x;
-			int y = grid.get(i).y;
-			int p = rnd.NextInt(2);
-			if(p == 0){
+
+		if(!ROLE_CHNAGEABLE){
+			int cnt = 0;
+			for(int i=0;i<INITIAL_LEADER_COUNT;i++){
+				int x = grid.get(cnt).x;
+				int y = grid.get(cnt).y;
 				Leader leader = new Leader(identifyArea(x, y), x, y, agentID++, this);
 				leaders.add(leader);
 				agents.add(leader);
-			}else if(p == 1){
+				cnt++;
+			}
+			for(int i=0;i<INITIAL_MEMBER_COUNT;i++){
+				int x = grid.get(cnt).x;
+				int y = grid.get(cnt).y;
 				Member member = new Member(identifyArea(x, y), x, y, agentID++, this);
 				members.add(member);
 				agents.add(member);
+				cnt++;
+			}
+		} else {
+			for(int i=0;i<NUM_OF_AGENT;i++){
+				int x = grid.get(i).x;
+				int y = grid.get(i).y;
+				int p = rnd.NextInt(2);
+				if(p == 0){
+					Leader leader = new Leader(identifyArea(x, y), x, y, agentID++, this);
+					leaders.add(leader);
+					agents.add(leader);
+				}else if(p == 1){
+					Member member = new Member(identifyArea(x, y), x, y, agentID++, this);
+					members.add(member);
+					agents.add(member);
+				}
 			}
 		}
 		
@@ -152,7 +172,7 @@ public class Environment {
 		collectMessages();
 		if(!THRESHOLD_FIXED) updateAgentsThreshold(tick);
 		countAgents(tick);
-		changeRole(tick);
+		if(ROLE_CHNAGEABLE) changeRole(tick);
 		decreaseDependability();
 		if(DECAYED_EPSILON) decreaseAgentsEpsilon(tick);
 	}
@@ -243,7 +263,7 @@ public class Environment {
 		for(int i = 0;i<leaders.size();i++){
 			Leader ld = leaders.get(i);
 			if(ld.getPhase() == SELECT_MEMBER){
-				int ep = Calculator.eGreedy(rnd, epsilon);
+				int ep = Calculator.eGreedy(rnd, ld.epsilonForLeader);
 				if(ep == 0){
 					if(ld.getLeaderEvaluation() > ld.getMemberEvaluation()){
 						newLeaders.add(ld);
@@ -279,7 +299,7 @@ public class Environment {
 		for(int i = 0;i<members.size();i++){
 			Member mem = members.get(i);
 			if(mem.roleChangable()){
-				int ep = Calculator.eGreedy(rnd, epsilon);
+				int ep = Calculator.eGreedy(rnd, mem.epsilonForMember);
 				if(ep == 0){
 					if(mem.getLeaderEvaluation() < mem.getMemberEvaluation()){
 						newMembers.add(mem);

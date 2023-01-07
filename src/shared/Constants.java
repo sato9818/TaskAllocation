@@ -11,11 +11,15 @@ public class Constants {
 	public static final boolean THRESHOLD_FIXED = true;
 	public static final boolean COOPERATIVE = false;
 	public static final boolean	DECAYED_EPSILON = false;
+
+	//初期エージェント
+	public static final int INITIAL_LEADER_COUNT = 150;
+	public static final int INITIAL_MEMBER_COUNT = 350;
 	
 	//負荷
 	public static final double LOW_WORKLOAD = 3;
-	public static final double MODERATE_WORKLOAD = 22;
-	public static final double HIGH_WORKLOAD = 16;
+	public static final double MODERATE_WORKLOAD = 26;
+	public static final double HIGH_WORKLOAD = 22;
 	
 	//エリア分割
 	public static final int NUM_OF_VERTICAL_DIVISION = 1;
@@ -44,14 +48,14 @@ public class Constants {
 	//リーダー
 	public static final int LEADER_DEPENDABLITY_AGENT_THRESHOLD = 1;
 //	public static final double LEADER_DEPENDABLITY_DEGREE_THRESHOLD = 1.0;
-	public static final double INITAIL_LEADER_DEPENDABLITY_DEGREE_THRESHOLD = 1.0;
+	public static final double INITAIL_LEADER_DEPENDABLITY_DEGREE_THRESHOLD = 0.5;
 	public static final double LEADER_THRESHOLD_INCREASING_RATE = 0.01;
 	public static final double LEADER_THRESHOLD_DECREASING_RATE = 0.00001;
 	
 	//メンバ
 	public static final int INACTIVE_THRESHOLD = 100;
 	public static final int MEMBER_DEPENDABLITY_AGENT_THRESHOLD = 5;
-	public static final double INITAIL_MEMBER_DEPENDABLITY_DEGREE_THRESHOLD = 1.0;
+	public static final double INITAIL_MEMBER_DEPENDABLITY_DEGREE_THRESHOLD = 0.5;
 //	public static final double MEMBER_DEPENDABLITY_DEGREE_THRESHOLD = 1.0;
 	public static final double MEMBER_THRESHOLD_INCREASING_RATE = 0.01;
 	public static final double MEMBER_THRESHOLD_DECREASING_RATE = 0.00001;

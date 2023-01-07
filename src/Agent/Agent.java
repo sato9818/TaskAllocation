@@ -183,12 +183,13 @@ public class Agent {
 	}
 	private void decreaseLeaderEpsilon() {
 		if(suceededSubtasks == 0 && failedSubtasks == 0) return;
-		if(lastSuccessRate <= (double) suceededSubtasks / (double) (suceededSubtasks + failedSubtasks)) {
-			epsilonForLeader = epsilonForLeader - 0.0001;
+		double currentSuccessRate = (double) suceededSubtasks / (double) (suceededSubtasks + failedSubtasks);
+		if(lastSuccessRate <= currentSuccessRate) {
+			epsilonForLeader = epsilonForLeader - 0.0005;
 		} else {
-			epsilonForLeader = epsilonForLeader + 0.0001;
+			epsilonForLeader = epsilonForLeader + 0.0005;
 		}
-		lastSuccessRate = (double) suceededSubtasks / (double) (suceededSubtasks + failedSubtasks);
+		lastSuccessRate = currentSuccessRate;
 		suceededSubtasks = 0; 
 		failedSubtasks = 0;
 		epsilonForLeader = Math.max(epsilonForLeader, 0.0);
@@ -196,10 +197,11 @@ public class Agent {
 
 	private void decreaseMemberEpsilon() {
 		if(allocatedSubTasks == 0 && unallocatedSubtasks == 0) return;
-		if(lastAllocatedRate <= (double) allocatedSubTasks / (double) (allocatedSubTasks + unallocatedSubtasks)) {
-			epsilonForMember = epsilonForMember - 0.0001;
+		double currentAllocatedRate = (double) allocatedSubTasks / (double) (allocatedSubTasks + unallocatedSubtasks);
+		if(lastAllocatedRate <= currentAllocatedRate) {
+			epsilonForMember = epsilonForMember - 0.001;
 		} else {
-			epsilonForMember = epsilonForMember + 0.0001;
+			epsilonForMember = epsilonForMember + 0.001;
 		}
 		lastAllocatedRate = (double) allocatedSubTasks / (double) (allocatedSubTasks + unallocatedSubtasks);
 		allocatedSubTasks = 0;
