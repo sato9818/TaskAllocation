@@ -393,7 +393,7 @@ public class Environment {
 					}
 				}
 			}
-			// leader.selectAction();
+			if(ONE_LEADER_DE) leader.selectAction();
 		}
 		for(int i=0;i<members.size();i++){
 			Member member = members.get(i);

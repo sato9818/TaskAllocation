@@ -52,7 +52,7 @@ public class SubTask {
 		
 		this.taskId = id;
 		setUtility();
-		// type = -1;
+		if(ONE_LEADER_DE) type = -1;
 	}
 	
 	//---------------------------------------------------------------------------------------
