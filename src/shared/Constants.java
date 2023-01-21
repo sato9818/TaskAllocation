@@ -10,7 +10,7 @@ public class Constants {
 	public static final boolean FULL_RESOURCE = false;
 	public static final boolean THRESHOLD_FIXED = true;
 	public static final boolean COOPERATIVE = false;
-	public static final boolean	DECAYED_EPSILON = false;
+	public static final boolean	DECAYED_EPSILON = true;
 	public static final boolean	ONE_LEADER_DE = false;
 
 	//初期エージェント
@@ -18,17 +18,17 @@ public class Constants {
 	public static final int INITIAL_MEMBER_COUNT = 350;
 	
 	//負荷
-	public static final double LOW_WORKLOAD = 4;
-	public static final double MODERATE_WORKLOAD = 6;
-	public static final double HIGH_WORKLOAD = 10;
+	public static final double LOW_WORKLOAD = 3;
+	public static final double MODERATE_WORKLOAD = 26;
+	public static final double HIGH_WORKLOAD = 22;
 	
 	//エリア分割
-	public static final int NUM_OF_VERTICAL_DIVISION = 2;
-	public static final int NUM_OF_HORIZONTAL_DIVISION = 2;
+	public static final int NUM_OF_VERTICAL_DIVISION = 1;
+	public static final int NUM_OF_HORIZONTAL_DIVISION = 1;
 	public static final int NUM_OF_AREA = NUM_OF_VERTICAL_DIVISION * NUM_OF_HORIZONTAL_DIVISION;
 	public static final int TASK_QUEUE_SIZE = 1000;
-	public static final double[] WORKLOADS = { MODERATE_WORKLOAD, LOW_WORKLOAD, HIGH_WORKLOAD, MODERATE_WORKLOAD };
-	// public static final double[] WORKLOADS = { MODERATE_WORKLOAD };
+	// public static final double[] WORKLOADS = { MODERATE_WORKLOAD, LOW_WORKLOAD, HIGH_WORKLOAD, MODERATE_WORKLOAD };
+	public static final double[] WORKLOADS = { MODERATE_WORKLOAD };
 	
 	//グリッドの範囲
 	public static final int GRID_X = 50;
@@ -39,7 +39,7 @@ public class Constants {
 	
 	//学習系
 	public static final double LEARNING_RATE = 0.05;
-	public static final double INITIAL_EPSILON = 0.01;
+	public static final double INITIAL_EPSILON = 0.1;
 	public static final double EPSILON_DECAY_RATE = 0.9999;
 	
 	//エージェント/メッセージ
@@ -86,7 +86,7 @@ public class Constants {
 	
 	public static final int FIRST_MEASURE_TIME = EXPERIMENTAL_DURATION;
 	
-	public static final int TRIAL_COUNT = 1;
+	public static final int TRIAL_COUNT = 50;
 	
 //	-------------------------------------------------------------------------------------------------
 
